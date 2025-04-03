@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250402073931_Initial Create")]
-    partial class InitialCreate
+    [Migration("20250403134910_StatusNameChangeEntityTable")]
+    partial class StatusNameChangeEntityTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -131,7 +131,7 @@ namespace Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("Price")
+                    b.Property<decimal>("Budget")
                         .HasColumnType("numeric");
 
                     b.Property<string>("ServiceDescription")
@@ -143,32 +143,24 @@ namespace Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("StartupPrice")
-                        .HasColumnType("numeric");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Services");
                 });
 
-            modelBuilder.Entity("Data.Entities.StatusTypesEntity", b =>
+            modelBuilder.Entity("Data.Entities.StatusEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Status")
+                    b.Property<string>("StatusName")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.ToTable("StatusTypes");
+                    b.ToTable("Status");
                 });
 
             modelBuilder.Entity("Data.Entities.UserEntity", b =>
@@ -381,7 +373,7 @@ namespace Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Data.Entities.StatusTypesEntity", "Status")
+                    b.HasOne("Data.Entities.StatusEntity", "Status")
                         .WithMany("Projects")
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -392,17 +384,6 @@ namespace Data.Migrations
                     b.Navigation("Service");
 
                     b.Navigation("Status");
-                });
-
-            modelBuilder.Entity("Data.Entities.ServiceEntity", b =>
-                {
-                    b.HasOne("Data.Entities.UserEntity", "User")
-                        .WithMany("Services")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -481,14 +462,9 @@ namespace Data.Migrations
                     b.Navigation("Projects");
                 });
 
-            modelBuilder.Entity("Data.Entities.StatusTypesEntity", b =>
+            modelBuilder.Entity("Data.Entities.StatusEntity", b =>
                 {
                     b.Navigation("Projects");
-                });
-
-            modelBuilder.Entity("Data.Entities.UserEntity", b =>
-                {
-                    b.Navigation("Services");
                 });
 #pragma warning restore 612, 618
         }

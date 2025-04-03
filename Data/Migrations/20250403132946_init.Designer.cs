@@ -3,6 +3,7 @@ using System;
 using Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250403132946_init")]
+    partial class init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -145,7 +148,7 @@ namespace Data.Migrations
                     b.ToTable("Services");
                 });
 
-            modelBuilder.Entity("Data.Entities.StatusEntity", b =>
+            modelBuilder.Entity("Data.Entities.StatusTypesEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -157,7 +160,7 @@ namespace Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Status");
+                    b.ToTable("StatusTypes");
                 });
 
             modelBuilder.Entity("Data.Entities.UserEntity", b =>
@@ -370,7 +373,7 @@ namespace Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Data.Entities.StatusEntity", "Status")
+                    b.HasOne("Data.Entities.StatusTypesEntity", "Status")
                         .WithMany("Projects")
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -459,7 +462,7 @@ namespace Data.Migrations
                     b.Navigation("Projects");
                 });
 
-            modelBuilder.Entity("Data.Entities.StatusEntity", b =>
+            modelBuilder.Entity("Data.Entities.StatusTypesEntity", b =>
                 {
                     b.Navigation("Projects");
                 });

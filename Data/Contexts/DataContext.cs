@@ -9,7 +9,7 @@ namespace Data.Contexts;
 public class DataContext(DbContextOptions<DataContext> options) : IdentityDbContext<UserEntity, RoleEntity, Guid>(options)
 {
     public DbSet<ProjectEntity> Projects { get; set; }
-    public DbSet<StatusTypesEntity> StatusTypes { get; set; }
+    public DbSet<StatusEntity> StatusTypes { get; set; }
     public DbSet<CustomerEntity> Customers { get; set; }
     public DbSet<ServiceEntity> Services { get; set; }
     public DbSet<UserEntity> Users { get; set; }

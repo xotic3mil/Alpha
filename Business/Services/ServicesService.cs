@@ -16,7 +16,6 @@ public class ServicesService(IServiceRepository serviceRepository) : IServicesSe
         return result.Succeeded
             ? new ServiceResult<IEnumerable<Service>> { Succeeded = true, StatusCode = 200, Result = result.Result }
             : new ServiceResult<IEnumerable<Service>> { Succeeded = false, StatusCode = 500, Error = result.Error };
-
     }
 
     public async Task<ServiceResult<Service>> GetServiceByNameAsync(string serviceName)

@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data.Entities;
 
-[Table("StatusTypes")]
-public class StatusTypesEntity
+[Table("Status")]
+public class StatusEntity
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

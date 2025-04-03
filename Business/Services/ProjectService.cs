@@ -4,7 +4,6 @@ using Data.Entities;
 using Data.Interfaces;
 using Domain.Extensions;
 using Domain.Models;
-using System.Diagnostics;
 
 namespace Business.Services;
 
@@ -17,8 +16,8 @@ public class ProjectService(IProjectRespository projectRespository, IStatusTypeS
     {
         if (form == null)
             return new ProjectResult { Succeeded = false, StatusCode = 400, Error = "Not all required fields are supplied." };
-
         var projectEntity = form.MapTo<ProjectEntity>();
+
         var statusResult = await _statusTypeService.GetStatusByIdAsync(form.StatusId);
         var status = statusResult.Result;
 
@@ -42,11 +41,11 @@ public class ProjectService(IProjectRespository projectRespository, IStatusTypeS
             where: null,
             include => include.Status,
             include => include.Customer,
-            include => include.Service
+            include => include.Service,
+            include => include.Users
         );
 
         var result = new ProjectResult<IEnumerable<Project>> { Succeeded = true, StatusCode = 200, Result = response.Result };
-
         return result;
     }
 
@@ -78,11 +77,8 @@ public class ProjectService(IProjectRespository projectRespository, IStatusTypeS
         return deleteResponse.Succeeded
             ? new ProjectResult<Project> { Succeeded = true, StatusCode = 200 }
             : new ProjectResult<Project> { Succeeded = false, StatusCode = 500, Error = "Failed to delete project." };
+
     }
-
-
-
-
 
 
 }

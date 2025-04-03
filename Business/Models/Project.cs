@@ -2,7 +2,7 @@
 
 namespace Business.Models;
 
-public class Projects
+public class Project
 {
     public Guid Id { get; set; } 
     public Guid ProjectNumber { get; set; }
@@ -13,9 +13,9 @@ public class Projects
     public Guid StatusId { get; set; }
     public Guid CustomerId { get; set; }
     public Guid ServiceId { get; set; }
-    public StatusTypes Status { get; set; } = null!;
-    public Customers Customers { get; set; } = null!;
-    public Services Service { get; set; } = null!;
+    public Status Status { get; set; } = null!;
+    public Customer Customer { get; set; } = null!;
+    public Service Service { get; set; } = null!;
     public IEnumerable<Users> Users { get; set; } = new List<Users>();
 
 }

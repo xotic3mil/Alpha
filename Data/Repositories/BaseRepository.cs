@@ -33,6 +33,7 @@ public abstract class BaseRepository<TEntity, Tmodel>(DataContext context) : IBa
 
         }
     }
+
     public virtual async Task<RepositoryResult<IEnumerable<Tmodel>>> GetAllAsync(
         bool orderbyDescending = false,
         Expression<Func<TEntity, object>>? expression = null,

@@ -1,6 +1,6 @@
 ﻿namespace Business.Models;
 
-public class Services
+public class Service
 {
     public Guid Id { get; set; }
     public string ServiceName { get; set; } = null!;

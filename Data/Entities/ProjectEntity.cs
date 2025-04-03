@@ -27,7 +27,7 @@ public class ProjectEntity
     [Required]
     [ForeignKey(nameof(StatusId))]
     public Guid StatusId { get; set; }
-    public virtual StatusTypesEntity Status { get; set; } = null!;
+    public virtual StatusEntity Status { get; set; } = null!;
 
     [Required]
     [ForeignKey(nameof(Service))]

@@ -257,6 +257,25 @@ h1 {
     line-height: normal;
 }
 
+.status-container {
+    height: 34px;
+    padding: 7px 10px 7px 7px;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 6px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: #b3ff0352;
+}
+
+.status {
+    font-family: Nunito;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
 .search {
     background-color: var(--Background) !important;
     color: var(--text-color) !important;

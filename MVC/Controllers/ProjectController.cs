@@ -3,7 +3,9 @@ using Business.Interfaces;
 using Business.Models;
 using Business.Services;
 using Data.Entities;
+using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MVC.Models;
@@ -19,19 +21,24 @@ namespace MVC.Controllers
         private readonly IServicesService _serviceService;
         private readonly ICustomersService _customerService;
         private readonly IUserService _userService;
+        private readonly UserManager<UserEntity> _userManager;
+
 
         public ProjectController(
             IProjectsService projectService,
             IStatusTypeService statusService,
             IServicesService serviceService,
             ICustomersService customerService,
-            IUserService userService)
+            IUserService userService,
+            UserManager<UserEntity> userManager
+            )
         {
             _projectService = projectService;
             _statusService = statusService;
             _serviceService = serviceService;
             _customerService = customerService;
             _userService = userService;
+            _userManager = userManager;
         }
 
 
@@ -49,7 +56,7 @@ namespace MVC.Controllers
                 Projects = project.Result,
                 Statuses = status.Result,
                 Services = service.Result,
-                Customers = customer.Result
+                Customers = customer.Result,
 
             };
 
@@ -81,6 +88,9 @@ namespace MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProjectViewModel model)
         {
+            // ALWAYS populate the dropdown lists BEFORE returning the view
+            await PopulateViewModelAsync(model);
+
             if (ModelState.IsValid)
             {
                 var form = model.Form;
@@ -88,19 +98,15 @@ namespace MVC.Controllers
 
                 if (creationResult.Succeeded)
                 {
-   
                     model.Form = new ProjectRegForm();
-                    await PopulateViewModelAsync(model);
-
                     ViewBag.SuccessMessage = "Project created successfully.";
-                    return View("Index", model);
+                    return RedirectToAction(nameof(Index));
                 }
 
                 ModelState.AddModelError(string.Empty, creationResult.Error);
             }
 
-            await PopulateViewModelAsync(model);
-
+            // Model is already populated above
             return View("Index", model);
         }
 

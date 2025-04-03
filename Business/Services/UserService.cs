@@ -1,9 +1,9 @@
 ﻿using Business.Dtos;
-using Business.Factories;
 using Business.Interfaces;
 using Business.Models;
 using Data.Entities;
 using Data.Interfaces;
+using Data.Repositories;
 using Domain.Extensions;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
@@ -51,19 +51,20 @@ public class UserService(IUserRepository userRepository, UserManager<UserEntity>
             : new UserResult { Succeeded = false, StatusCode = 500, Error = "Failed to remove user from role." };
     }
 
-
     public async Task<UserResult> CreateUser(UserRegForm form)
     {
-        var user = await _userManager.FindByEmailAsync(form.Email);
-        if (user != null)
-            return new UserResult { Succeeded = false, StatusCode = 409, Error = "User already exists." };
+        if (form == null)
+            return new UserResult { Succeeded = false, StatusCode = 400, Error = "Not all required fields are supplied." };
 
-        var userform = UserFactory.Create(form);
-        var result = await _userManager.CreateAsync(userform, form.Password);
+        var userEntity = form.MapTo<UserEntity>();
+        userEntity.UserName = form.Email;
+        userEntity.NormalizedUserName = form.Email?.ToUpper();
+
+        var result = await _userManager.CreateAsync(userEntity, form.Password);
 
         return result.Succeeded
             ? new UserResult { Succeeded = true, StatusCode = 201 }
-            : new UserResult { Succeeded = false, StatusCode = 500, Error = "Failed to create user." };
+            : new UserResult { Succeeded = false, StatusCode = 500, Error = $"Failed to create user" };
     }
 
 
@@ -72,8 +73,6 @@ public class UserService(IUserRepository userRepository, UserManager<UserEntity>
         var userEntity = await _userManager.FindByIdAsync(user.Id.ToString());
         if (userEntity == null)
             return new UserResult { Succeeded = false, StatusCode = 404, Error = "User doesn't exists." };
-
-        userEntity = UserFactory.Update(userEntity, user);
 
         var result = await _userManager.UpdateAsync(userEntity);
 

@@ -69,7 +69,7 @@
             }
              @foreach (var project in Model.Projects)
             {
-                <div class="col-12 col-md-6 col-lg-4">
+                <div class="col-12 col-md-9 col-lg-3">
                     <div class="card shadow-sm h-100 rounded-end-5 rounded-bottom-5">
                         <div class="card-body">
                             <div class="mb-3">
@@ -79,7 +79,7 @@
                                          alt="@project.Name" />
                                     <div class="mx-3">
                                         <h6>@project.Name</h6>
-                                        <p>@project.Service?.ServiceName</p>
+                                        <p class="text-muted">@(project.Customer?.CompanyName)</p>
                                     </div>
                                     <div class="dropdown ms-auto">
                                         <button class="btn btn-sm btn-link text-muted p-0"
@@ -134,6 +134,11 @@
                                             <img src="/images/clock.svg" />
                                             <span>@((project.EndDate.ToDateTime(TimeOnly.MinValue) - DateTime.Now).Days) days left</span>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="ms-2 shadow-sm status-container">
+                                    <div class="status">
+                                        <span>@project.Status.StatusName</span>
                                     </div>
                                 </div>
                                 <div class="ms-auto d-flex">
