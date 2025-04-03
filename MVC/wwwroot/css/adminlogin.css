@@ -1,0 +1,127 @@
+﻿html,
+body {
+    height: 100%;
+}
+
+.btnGoogle {
+    display: inline-flex;
+    padding: 14px 137px 14px 16px;
+    align-items: center;
+    gap: 106px;
+    height: 48px;
+    border-radius: 14px;
+    background: #f5f7fa;
+    border: none;
+}
+
+.btnAuth {
+    font-family: "Nunito";
+    display: flex;
+    width: 400px;
+    padding: 14px 24px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    border-radius: 14px;
+    border: 1px solid #fff;
+    background: #2d99ff;
+    box-shadow: 0px 4px 16px 0px rgba(0, 129, 255, 0.18);
+}
+
+    .btnAuth:hover {
+        background-color: #155bc1;
+    }
+
+/* Background gradient for left panel */
+.bg-primary {
+    background: linear-gradient(135deg, #4e73df, #224abe) !important;
+}
+
+/* Add this to set the background color for the login section */
+.login-container {
+    background-color: #fff;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+/* If you want the entire right column to be white */
+.admin-login-section {
+    background-color: #fff;
+    height: 100%;
+    padding: 0;
+}
+
+.login-form-content {
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+/* Custom background image for welcome section */
+.welcome-section {
+    position: relative;
+    background-image: url("/images/backdrop.jpg"); /* Add ./ to specify current directory */
+    background-size: cover;
+    background-position: center;
+    color: white;
+    overflow: hidden;
+}
+
+/* Dark overlay to ensure text readability */
+.welcome-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient( 135deg, rgba(26, 47, 95, 0.9), rgba(6, 15, 44, 0.85) );
+    z-index: 1;
+}
+
+/* Position content above the overlay */
+.welcome-content {
+    z-index: 2;
+}
+
+    /* Increase visibility of text elements */
+    .welcome-content h1,
+    .welcome-content p {
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Make the alert box semi-transparent to blend with the background */
+    .welcome-content .alert {
+        background-color: rgba(255, 255, 255, 0.9);
+        border: none;
+    }
+
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    .welcome-content {
+        padding: 2rem 0;
+    }
+
+    .col-md-6.bg-primary {
+        min-height: 250px;
+    }
+}

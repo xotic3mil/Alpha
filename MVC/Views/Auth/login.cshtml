@@ -1,0 +1,73 @@
+﻿@model Business.Dtos.UserLoginForm
+
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Login";
+}
+
+<div class="modal fade show d-block align-content-center"
+     id="loginModal"
+     tabindex="-1"
+     aria-labelledby="loginModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-white">
+            <div class="text-center my-5 bg-white">
+                <h1 class="modal-title fs-3" id="loginModalLabel">Login</h1>
+            </div>
+            <div>
+                <div class="d-flex justify-content-center mb-5">
+                    <div class="btnGoogle">
+                        <img src="~/images/google.svg" alt="Google" width="15" height="16" />
+                        <button type="button" class="btn">Login with Google</button>
+                    </div>
+                </div>
+            </div>
+            <div class="px-5 mb-4">
+                <div class="position-relative">
+                    <hr class="text-muted" />
+                    <div class="position-absolute top-50 start-50 translate-middle px-3 bg-white text-muted small">
+                        OR
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body bg-white">
+                <div class="container-fluid px-5 bg-white">
+                    <form asp-action="Login" asp-controller="Auth" method="post">
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control formBorder", placeholder = "Your email address", id = "Email" })
+                            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            @Html.PasswordFor(m => m.Password, new { @class = "form-control formBorder", placeholder = "Enter your password", id = "Password" })
+                            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="container-fluid bg-white">
+                            <div class="form-check">
+                                @Html.CheckBoxFor(m => m.RememberMe, new { @class = "form-check-input", id = "RememberMe" })
+                                <label class="form-check-label" for="flexCheckDefault">
+                                    Remember Me
+                                </label>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-center mb-5 bg-white">
+                            <button type="submit" class="btnAuth">Log In</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="d-flex justify-content-center mb-3 bg-white">
+                <span>
+                    Don't have an account?
+                    <a href="/auth/register" class="text-decoration-none">
+                        Sign up
+                    </a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
