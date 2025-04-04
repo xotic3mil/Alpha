@@ -31,22 +31,22 @@
             </button>
         </div>
     </div>
-        <ul class="nav mb-4 border-bottom">
+        <ul class="nav mb-4">
             <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="bi bi-grid me-1"></i>All Projects
+                <a class="nav-link @(ViewBag.StatusFilter == null || ViewBag.StatusFilter == "All" ? "active" : "")"
+                   asp-controller="Project" asp-action="Index">
+                    All Projects (@ViewBag.TotalCount)
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="bi bi-play-circle me-1"></i>Started
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="bi bi-check-circle me-1"></i>Completed
-                </a>
-            </li>
+            @foreach (var statusGroup in ViewBag.StatusCounts)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @(ViewBag.StatusFilter == statusGroup.Key ? "active" : "")"
+                       asp-controller="Project" asp-action="Index" asp-route-statusFilter="@statusGroup.Key">
+                        @statusGroup.Key (@statusGroup.Value)
+                    </a>
+                </li>
+            }
         </ul>
     <div class="row g-3">
             @if (ViewBag.SuccessMessage != null)

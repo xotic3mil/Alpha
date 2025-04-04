@@ -21,10 +21,10 @@
     <div id="page-overlay"
          class="position-fixed top-0 start-0 w-100 h-100 d-none"
          style="background-color: var(--background); z-index: 1040"></div>
-    <div class="container-fluid" >
+    <div class="container-fluid">
         <div class="row g-0">
             <nav id="sidebarMenu"
-            class="col-md-3 col-lg-2 sidebar collapse d-md-block border-end">
+                 class="col-md-3 col-lg-1 sidebar collapse d-md-block border-end">
                 <div class="d-flex align-items-center justify-content-center py-3 mb-3 border-bottom">
                     <h1 class="navbar-brand logo" href="/" style="font-size: 2rem;">
                         <img src="~/images/Logo.svg"
@@ -70,7 +70,7 @@
                     </ul>
                 </div>
             </nav>
-            <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4">
+            <main class="main-content col-md-9 col-lg-10 ms-sm-auto px-md-4">
                 <header class="navbar navbar-expand-md navbar-light sticky-top py-2">
                     <div class="container-fluid px-0">
                         <button class="navbar-toggler d-md-none"
@@ -147,6 +147,14 @@
                                     <li>
                                         <a class="dropdown-item" href="/auth/admin">Admin Login</a>
                                     </li>
+                                    <li>
+                                        <div class="dropdown-item d-flex align-items-center">
+                                            <span>Dark Mode</span>
+                                            <div class="form-check form-switch ms-auto">
+                                                <input class="form-check-input" type="checkbox" id="darkModeToggle">
+                                            </div>
+                                        </div>
+                                    </li>
                                     @if (SignInManager.IsSignedIn(User))
                                     {
                                         <!-- Show Sign Out -->
@@ -164,7 +172,6 @@
                                     }
                                 </ul>
                             </div>
-                            <button id="toggleDarkMode" class="btn btn-secondary">Toggle Dark Mode</button>
                         </div>
                     </div>
                 </header>
@@ -173,9 +180,9 @@
         </div>
     </div>
 
-    
-    <div class="col-md-9 col-lg-10 ms-sm-auto px-md-4">
-        <main role="main" class="pb-3" >
+  
+    <div class="col-md-9 col-lg-11 ms-sm-auto px-md-4">
+        <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>

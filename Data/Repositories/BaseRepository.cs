@@ -144,5 +144,27 @@ public abstract class BaseRepository<TEntity, Tmodel>(DataContext context) : IBa
         }
     }
 
+    public virtual async Task<RepositoryResult<bool>> UpdateAsync(TEntity entity, Expression<Func<TEntity, bool>> expression)
+    {
+        if (entity == null)
+            return new RepositoryResult<bool> { Succeeded = false, StatusCode = 400, Error = "Entity can't be null" };
+        try
+        {
+            var existingEntity = await _dbSet.FirstOrDefaultAsync(expression);
+            if (existingEntity == null)
+                return new RepositoryResult<bool> { Succeeded = false, StatusCode = 404, Error = "not found" };
+            _context.Entry(existingEntity).CurrentValues.SetValues(entity);
+            await _context.SaveChangesAsync();
+            return new RepositoryResult<bool> { Succeeded = true, StatusCode = 200 };
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error Updating {nameof(TEntity)} :: {ex.Message}");
+            return new RepositoryResult<bool> { Succeeded = false, StatusCode = 500, Error = ex.Message };
+        }
+    }
+
+
+
 
 }

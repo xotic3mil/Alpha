@@ -1,13 +1,9 @@
 ﻿using Business.Dtos;
 using Business.Interfaces;
-using Business.Models;
-using Business.Services;
 using Data.Entities;
-using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using MVC.Models;
 using System.Diagnostics;
 
@@ -44,21 +40,29 @@ namespace MVC.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string statusFilter = null)
         {
-            var project = await _projectService.GetProjectsAsync();
-            var status = await _statusService.GetStatusesAsync();
-            var service = await _serviceService.GetServicesAsync();
-            var customer = await _customerService.GetCustomersAsync();
 
-            ProjectViewModel viewModel = new ProjectViewModel()
+            var viewModel = new ProjectViewModel();
+            await PopulateViewModelAsync(viewModel);
+
+
+            var allProjects = viewModel.Projects.ToList();
+
+            var statusCounts = allProjects
+                .GroupBy(p => p.Status?.StatusName ?? "Unknown")
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            ViewBag.StatusFilter = statusFilter;
+            ViewBag.TotalCount = allProjects.Count;
+            ViewBag.StatusCounts = statusCounts;
+
+            if (!string.IsNullOrEmpty(statusFilter) && statusFilter.ToLower() != "all")
             {
-                Projects = project.Result,
-                Statuses = status.Result,
-                Services = service.Result,
-                Customers = customer.Result,
-
-            };
+                viewModel.Projects = allProjects
+                    .Where(p => string.Equals(p.Status?.StatusName, statusFilter, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
 
             return View(viewModel);
         }
@@ -88,7 +92,7 @@ namespace MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProjectViewModel model)
         {
-            // ALWAYS populate the dropdown lists BEFORE returning the view
+
             await PopulateViewModelAsync(model);
 
             if (ModelState.IsValid)
@@ -106,7 +110,6 @@ namespace MVC.Controllers
                 ModelState.AddModelError(string.Empty, creationResult.Error);
             }
 
-            // Model is already populated above
             return View("Index", model);
         }
 
@@ -133,6 +136,23 @@ namespace MVC.Controllers
             return View(errorViewModel);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetProjectById(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return BadRequest("Invalid project ID");
+            }
+
+            var result = await _projectService.GetProjectAsync(id);
+
+            if (!result.Succeeded || result.Result == null)
+            {
+                return NotFound("Project not found");
+            }
+
+            return Json(result.Result);
+        }
 
 
     }
