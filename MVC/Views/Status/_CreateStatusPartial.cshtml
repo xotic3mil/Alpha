@@ -32,13 +32,16 @@
                                        name="Form.StatusName"
                                        class="form-control formBorder"
                                        id="Form_StatusName"
-                                       placeholder="Enter status name" />
+                                       placeholder="Enter status name"
+                                       required />
                                 <input type="color"
                                        name="Form.ColorCode"
+                                       asp-for="Form.ColorCode"
                                        class="form-control form-control-color formBorder"
                                        id="statusColor"
                                        value="#4CAF50"
-                                       style="width: 10px; min-width: 10px; max-width: 30px; padding: 3px;" />
+                                       style="width: 10px; min-width: 10px; max-width: 30px; padding: 3px;"
+                                       required />
                             </div>
                             <span class="text-danger" asp-validation-for="Form.StatusName"></span>
                         </div>
@@ -48,7 +51,8 @@
                                       id="Form_Description"
                                       name="Form.Description"
                                       rows="3"
-                                      placeholder="Describe what this status means"></textarea>
+                                      placeholder="Describe what this status means"
+                                      required></textarea>
                             <span class="text-danger" asp-validation-for="Form.Description"></span>
                         </div>
                         <div class="d-flex justify-content-center mb-4 bg-white">

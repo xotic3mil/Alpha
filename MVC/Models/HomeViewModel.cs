@@ -34,6 +34,6 @@ namespace MVC.Models
         public int ProjectCount { get; set; }
         public decimal TotalBudget { get; set; }
         public string Status { get; set; }
-        public string StatusClass { get; set; } // For the badge color classes
+        public string StatusClass { get; set; } 
     }
 }

@@ -5,8 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MVC.Models;
-using System.Linq;
-using System.Threading.Tasks;
+using Domain.Models;
 
 namespace MVC.Controllers
 {
@@ -40,14 +39,12 @@ namespace MVC.Controllers
         {
             var model = new HomeViewModel();
 
-            // Get project data
             var projectsResult = await _projectService.GetProjectsAsync();
             if (projectsResult.Succeeded)
             {
-                var projects = projectsResult.Result?.ToList() ?? new List<Domain.Models.Project>();
+                var projects = projectsResult.Result?.ToList() ?? new List<Project>();
                 model.ProjectCount = projects.Count;
 
-                // Get project status distribution
                 var statusGroups = projects
                     .GroupBy(p => p.Status?.StatusName ?? "Unknown")
                     .ToDictionary(g => g.Key, g => g.Count());
@@ -58,39 +55,30 @@ namespace MVC.Controllers
                     .ToList();
             }
 
-            // Get user count
             model.UserCount = await _userManager.Users.CountAsync();
 
-            // Get status count
             var statusResult = await _statusService.GetStatusesAsync();
             model.StatusCount = statusResult.Succeeded ? statusResult.Result?.Count() ?? 0 : 0;
 
-            // Get role count
             model.RoleCount = await _roleManager.Roles.CountAsync();
 
-            // Get customer count and top customers
             var customersResult = await _customerService.GetCustomersAsync();
             if (customersResult.Succeeded)
             {
                 var customers = customersResult.Result?.ToList() ?? new List<Domain.Models.Customer>();
                 model.CustomerCount = customers.Count;
 
-
-                // Get service count and recent services
                 var servicesResult = await _serviceService.GetServicesAsync();
                 if (servicesResult.Succeeded)
                 {
                     var services = servicesResult.Result?.ToList() ?? new List<Domain.Models.Service>();
                     model.ServiceCount = services.Count;
 
-                    // Get recent services
                     model.RecentServices = services
-                        .OrderByDescending(s => s.Id) // Assuming newer services have greater IDs
+                        .OrderByDescending(s => s.Id) 
                         .Take(5)
                         .ToList();
                 }
-
-                // Mock recent activities
                 model.RecentActivities = new List<ActivityItem>
             {
                 new ActivityItem {

@@ -5,6 +5,7 @@ using Data.Interfaces;
 using System.Diagnostics;
 using Domain.Models;
 using Data.Entities;
+using Data.Repositories;
 
 namespace Business.Services;
 
@@ -38,16 +39,15 @@ public class StatusTypeService(IStatusTypeRepository statusTypeRepository) : ISt
 
     public async Task<StatusTypeResults> CreateStatus(StatusTypeRegForm form)
     {
-        var existingStatus = await _statusTypeRepository.ExistsAsync(x => x.StatusName == form.StatusName);
-        if (existingStatus.Result)
-            return new StatusTypeResults { Succeeded = false, StatusCode = 409, Error = "Status already exists." };
+        if (form == null)
+            return new StatusTypeResults { Succeeded = false, StatusCode = 400, Error = "Not all required fields are supplied." };
+        var statusEntity = form.MapTo<StatusEntity>();
 
-        var statusEntity = new StatusEntity { StatusName = form.StatusName };
         var result = await _statusTypeRepository.CreateAsync(statusEntity);
 
         return result.Succeeded
             ? new StatusTypeResults { Succeeded = true, StatusCode = 201 }
-            : new StatusTypeResults { Succeeded = false, StatusCode = 500, Error = "Failed to create status." };
+            : new StatusTypeResults { Succeeded = false, StatusCode = 500, Error = result.Error };
     }
 
     public async Task<StatusTypeResults<Status>> DeleteStatusAsync(Guid id)

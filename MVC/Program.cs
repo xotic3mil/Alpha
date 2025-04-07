@@ -54,6 +54,7 @@ builder.Services.AddScoped<IStatusTypeRepository, StatusTypeRepository>();
 // Register Services
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<DatabaseInitializationService>();
 builder.Services.AddScoped<IStatusTypeService, StatusTypeService>();
 builder.Services.AddScoped<IProjectsService, ProjectService>();
 builder.Services.AddScoped<ICustomersService, CustomerService>();
@@ -77,7 +78,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
     options.ExpireTimeSpan = TimeSpan.FromDays(14);
     options.SlidingExpiration = true;
-    options.LoginPath = "/Auth/Login";
+    options.LoginPath = "/Auth/Register";
     options.AccessDeniedPath = "/Auth/AccessDenied";
 });
 
@@ -109,6 +110,31 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
+
+app.Use(async (context, next) =>
+{
+    // Skip for static files
+    if (!context.Request.Path.StartsWithSegments("/css") &&
+        !context.Request.Path.StartsWithSegments("/js") &&
+        !context.Request.Path.StartsWithSegments("/lib") &&
+        !context.Request.Path.StartsWithSegments("/images") &&
+        !context.Request.Path.StartsWithSegments("/Error"))
+    {
+        var dbInitService = context.RequestServices.GetRequiredService<DatabaseInitializationService>();
+        var isInitialized = await dbInitService.IsDatabaseInitializedAsync();
+
+
+        if (!isInitialized &&
+            !context.Request.Path.StartsWithSegments("/Auth") &&
+            context.Request.Path != "/")
+        {
+            context.Response.Redirect("/Auth/Register");
+            return;
+        }
+    }
+
+    await next();
+});
 
 
 app.Run();

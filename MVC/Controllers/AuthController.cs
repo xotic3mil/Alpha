@@ -4,6 +4,7 @@ using Business.Dtos;
 using Data.Entities;
 using Business.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Business.Services;
 
 namespace MVC.Controllers;
 
@@ -11,11 +12,13 @@ public class AuthController(
     IUserService userService,
     UserManager<UserEntity> userManager,
     SignInManager<UserEntity> signInManager,
+    DatabaseInitializationService dbInitService,
     ILogger<AuthController> logger
     ) : Controller
 {
     private readonly IUserService _userService = userService;
     private readonly UserManager<UserEntity> _userManager = userManager;
+    private readonly DatabaseInitializationService _dbInitService = dbInitService;
     private readonly SignInManager<UserEntity> _signInManager = signInManager;
     private readonly ILogger<AuthController> _logger = logger;
 
@@ -30,6 +33,15 @@ public class AuthController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(UserLoginForm model)
     {
+        var isInitialized = await _dbInitService.IsDatabaseInitializedAsync();
+
+        if (!isInitialized)
+        {
+            ViewBag.FirstUser = true;
+            ViewBag.Title = "Create Admin Account";
+            return RedirectToAction("Register");
+        }
+
         if (!ModelState.IsValid)
         {
             _logger.LogWarning("Login failed due to invalid model state.");
@@ -77,8 +89,17 @@ public class AuthController(
 
 
     [AllowAnonymous]
-    public IActionResult Register()
+    public async Task<IActionResult> Register()
     {
+        bool isFirstUser = !await _dbInitService.IsDatabaseInitializedAsync();
+
+        ViewBag.FirstUser = isFirstUser;
+
+        if (isFirstUser)
+        {
+            _logger.LogInformation("Showing admin registration page for first-time setup");
+        }
+
         return View();
     }
 
@@ -86,6 +107,16 @@ public class AuthController(
     [AllowAnonymous]
     public async Task<IActionResult> Register(UserRegForm model)
     {
+        var isFirstUser = !await _dbInitService.IsDatabaseInitializedAsync();
+
+        if (isFirstUser)
+        {
+            ViewBag.FirstUser = true;
+            ViewBag.Title = "Create Admin Account";
+            model.TermsAndCondition = true;
+            ModelState.Remove(nameof(model.TermsAndCondition));
+        }
+
         if (!ModelState.IsValid)
         {
             _logger.LogWarning("Registration failed due to invalid model state.");
@@ -104,6 +135,24 @@ public class AuthController(
         var userResult = await _userService.CreateUser(model);
         if (userResult.Succeeded)
         {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user != null)
+            {
+                if (isFirstUser)
+                {
+                    await _userManager.AddToRoleAsync(user, "Admin");
+                    _logger.LogInformation("First user created with Admin role: {Email}", model.Email);
+                }
+                else
+                {
+                    await _userManager.AddToRoleAsync(user, "User");
+                    _logger.LogInformation("Regular user created with User role: {Email}", model.Email);
+                }
+
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                _logger.LogInformation("User {Email} automatically logged in after registration", model.Email);
+            }
+
             _logger.LogInformation("Redirecting to Home after successful registration.");
             return RedirectToAction("Index", "Project");
         }
