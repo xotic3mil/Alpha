@@ -11,8 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-// Register DbContext
 var connectionString = builder.Configuration.GetConnectionString("PostgreSQL")
                       ?? Environment.GetEnvironmentVariable("PostgreSQL");
 
@@ -49,6 +47,7 @@ builder.Services.AddScoped<IProjectRespository, ProjectRespository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IStatusTypeRepository, StatusTypeRepository>();
 
 // Register Services
@@ -56,6 +55,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<DatabaseInitializationService>();
 builder.Services.AddScoped<IStatusTypeService, StatusTypeService>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IProjectsService, ProjectService>();
 builder.Services.AddScoped<ICustomersService, CustomerService>();
 builder.Services.AddScoped<IServicesService, ServicesService>();
@@ -113,7 +113,6 @@ app.MapControllerRoute(
 
 app.Use(async (context, next) =>
 {
-    // Skip for static files
     if (!context.Request.Path.StartsWithSegments("/css") &&
         !context.Request.Path.StartsWithSegments("/js") &&
         !context.Request.Path.StartsWithSegments("/lib") &&

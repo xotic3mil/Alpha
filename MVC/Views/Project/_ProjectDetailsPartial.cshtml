@@ -34,8 +34,10 @@
                                         <li>
                                             <form id="projectDetailDeleteForm" asp-action="Delete" method="post">
                                                 @Html.AntiForgeryToken()
-                                                <input type="hidden" id="projectDetailDeleteId" name="id" value="">
-                                                <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Delete Project</button>
+                                                <input type="hidden" id="projectDetailDeleteId" name="id" value="" />
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="bi bi-trash me-2"></i>Delete Project
+                                                </button>
                                             </form>
                                         </li>
                                     </ul>
@@ -54,40 +56,56 @@
                                 </div>
                                 <div class="card shadow-sm rounded-4 mb-4">
                                     <div class="card-body">
+                                        <h5 class="card-title mb-3">Project Comments</h5>
+                                        <div class="mb-3">
+                                            <form id="commentForm" action="/Comment/Create" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" id="commentProjectId" name="ProjectId" value="" />
+                                                <div class="input-group">
+                                                    <input type="text"
+                                                           id="commentContent"
+                                                           name="Content"
+                                                           class="form-control formBorder"
+                                                           placeholder="Add a status update comment..."
+                                                           required />
+                                                    <button type="submit" class="btn btn-primary">Post</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <div id="commentsContainer" class="comments-container" style="max-height: 300px; overflow-y: auto;">
+                                            <div class="text-center py-3">
+                                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <p class="text-muted mt-2">Loading comments...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card shadow-sm rounded-4 mb-4">
+                                    <div class="card-body">
                                         <h5 class="card-title mb-3">Timeline</h5>
                                         <div class="row g-3">
                                             <div class="col-md-4">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="rounded-3 p-2 me-3" style="background-color: rgba(46, 204, 113, 0.1);">
-                                                        <i class="bi bi-calendar-check text-success"></i>
-                                                    </div>
-                                                    <div>
-                                                        <span class="d-block text-muted small">Start Date</span>
-                                                        <strong id="projectDetailStartDate"></strong>
-                                                    </div>
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="bi bi-calendar-check text-muted me-2"></i>
+                                                    <span class="text-muted">Start Date:</span>
                                                 </div>
+                                                <h6 id="projectDetailStartDate" class="mb-0">Not set</h6>
                                             </div>
                                             <div class="col-md-4">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="rounded-3 p-2 me-3" style="background-color: rgba(231, 76, 60, 0.1);">
-                                                        <i class="bi bi-calendar-x text-danger"></i>
-                                                    </div>
-                                                    <div>
-                                                        <span class="d-block text-muted small">End Date</span>
-                                                        <strong id="projectDetailEndDate"></strong>
-                                                    </div>
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="bi bi-calendar-x text-muted me-2"></i>
+                                                    <span class="text-muted">End Date:</span>
                                                 </div>
+                                                <h6 id="projectDetailEndDate" class="mb-0">Not set</h6>
                                             </div>
                                             <div class="col-md-4">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="rounded-3 p-2 me-3" style="background-color: rgba(52, 152, 219, 0.1);">
-                                                        <i class="bi bi-hourglass-split text-primary"></i>
-                                                    </div>
-                                                    <div>
-                                                        <span class="d-block text-muted small">Time Remaining</span>
-                                                        <strong id="projectDetailTimeRemaining"></strong>
-                                                    </div>
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="bi bi-alarm text-muted me-2"></i>
+                                                    <span class="text-muted">Time Remaining:</span>
                                                 </div>
+                                                <h6 id="projectDetailTimeRemaining" class="mb-0">-</h6>
                                             </div>
                                         </div>
                                     </div>
@@ -97,15 +115,11 @@
                                         <h5 class="card-title mb-3">Financial Details</h5>
                                         <div class="row g-3">
                                             <div class="col-md-12">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="rounded-3 p-2 me-3" style="background-color: rgba(155, 89, 182, 0.1);">
-                                                        <i class="bi bi-briefcase text-primary"></i>
-                                                    </div>
-                                                    <div>
-                                                        <span class="d-block text-muted small">Service</span>
-                                                        <strong id="projectDetailService"></strong>
-                                                    </div>
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="bi bi-cash text-muted me-2"></i>
+                                                    <span class="text-muted">Budget:</span>
                                                 </div>
+                                                <h6 id="projectDetailBudget" class="mb-0">-</h6>
                                             </div>
                                         </div>
                                     </div>
@@ -123,23 +137,23 @@
                                                 <i class="bi bi-building text-primary" style="font-size: 24px;"></i>
                                             </div>
                                             <div>
-                                                <h6 id="projectDetailCustomerName" class="mb-1"></h6>
-                                                <span id="projectDetailCustomerContact" class="text-muted"></span>
+                                                <h6 id="projectDetailCustomerName" class="mb-0">-</h6>
+                                                <p id="projectDetailCustomerContact" class="text-muted mb-0">-</p>
                                             </div>
                                         </div>
                                         <hr>
                                         <div class="mb-2">
                                             <div class="d-flex align-items-center mb-2">
                                                 <i class="bi bi-envelope text-muted me-2"></i>
-                                                <span id="projectDetailCustomerEmail"></span>
+                                                <span id="projectDetailCustomerEmail">-</span>
                                             </div>
                                             <div class="d-flex align-items-center mb-2">
                                                 <i class="bi bi-telephone text-muted me-2"></i>
-                                                <span id="projectDetailCustomerPhone"></span>
+                                                <span id="projectDetailCustomerPhone">-</span>
                                             </div>
                                             <div class="d-flex align-items-center">
                                                 <i class="bi bi-geo-alt text-muted me-2"></i>
-                                                <span id="projectDetailCustomerAddress"></span>
+                                                <span id="projectDetailCustomerAddress">-</span>
                                             </div>
                                         </div>
                                     </div>
@@ -151,12 +165,6 @@
                                             <button class="btn btn-sm btn-outline-primary rounded-pill">Add</button>
                                         </h5>
                                         <div id="projectDetailTeamMembers" class="d-flex flex-wrap gap-2">
-                                            <div class="avatar-placeholder d-flex align-items-center justify-content-center rounded-circle bg-light" style="width: 40px; height: 40px;">
-                                                <i class="bi bi-person text-muted"></i>
-                                            </div>
-                                            <div class="avatar-placeholder d-flex align-items-center justify-content-center rounded-circle bg-light" style="width: 40px; height: 40px;">
-                                                <i class="bi bi-person-plus text-primary"></i>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -168,4 +176,3 @@
         </div>
     </div>
 </div>
-

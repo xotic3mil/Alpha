@@ -12,6 +12,7 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
     public DbSet<StatusEntity> StatusTypes { get; set; }
     public DbSet<CustomerEntity> Customers { get; set; }
     public DbSet<ServiceEntity> Services { get; set; }
+    public DbSet<CommentEntity> Comments { get; set; }
     public DbSet<UserEntity> Users { get; set; }
     public DbSet<RoleEntity> Roles { get; set; }
 
@@ -20,7 +21,6 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
     {
         base.OnModelCreating(modelBuilder);
 
-        // Use static GUID values for seeding roles
         var adminRoleId = new Guid("e57c9438-1b01-4944-a5a5-db46e76fdae8");
         var userRoleId = new Guid("62507571-ab9a-4860-b424-38992e129bd3");
 
@@ -35,6 +35,18 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
                   .HasColumnType("varchar(2083)")
                   .IsRequired(false);
         });
+
+        modelBuilder.Entity<CommentEntity>()
+            .HasOne(c => c.Project)
+            .WithMany()
+            .HasForeignKey(c => c.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CommentEntity>()
+            .HasOne(c => c.User)
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<ProjectEntity>()
             .HasOne(p => p.Status)
