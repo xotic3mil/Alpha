@@ -13,5 +13,9 @@ public class StatusEntity
     [Required]
     public string StatusName { get; set; } = null!;
 
+    public string? Description { get; set; }
+
+    public string? ColorCode { get; set; }
+
     public ICollection<ProjectEntity>? Projects { get; set; } = [];
 }

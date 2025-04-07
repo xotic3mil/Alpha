@@ -1,0 +1,63 @@
+﻿@model StatusViewModel
+@{
+    ViewData["Title"] = "Edit Status";
+}
+
+<div class="modal fade"
+     id="editStatusModal"
+     tabindex="-1"
+     aria-labelledby="editStatusModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0 position-absolute w-100">
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="text-center my-5 px-3">
+                <h1 class="modal-title px-3 text-center" id="editStatusModalLabel">
+                    Edit Status
+                </h1>
+            </div>
+            <div class="modal-body bg-white">
+                <div class="container-fluid px-4 bg-white">
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="Edit_Form_Id" name="Form.Id" />
+                        <div class="mb-3">
+                            <label for="Edit_Form_StatusName" class="form-label">Status Name</label>
+                            <div class="input-group">
+                                <input type="text"
+                                       name="Form.StatusName"
+                                       class="form-control formBorder"
+                                       id="Edit_Form_StatusName"
+                                       placeholder="Enter status name" />
+                                <input type="color"
+                                       name="Form.ColorCode"
+                                       class="form-control form-control-color formBorder"
+                                       id="Edit_statusColor"
+                                       value="#4CAF50"
+                                       style="width: 10px; min-width: 10px; max-width: 30px; padding: 3px;" />
+                            </div>
+                            <span class="text-danger" asp-validation-for="Form.StatusName"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Edit_Form_Description" class="form-label">Description</label>
+                            <textarea class="form-control formBorder" 
+                                      id="Edit_Form_Description" 
+                                      name="Form.Description" 
+                                      rows="3" 
+                                      placeholder="Describe what this status means"></textarea>
+                            <span class="text-danger" asp-validation-for="Form.Description"></span>
+                        </div>
+                        <div class="d-flex justify-content-center mb-4 bg-white">
+                            <button type="submit" class="btnAuth">Update Status</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,223 @@
+﻿@model CustomerViewModel
+
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<div class="pt-3">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3">
+        <h1 class="h2">Customers</h1>
+        <div class="btn-toolbar">
+            <button href="#"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addCustomerModal"
+                    type="button"
+                    class="btn btnAdd me-2">
+                + Add Customer
+            </button>
+        </div>
+    </div>
+
+    @if (ViewBag.SuccessMessage != null)
+    {
+        <div class="alert alert-success">
+            @ViewBag.SuccessMessage
+        </div>
+    }
+
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger">
+            @ViewBag.ErrorMessage
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <ul>
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="row g-3">
+        @if (Model.Customers != null && Model.Customers.Any())
+        {
+            foreach (var customer in Model.Customers)
+            {
+                <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                    <div class="card shadow-sm h-100 rounded-4">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex flex-wrap align-items-center">
+                                    <div class="d-flex align-items-center flex-grow-1 me-2 mb-2 mb-sm-0">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center"
+                                             style="width: 56px; height: 56px;">
+                                            <i class="bi bi-building text-primary" style="font-size: 24px;"></i>
+                                        </div>
+                                        <div class="mx-3">
+                                            <h6>@customer.CompanyName</h6>
+                                            <p class="text-muted mb-0">@(customer.ContactName ?? "No contact")</p>
+                                        </div>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-link text-muted p-0"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false">
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 width="20"
+                                                 height="20"
+                                                 fill="currentColor"
+                                                 class="bi bi-three-dots-vertical"
+                                                 viewBox="0 0 16 16">
+                                                <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+                                            </svg>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                            <li>
+                                                <a class="dropdown-item" href="javascript:void(0);" onclick="openEditCustomerModal('@customer.Id')">
+                                                    <i class="bi bi-pencil me-2"></i>Edit
+                                                    Customer
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="/project/index">
+                                                    <i class="bi bi-folder me-2"></i>View
+                                                    Projects
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider" /></li>
+                                            <li>
+                                                <form asp-action="Delete" method="post" class="dropdown-item">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@customer.Id" />
+                                                    <button type="submit" class="btn text-danger p-0">
+                                                        <i class="bi bi-trash me-2"></i>Delete Customer
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                @if (!string.IsNullOrEmpty(customer.Email))
+                                {
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-envelope text-muted me-2"></i>
+                                        <span>@customer.Email</span>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(customer.PhoneNumber))
+                                {
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-telephone text-muted me-2"></i>
+                                        <span>@customer.PhoneNumber</span>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(customer.Address))
+                                {
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-geo-alt text-muted me-2"></i>
+                                        <span>
+                                            @customer.Address
+                                            @(!string.IsNullOrEmpty(customer.City) ? $", {customer.City}" : "")
+                                            @(!string.IsNullOrEmpty(customer.Country) ? $", {customer.Country}" : "")
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="card shadow-sm rounded-4 text-center p-5">
+                    <div class="card-body">
+                        <i class="bi bi-building display-4 text-muted mb-3"></i>
+                        <h3>No Customers Found</h3>
+                        <p class="text-muted">Start by adding your first customer</p>
+                        <button data-bs-toggle="modal" data-bs-target="#addCustomerModal"
+                                class="btn btnAdd mt-3">
+                            + Add Customer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@await Html.PartialAsync("_CreateCustomerPartial", Model)
+@await Html.PartialAsync("_EditCustomerPartial", Model)
+
+@section Scripts {
+    <script>
+        function openEditCustomerModal(id) {
+            $.ajax({
+                url: `/Customer/GetCustomerById?id=${id}`,
+                type: 'GET',
+                dataType: 'json',
+                success: function (customer) {
+                    $('#Edit_Form_Id').val(customer.id);
+                    $('#Edit_Form_CompanyName').val(customer.companyName);
+                    $('#Edit_Form_ContactName').val(customer.contactName);
+                    $('#Edit_Form_Email').val(customer.email);
+                    $('#Edit_Form_PhoneNumber').val(customer.phoneNumber);
+                    $('#Edit_Form_Address').val(customer.address);
+                    $('#Edit_Form_City').val(customer.city);
+                    $('#Edit_Form_Country').val(customer.country);
+                    $('#editCustomerModal').modal('show');
+                },
+                error: function (error) {
+                    console.error('Error fetching customer:', error);
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const buttons = document.querySelectorAll(
+                ".btnAuth, .btnAdd, .btnGoogle, .btn-editor, .btn"
+            );
+
+            buttons.forEach((button) => {
+                button.classList.add("ripple-button");
+                button.addEventListener("mousedown", createRipple);
+            });
+
+        @if (ViewBag.OpenEditModal == true)
+        {
+            <text>$('#editCustomerModal').modal('show');</text>
+        }
+        });
+
+        function createRipple(event) {
+            const button = event.currentTarget;
+
+            const ripple = button.querySelector(".ripple");
+            if (ripple) {
+                ripple.remove();
+            }
+
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+
+            const rect = button.getBoundingClientRect();
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.classList.add("ripple");
+
+            button.appendChild(circle);
+        }
+    </script>
+}

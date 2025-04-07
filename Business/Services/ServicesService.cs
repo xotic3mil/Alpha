@@ -2,7 +2,10 @@
 using Business.Interfaces;
 using Data.Entities;
 using Data.Interfaces;
+using Data.Repositories;
+using Domain.Extensions;
 using Domain.Models;
+using System.Diagnostics;
 
 namespace Business.Services;
 
@@ -35,20 +38,55 @@ public class ServicesService(IServiceRepository serviceRepository) : IServicesSe
             : new ServiceResult<Service> { Succeeded = false, StatusCode = 500, Error = result.Error };
     }
 
-
-    public async Task<ServiceResult> CreateService(ServiceRegForm form)
+    public async Task<ServiceResult> CreateServiceAsync(ServiceRegForm form)
     {
-        var existingService = await _serviceRepository.ExistsAsync(x => x.ServiceName == form.ServiceName);
-        if (existingService.Result)
-            return new ServiceResult { Succeeded = false, StatusCode = 409, Error = "Status already exists." };
+        if (form == null)
+            return new ServiceResult { Succeeded = false, StatusCode = 400, Error = "Not all required fields are supplied." };
+        var serviceEntity = form.MapTo<ServiceEntity>();
 
-        var serviceEntity = new ServiceEntity { ServiceName = form.ServiceName };
         var result = await _serviceRepository.CreateAsync(serviceEntity);
 
         return result.Succeeded
             ? new ServiceResult { Succeeded = true, StatusCode = 201 }
-            : new ServiceResult { Succeeded = false, StatusCode = 500, Error = "Failed to create status." };
+            : new ServiceResult { Succeeded = false, StatusCode = 500, Error = result.Error };
     }
+
+    public async Task<ServiceResult<Service>> DeleteServiceAsync(Guid id)
+    {
+        var serviceResponse = await _serviceRepository.GetAsync(x => x.Id == id);
+
+        if (!serviceResponse.Succeeded || serviceResponse.Result == null)
+        {
+            return new ServiceResult<Service> { Succeeded = false, StatusCode = 404, Error = $"Service with ID '{id}' not found." };
+        }
+
+        var serviceEntity = serviceResponse.Result.MapTo<ServiceEntity>();
+        var deleteResponse = await _serviceRepository.DeleteAsync(serviceEntity);
+
+        return deleteResponse.Succeeded
+            ? new ServiceResult<Service> { Succeeded = true, StatusCode = 200 }
+            : new ServiceResult<Service> { Succeeded = false, StatusCode = 500, Error = "Failed to delete project." };
+    }
+
+    public async Task<ServiceResult> UpdateServiceAsync(ServiceRegForm form)
+    {
+        if (form == null || form.Id == Guid.Empty)
+            return new ServiceResult { Succeeded = false, StatusCode = 400, Error = "Invalid Service data" };
+        try
+        {
+            var result = await _serviceRepository.UpdateAsync(form, p => p.Id == form.Id);
+
+            return result.Succeeded
+                ? new ServiceResult { Succeeded = true, StatusCode = 200 }
+                : new ServiceResult { Succeeded = false, StatusCode = result.StatusCode, Error = result.Error };
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error updating project: {ex.Message}");
+            return new ServiceResult { Succeeded = false, StatusCode = 500, Error = $"An error occurred: {ex.Message}" };
+        }
+    }
+
 
 
 }

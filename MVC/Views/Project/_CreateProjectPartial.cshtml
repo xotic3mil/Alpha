@@ -1,0 +1,394 @@
+﻿@model ProjectViewModel
+
+@{
+    ViewData["Title"] = "Create Project";
+}
+
+
+<div class="modal fade"
+     id="addProjectModal"
+     tabindex="-1"
+     aria-labelledby="addProjectModalLabel"
+     aria-hidden="true"
+     data-bs-backdrop="static" 
+     data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0 position-absolute w-100">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="text-center my-5 px-3">
+                <h1 class="modal-title px-3 text-center" id="addProjectModal">Add Project</h1>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid px-3">
+                    <form id="createProjectForm" method="post" enctype="multipart/form-data" action="@Url.Action("Create", "Project")" onsubmit="return validateProjectForm(event)">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger", id = "validation-summary" })
+                        @Html.AntiForgeryToken()
+                        <div class="mb-4">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="flex-grow-1 text-center">
+                                    <div id="dropArea" class="position-relative d-flex flex-column justify-content-center align-items-center mb-3"
+                                         style="cursor: pointer; width: 150px; height: 150px; border-radius: 30px !important; overflow: hidden;">
+                                        <img id="defaultProjectImage" src="/images/project-template-1.svg" alt="Default project image"
+                                             style="width: 150px; height: 150px; object-fit: cover;" />
+                                        <img id="imagePreview" src="#" class="position-absolute top-0 left-0 d-none" alt="Project image preview"
+                                             style="width: 150px; height: 150px; object-fit: cover;" />
+
+                                        
+                                        <div id="cameraOverlay" class="position-absolute w-100 h-100 d-flex flex-column justify-content-center align-items-center bg-dark bg-opacity-50 text-white opacity-0"
+                                             style="top: 0; left: 0; transition: opacity 0.3s ease;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="white" class="bi bi-camera mb-2" viewBox="0 0 16 16">
+                                                <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z" />
+                                                <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z" />
+                                            </svg>
+                                            <span style="font-size: 12px;">Change Image</span>
+                                        </div>
+                                    </div>
+
+                                    <input type="file" id="projectImage" name="ProjectImage" class="d-none" accept="image/*" />
+                                    <input type="hidden" id="imageSelected" name="ImageSelected" value="false" />
+                                    <p class="text-muted small">Click to change project image</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Form.Name, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.Form.Name, new { @class = "form-control formBorder", placeholder = "Project name", required = "required" })
+                            <span class="text-danger field-validation-error" id="nameError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Form.StatusId, new { @class = "form-label" })
+                            @Html.DropDownListFor(m => m.Form.StatusId, new SelectList(Model.Statuses, "Id", "StatusName"), "Select Status", new { @class = "form-control formBorder", required = "required" })
+                            <span class="text-danger field-validation-error" id="statusError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Form.Description, new { @class = "form-label" })
+                            @Html.TextAreaFor(m => m.Form.Description, new { @class = "form-control formBorder", placeholder = "Brief description of the project", required = "required" })
+                            <span class="text-danger field-validation-error" id="descriptionError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Form.ServiceId, new { @class = "form-label" })
+                            @Html.DropDownListFor(m => m.Form.ServiceId, new SelectList(Model.Services, "Id", "ServiceName"), "Select Service", new { @class = "form-control formBorder", required = "required" })
+                            <span class="text-danger field-validation-error" id="serviceError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Form.CustomerId, new { @class = "form-label" })
+                            @Html.DropDownListFor(m => m.Form.CustomerId, new SelectList(Model.Customers, "Id", "CompanyName"), "Select Customer", new { @class = "form-control formBorder", required = "required" })
+                            <span class="text-danger field-validation-error" id="customerError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    @Html.LabelFor(m => m.Form.StartDate, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.Form.StartDate, "{0:yyyy-MM-dd}", new
+                                        {
+                                            @class = "form-control formBorder",
+                                            type = "date",
+                                            required = "required"
+                                        })
+                                    <span class="text-danger field-validation-error" id="startDateError"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    @Html.LabelFor(m => m.Form.EndDate, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.Form.EndDate, "{0:yyyy-MM-dd}", new
+                                        {
+                                            @class = "form-control formBorder",
+                                            type = "date",
+                                            required = "required"
+                                        })
+                                    <span class="text-danger field-validation-error" id="endDateError"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-5">
+                            <button type="submit" class="btnAuth" id="createProjectButton">Create</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+
+
+
+<script>
+    console.log('CreateProjectPartial script loaded');
+
+    function validateProjectForm(event) {
+        clearValidationErrors();
+        let isValid = true;
+
+        const nameField = document.getElementById('Form_Name');
+        if (!nameField.value.trim()) {
+            document.getElementById('nameError').textContent = 'Project name is required.';
+            nameField.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        const statusField = document.getElementById('Form_StatusId');
+        if (!statusField.value || statusField.value === '') {
+            document.getElementById('statusError').textContent = 'Status is required.';
+            statusField.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        const descriptionField = document.getElementById('Form_Description');
+        if (!descriptionField.value.trim()) {
+            document.getElementById('descriptionError').textContent = 'Description is required.';
+            descriptionField.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        const serviceField = document.getElementById('Form_ServiceId');
+        if (!serviceField.value || serviceField.value === '') {
+            document.getElementById('serviceError').textContent = 'Service is required.';
+            serviceField.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        const customerField = document.getElementById('Form_CustomerId');
+        if (!customerField.value || customerField.value === '') {
+            document.getElementById('customerError').textContent = 'Customer is required.';
+            customerField.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        const startDateField = document.getElementById('Form_StartDate');
+        if (!startDateField.value) {
+            document.getElementById('startDateError').textContent = 'Start date is required.';
+            startDateField.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        const endDateField = document.getElementById('Form_EndDate');
+        if (!endDateField.value) {
+            document.getElementById('endDateError').textContent = 'End date is required.';
+            endDateField.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        if (startDateField.value && endDateField.value) {
+            const startDate = new Date(startDateField.value);
+            const endDate = new Date(endDateField.value);
+
+            if (endDate < startDate) {
+                document.getElementById('endDateError').textContent = 'End date must be after start date.';
+                endDateField.classList.add('is-invalid');
+                isValid = false;
+            }
+        }
+
+        return isValid;
+    }
+
+    function clearValidationErrors() {
+        const errorElements = document.querySelectorAll('.field-validation-error');
+        errorElements.forEach(el => {
+            el.textContent = '';
+        });
+
+        const invalidInputs = document.querySelectorAll('.is-invalid');
+        invalidInputs.forEach(input => {
+            input.classList.remove('is-invalid');
+        });
+    }
+
+    function handleImageFile(file) {
+        console.log('handleImageFile called with file:', file ? file.name : 'no file');
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                console.log('File read complete, updating image preview');
+                const defaultImg = document.getElementById('defaultProjectImage');
+                const imagePreview = document.getElementById('imagePreview');
+
+
+                if (defaultImg) defaultImg.style.display = 'none';
+
+                if (imagePreview) {
+                    imagePreview.src = event.target.result;
+                    imagePreview.classList.remove('d-none');
+                }
+
+                const cameraOverlay = document.getElementById('cameraOverlay');
+                if (cameraOverlay) cameraOverlay.style.opacity = '0';
+
+                console.log('Image preview updated successfully');
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function resetModalForm() {
+        const form = document.getElementById('createProjectForm');
+        if (form) form.reset();
+
+        clearValidationErrors();
+        const defaultImg = document.getElementById('defaultProjectImage');
+        const previewImg = document.getElementById('imagePreview');
+
+        if (defaultImg) defaultImg.style.display = 'block';
+        if (previewImg) {
+            previewImg.classList.add('d-none');
+            previewImg.src = '#';
+        }
+
+        console.log('Form reset complete');
+    }
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight() {
+        const dropArea = document.getElementById('dropArea');
+        const cameraOverlay = document.getElementById('cameraOverlay');
+
+        if (dropArea) dropArea.classList.add('bg-light');
+        if (cameraOverlay) cameraOverlay.style.opacity = '1';
+    }
+
+    function unhighlight() {
+        const dropArea = document.getElementById('dropArea');
+        const cameraOverlay = document.getElementById('cameraOverlay');
+
+        if (dropArea) dropArea.classList.remove('bg-light');
+        if (cameraOverlay) cameraOverlay.style.opacity = '0';
+    }
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length && files[0].type.startsWith('image/')) {
+            handleImageFile(files[0]);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM fully loaded, setting up event handlers');
+
+        const formInputs = document.querySelectorAll('#createProjectForm input:not(#projectImage), #createProjectForm select, #createProjectForm textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.classList.contains('is-invalid')) {
+                    this.classList.remove('is-invalid');
+                    const fieldId = this.id.replace('Form_', '').toLowerCase();
+                    const errorSpan = document.getElementById(fieldId + 'Error');
+                    if (errorSpan) {
+                        errorSpan.textContent = '';
+                    }
+                }
+            });
+        });
+        const projectModal = document.getElementById('addProjectModal');
+        const dropArea = document.getElementById('dropArea');
+        const cameraOverlay = document.getElementById('cameraOverlay');
+        const projectImageInput = document.getElementById('projectImage');
+
+        if (projectModal) {
+            projectModal.addEventListener('hidden.bs.modal', function() {
+                try {
+                    resetModalForm();
+                    console.log('Modal form reset successfully');
+                } catch (error) {
+                    console.error('Error resetting modal form:', error);
+                }
+            });
+
+            projectModal.addEventListener('show.bs.modal', function() {
+                resetModalForm();
+            });
+
+            const closeButton = projectModal.querySelector('.btn-close');
+            if (closeButton) {
+                closeButton.addEventListener('click', function() {
+                    resetModalForm();
+                });
+            }
+        }
+        if (dropArea && cameraOverlay) {
+            dropArea.addEventListener('mouseenter', function() {
+                cameraOverlay.style.opacity = '1';
+            });
+
+            dropArea.addEventListener('mouseleave', function() {
+                cameraOverlay.style.opacity = '0';
+            });
+
+            dropArea.addEventListener('click', function() {
+                if (projectImageInput) {
+                    console.log('Drop area clicked, triggering file input');
+                    projectImageInput.click();
+                }
+            });
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            dropArea.addEventListener('drop', handleDrop, false);
+        }
+
+        if (projectImageInput) {
+            console.log('Setting up file input change event');
+            projectImageInput.addEventListener('change', function(e) {
+                console.log('File input changed, files:', e.target.files);
+                if (e.target.files && e.target.files[0]) {
+                    handleImageFile(e.target.files[0]);
+                }
+            });
+        } else {
+            console.error('projectImage input not found');
+        }
+
+        const indexHandlers = window._indexPageHandlersSet;
+        if (!indexHandlers) {
+            window._indexPageHandlersSet = true;
+        }
+
+
+        const createForm = document.getElementById('createProjectForm');
+        if (createForm) {
+            createForm.addEventListener('submit', function(e) {
+                const projectImageInput = document.getElementById('projectImage');
+                if (projectImageInput && projectImageInput.files.length === 0) {
+                    projectImageInput.removeAttribute('name');
+                    console.log('Removed name attribute from empty file input');
+                }
+            });
+        }
+    });
+    function testImageUpload() {
+        const input = document.getElementById('projectImage');
+        console.log('Test function called, input element:', input);
+
+        if (input && input.files && input.files[0]) {
+            console.log('Using existing selected file');
+            handleImageFile(input.files[0]);
+        } else {
+            console.log('No file selected in input');
+            alert('Please select a file first, then test');
+        }
+    }
+</script>

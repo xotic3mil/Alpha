@@ -105,7 +105,7 @@ public class AuthController(
         if (userResult.Succeeded)
         {
             _logger.LogInformation("Redirecting to Home after successful registration.");
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Project");
         }
 
         _logger.LogError("Registration failed for Email: {Email}. Error: {Error}", model.Email, userResult.Error);
@@ -144,7 +144,7 @@ public class AuthController(
             if (result.Succeeded)
             {
                 _logger.LogInformation("Admin user logged in successfully.");
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Project");
             }
             else
             {

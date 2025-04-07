@@ -108,23 +108,45 @@ public abstract class BaseRepository<TEntity, Tmodel>(DataContext context) : IBa
             : new RepositoryResult<bool> { Succeeded = true, StatusCode = 200 };
     }
 
-    public virtual async Task<RepositoryResult<bool>> UpdateAsync(TEntity entity)
+    public virtual async Task<RepositoryResult<bool>> UpdateAsync<TUpdateModel>(TUpdateModel model, Expression<Func<TEntity, bool>> expression) where TUpdateModel : class
     {
-        if (entity == null)
-            return new RepositoryResult<bool> { Succeeded = false, StatusCode = 400, Error = "Entity can't be null" };
+        if (model == null)
+            return new RepositoryResult<bool> { Succeeded = false, StatusCode = 400, Error = "Model can't be null" };
+
         try
         {
-            _dbSet.Update(entity);
-            await _context.SaveChangesAsync();
-            return new RepositoryResult<bool> { Succeeded = true, StatusCode = 200 };
-        }
+            var existingEntity = await _dbSet.FirstOrDefaultAsync(expression);
+            if (existingEntity == null)
+                return new RepositoryResult<bool> { Succeeded = false, StatusCode = 404, Error = "Entity not found" };
 
+            var updatedEntity = model.MapTo<TEntity>();
+
+            foreach (var property in typeof(TEntity).GetProperties().Where(p => p.CanWrite))
+            {
+                var value = property.GetValue(updatedEntity);
+                if (value != null)
+                {
+                    property.SetValue(existingEntity, value);
+                }
+            }
+
+            _context.Entry(existingEntity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return new RepositoryResult<bool> { Succeeded = true, StatusCode = 200, Result = true };
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            Debug.WriteLine($"Concurrency error updating {nameof(TEntity)} :: {ex.Message}");
+            return new RepositoryResult<bool> { Succeeded = false, StatusCode = 409, Error = "The record was modified by another user. Please refresh and try again." };
+        }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error Updating {nameof(TEntity)} :: {ex.Message}");
+            Debug.WriteLine($"Error updating {nameof(TEntity)} :: {ex.Message}");
             return new RepositoryResult<bool> { Succeeded = false, StatusCode = 500, Error = ex.Message };
         }
     }
+
 
     public virtual async Task<RepositoryResult<bool>> DeleteAsync(TEntity entity)
     {
@@ -143,28 +165,5 @@ public abstract class BaseRepository<TEntity, Tmodel>(DataContext context) : IBa
             return new RepositoryResult<bool> { Succeeded = false, StatusCode = 500, Error = ex.Message };
         }
     }
-
-    public virtual async Task<RepositoryResult<bool>> UpdateAsync(TEntity entity, Expression<Func<TEntity, bool>> expression)
-    {
-        if (entity == null)
-            return new RepositoryResult<bool> { Succeeded = false, StatusCode = 400, Error = "Entity can't be null" };
-        try
-        {
-            var existingEntity = await _dbSet.FirstOrDefaultAsync(expression);
-            if (existingEntity == null)
-                return new RepositoryResult<bool> { Succeeded = false, StatusCode = 404, Error = "not found" };
-            _context.Entry(existingEntity).CurrentValues.SetValues(entity);
-            await _context.SaveChangesAsync();
-            return new RepositoryResult<bool> { Succeeded = true, StatusCode = 200 };
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error Updating {nameof(TEntity)} :: {ex.Message}");
-            return new RepositoryResult<bool> { Succeeded = false, StatusCode = 500, Error = ex.Message };
-        }
-    }
-
-
-
 
 }

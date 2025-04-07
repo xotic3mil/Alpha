@@ -39,6 +39,9 @@ public class ProjectEntity
     public Guid CustomerId { get; set; }
     public virtual CustomerEntity Customer { get; set; } = null!;
 
+    [Column(TypeName = "varchar(2083)")]
+    public string? ImageUrl { get; set; }
+
     public virtual ICollection<UserEntity>? Users { get; set; } = new List<UserEntity>();
 
 }

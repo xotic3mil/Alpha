@@ -1,0 +1,171 @@
+﻿@model StatusViewModel
+
+@{
+    ViewData["Title"] = "Status Page";
+}
+<div class="pt-3">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3">
+        <h1 class="h2"> Statuses</h1>
+        <div class="btn-toolbar">
+            <button href="#"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addStatusModal"
+                    type="button"
+                    class="btn btnAdd me-2">
+                + Add Status
+            </button>
+        </div>
+    </div>
+
+    @if (ViewBag.SuccessMessage != null)
+    {
+        <div class="alert alert-success">
+            @ViewBag.SuccessMessage
+        </div>
+    }
+
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger">
+            @ViewBag.ErrorMessage
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <ul>
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="row g-3 justify-content-center">
+        <div class="col-12">
+            <div class="card shadow-sm rounded-2">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover status-table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Description</th>
+                                    <th scope="col" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Statuses != null && Model.Statuses.Any())
+                                {
+                                    @foreach (var status in Model.Statuses)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="status-indicator me-3"
+                                                         style="background-color: @(string.IsNullOrEmpty(status.ColorCode) ? "#4caf50" : status.ColorCode)"></div>
+                                                    <span class="fw-medium">@status.StatusName</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-muted">
+                                                @(status.Description ?? "No description available")
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="action-buttons">
+                                                    <button class="btn btn-sm btn-link text-primary p-0 me-1"
+                                                            title="Edit"
+                                                            onclick="openEditStatusModal('@status.Id')">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <form asp-action="Delete" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@status.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="Delete">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-center py-4">
+                                            <p class="text-muted mb-0">No statuses available. Create one to get started.</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_CreateStatusPartial")
+@await Html.PartialAsync("_EditStatusPartial", Model)
+
+@section Scripts {
+    <script>
+        function openEditStatusModal(id) {
+            $.ajax({
+                url: `/Status/GetStatusById?id=${id}`,
+                type: 'GET',
+                dataType: 'json',
+                success: function (status) {
+                    $('#Edit_Form_Id').val(status.id);
+                    $('#Edit_Form_StatusName').val(status.statusName);
+                    $('#Edit_Form_Description').val(status.description);
+                    $('#Edit_statusColor').val(status.colorCode || '#4caf50');
+                    $('#editStatusModal').modal('show');
+                },
+                error: function (error) {
+                    console.error('Error fetching status:', error);
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const buttons = document.querySelectorAll(
+                ".btnAuth, .btnAdd, .btnGoogle, .btn-editor, .btn"
+            );
+
+            buttons.forEach((button) => {
+                button.classList.add("ripple-button");
+                button.addEventListener("mousedown", createRipple);
+            });
+
+        @if (ViewBag.OpenEditModal == true)
+        {
+            <text>$('#editStatusModal').modal('show');</text>
+        }
+        });
+
+        function createRipple(event) {
+            const button = event.currentTarget;
+
+            const ripple = button.querySelector(".ripple");
+            if (ripple) {
+                ripple.remove();
+            }
+
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+
+            const rect = button.getBoundingClientRect();
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.classList.add("ripple");
+
+            button.appendChild(circle);
+        }
+    </script>
+}

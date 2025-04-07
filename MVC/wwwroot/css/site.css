@@ -43,11 +43,25 @@ body.dark-mode {
     --modal-body: #202123;
 }
 
+.nav-link {
+    color: #6c757d;
+    transition: color 0.2s ease !important;
+}
+
+    .nav-link:hover {
+        background-color: #dbe8f8 !important;
+       
+    }
+
+    .nav-link.active {
+        color: #007bff;
+        font-weight: 500;
+        background-color: #dbe8f8 !important;
+    }
+
 .nav.mb-4 .nav-link {
     position: relative;
     padding: 0.75rem 1rem;
-    color: #6c757d;
-    transition: color 0.2s ease;
 }
 
     .nav.mb-4 .nav-link::after {
@@ -61,22 +75,13 @@ body.dark-mode {
         transition: width 0.3s ease;
     }
 
-    .nav.mb-4 .nav-link:hover {
-        color: #007bff;
+    .nav.mb-4 .nav-link:hover::after {
+        width: 100%;
     }
 
-        .nav.mb-4 .nav-link:hover::after {
-            width: 100%;
-        }
-
-    .nav.mb-4 .nav-link.active {
-        color: #007bff;
-        font-weight: 500;
+    .nav.mb-4 .nav-link.active::after {
+        width: 100%;
     }
-
-        .nav.mb-4 .nav-link.active::after {
-            width: 100%;
-        }
 
 .logo {
     color: #28263b;
@@ -144,7 +149,7 @@ body.dark-mode {
 }
 
     .dropdown-menu :hover {
-        background-color: var(--surface-hover) !important;
+        background-color: #f5f7fa !important;
         color: var(--text-color);
     }
 
@@ -157,19 +162,17 @@ body.dark-mode {
 .ripple {
     position: absolute;
     border-radius: 50%;
-    background-color: rgba( 255, 255, 255, 0.5 ); 
+    background-color: rgba(255, 255, 255, 0.5);
     transform: scale(0);
     animation: ripple 0.6s linear;
     pointer-events: none;
 }
-
 
 .btn-dark .ripple,
 .btnAuth .ripple,
 .btnAdd .ripple {
     background-color: rgba(255, 255, 255, 0.5);
 }
-
 
 .btn-light .ripple,
 .btnGoogle .ripple {
@@ -222,7 +225,6 @@ ul {
 button,
 .btn {
     font-family: "Nunito";
-
 }
 
 h1 {
@@ -275,12 +277,29 @@ h1 {
 }
 
 .search {
-    background-color: var(--Background) !important;
+    background-color: var(--background) !important;
     color: var(--text-color) !important;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+}
+    .search::placeholder {
+        color: var(--text-color) !important;
+    }
+
+.input-group-text.search {
+    background-color: transparent;
+    border: none;
 }
 
-::placeholder {
-    color: var(--text-color) !important;
+.formBorder {
+    border: 1px solid var(--border-100) !important;
+    border-radius: 0.25rem;
+}
+
+@media (max-width: 768px) {
+    .search {
+        width: 100%;
+    }
 }
 
 ::-webkit-input-placeholder {
@@ -291,22 +310,20 @@ h1 {
     color: var(--text-color) !important;
 }
 
-::-ms-input-placeholder {
+:-ms-input-placeholder {
     color: var(--text-color) !important;
 }
-
 
 .sidebar {
     position: fixed;
     height: 100vh;
     z-index: 100;
+    background-color: #f1f3f7 !important;
 }
-
 
 .sidebar-brand {
     border: 1px solid #e3e5e8 !important;
 }
-
 
 .sidebar .nav-link.active {
     display: flex;
@@ -315,7 +332,7 @@ h1 {
     gap: 16px;
     align-self: stretch;
     border-radius: 16px;
-    background: rgba(26, 142, 255, 0.1);
+    background-color: #dbe8f8 !important;
 }
 
 .col-md-9.ms-sm-auto,
@@ -326,7 +343,6 @@ h1 {
 .card {
     display: flex;
     flex-direction: column;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: none !important;
     padding: 10px 10px 10px 10px;
     margin: 10px 10px 10px 10px;
@@ -334,13 +350,8 @@ h1 {
     border-radius: 16px;
     margin: 0 auto;
     background-color: var(--surface) !important;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
 }
-
-    .card:hover {
-        transform: translateY(-5px) scale(1.02);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
-        z-index: 1;
-    }
 
 .card-body {
     display: flex;
@@ -365,23 +376,17 @@ h1 {
     background: #f0f1f5;
 }
 
-
 .card-body .mt-auto {
     margin-top: auto;
     min-height: 40px;
 }
 
-
 p.card-text {
     color: var(--text-color) !important;
 }
 
-.formBorder {
-    border: 1px solid #ebeef2 !important;
-}
 
-
-#loginModal #registerModal  {
+#loginModal #registerModal {
     background-color: var(--modal-body) !important;
     width: 600px;
 }
@@ -396,15 +401,97 @@ p.card-text {
 .modal-title,
 .modal-header,
 .modal-content,
-iframe
-{
+iframe {
     background-color: var(--modal-body) !important;
     color: var(--text-color) !important;
 }
-
 
 #description:focus {
     color: var(--text-color) !important;
     border-color: #86b7fe;
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.status-indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-table .dropdown-menu {
+    position: fixed;
+    z-index: 1050;
+    max-width: 220px;
+}
+
+.status-table td:last-child {
+    position: relative;
+    min-width: 60px;
+}
+
+.table-responsive {
+    overflow-x: visible !important;
+}
+
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    overflow-y: auto;
+    z-index: 1050;
+    transition: transform 0.3s ease-in-out;
+    background-color: #f1f3f7 !important;
+}
+
+.main-content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    transition: margin-left 0.3s ease-in-out;
+}
+
+@media (max-width: 767.98px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+/* Sidebar overlay for mobile view */
+#sidebar-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.main-content .card,
+.main-content .card-body {
+    background-color: var(--surface);
+}
+
+.modal {
+    z-index: 1060;
+}
+
+@media (min-width: 768px) {
+    .sidebar {
+        width: 250px !important;
+    }
+
+    .main-content {
+        margin-left: 250px !important;
+        width: calc(100% - 250px) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto !important;
+    }
 }

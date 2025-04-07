@@ -1,9 +1,9 @@
-﻿  @using Data.Entities
-  @using Microsoft.AspNetCore.Authentication
-  @using Microsoft.AspNetCore.Authorization
-  @using Microsoft.AspNetCore.Identity
-  @inject SignInManager<UserEntity> SignInManager
-  @inject UserManager<UserEntity> UserManager
+﻿@using Data.Entities
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<UserEntity> SignInManager
+@inject UserManager<UserEntity> UserManager
 
 <!DOCTYPE html>
 <html lang="en">
@@ -14,177 +14,169 @@
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 </head>
 <body>
-    <div id="page-overlay"
-         class="position-fixed top-0 start-0 w-100 h-100 d-none"
-         style="background-color: var(--background); z-index: 1040"></div>
-    <div class="container-fluid">
-        <div class="row g-0">
-            <nav id="sidebarMenu"
-                 class="col-md-3 col-lg-1 sidebar collapse d-md-block border-end">
-                <div class="d-flex align-items-center justify-content-center py-3 mb-3 border-bottom">
-                    <h1 class="navbar-brand logo" href="/" style="font-size: 2rem;">
-                        <img src="~/images/Logo.svg"
-                        alt="logo"
-                        height="30"
-                        class="d-inline-block align-text-top" />
-                        Alpha
-                    </h1>
-                </div>
-                <div class="py-2">
-                    <ul class="nav flex-column gap-2">
+    <div id="sidebar-overlay" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="z-index: 1040;"></div>
+
+    <div class="d-flex">
+        <nav id="sidebarMenu" class="sidebar d-md-block border-end ">
+            <div class="d-flex align-items-center justify-content-center py-3 mb-3 border-bottom">
+                <h1 class="navbar-brand logo" style="font-size: 2rem;">
+                    <img src="~/images/Logo.svg"
+                         alt="logo"
+                         height="30"
+                         class="d-inline-block align-text-top" />
+                    Alpha
+                </h1>
+            </div>
+            <div class="py-2">
+                <ul class="nav flex-column gap-2">
+                    <li class="nav-item">
+                        <a class="nav-link py-2 px-3 rounded-4 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")" href="/home/index">
+                            <i class="bi bi-star me-2"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-2 px-3 rounded-4 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Project" ? "active" : "")" href="/project/index">
+                            <i class="bi bi-folder me-2"></i>
+                            Projects
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-2 px-3 rounded-4 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Customer" ? "active" : "")" href="/Customer/index">
+                            <i class="bi bi-people me-2"></i>
+                            Customers
+                        </a>
+                    </li>
+                    @if (User.IsInRole("Admin"))
+                    {
                         <li class="nav-item">
-                            <a class="nav-link py-2 px-3 rounded-end-4"
-                            href="/project/index">
-                                <i class="bi bi-list-check me-2 "></i>
-                                Projects
+                            <a class="nav-link py-2 px-3 rounded-4 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Member" ? "active" : "")" href="/member/index">
+                                <i class="bi bi-people me-2"></i>
+                            Team Members
                             </a>
-                            <a class="nav-link py-2 px-3 rounded-end-4"
-                               href="/project/index">
-                                <i class="bi bi-list-check me-2 "></i>
-                                Services
-                            </a>
-                            <a class="nav-link py-2 px-3 rounded-end-4"
-                               href="/project/index">
-                                <i class="bi bi-list-check me-2 "></i>
-                                Customers
-                            </a>
-                            <a class="nav-link py-2 px-3 rounded-end-4"
-                               href="/project/index">
-                                <i class="bi bi-list-check me-2 "></i>
-                                Roles
-                            </a>
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link py-2 px-3 rounded-end-4"
-                                    href="/member/index">
-                                        <i class="bi bi-people-fill me-2 "></i>
-                                        Team Members
-                                    </a>
-                                </li>
-                            }
-                    </ul>
-                </div>
-            </nav>
-            <main class="main-content col-md-9 col-lg-10 ms-sm-auto px-md-4">
-                <header class="navbar navbar-expand-md navbar-light sticky-top py-2">
-                    <div class="container-fluid px-0">
-                        <button class="navbar-toggler d-md-none"
-                                type="button"
-                                data-bs-toggle="collapse"
-                                data-bs-target="#sidebarMenu">
-                            <span class="navbar-toggler-icon"></span>
-                        </button>
+                        </li>
+                    }
+                    <li class="nav-item">
+                        <a class="nav-link py-2 px-3 rounded-4 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Service" ? "active" : "")" href="/service/index">
+                            <i class="bi bi-briefcase me-2"></i>
+                            Services
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-2 px-3 rounded-4 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Status" ? "active" : "")" href="/status/index">
+                            <i class="bi bi-bar-chart me-2"></i>
+                            Statuses
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-2 px-3 rounded-4 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Role" ? "active" : "")" href="/role/index">
+                            <i class="bi bi-shield-lock me-2"></i>
+                            Roles
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <div class="main-content flex-grow-1">
+            <header class="navbar navbar-expand-md navbar-light sticky-top py-2">
+                <div class="container-fluid px-3">
+                    <button class="navbar-toggler d-md-none"
+                            type="button"
+                            id="sidebarToggler">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
 
-                        <div class="d-none d-md-flex flex-grow-1 me-3">
-                            <div class="input-group">
-                                <span class="input-group-text border-0 search">
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                         width="16"
-                                         height="16"
-                                         fill="currentColor"
-                                         class="bi bi-search text-muted"
-                                         viewBox="0 0 16 16">
-                                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
-                                    </svg>
-                                </span>
-                                <input
-                                       type="text"
-                                       class="form-control formBorder border-0 ps-0 search"
-                                       placeholder="Search anything..."
-                                       aria-label="Search anything" />
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center ms-auto">
-                            <div class="dropdown">
-                                <a href="#"
-                                   class="position-relative p-2 text-dark"
-                                   id="notificationsDropdown"
-                                   data-bs-toggle="dropdown"
-                                   aria-expanded="false">
-                                    <img src="~/images/Notification.svg"
-                                         alt="Notifications"
-                                         width="24"
-                                         height="24" />
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                        3
-                                    </span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm"
-                                    aria-labelledby="notificationsDropdown">
-                                    <li><a class="dropdown-item" href="#">New message</a></li>
-                                    <li>
-                                        <a class="dropdown-item" href="#">Project updated</a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="#">Settings updated</a>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <!-- User avatar -->
-                            <div class="dropdown ms-2">
-                                <a href="#"
-                                   class="d-flex align-items-center text-decoration-none"
-                                   id="userDropdown"
-                                   data-bs-toggle="dropdown"
-                                   aria-expanded="false">
-                                    <img src="~/images/Avatar.svg"
-                                         alt="User"
-                                         width="40"
-                                         height="40"
-                                         class="rounded-circle border-start" />
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm"
-                                    aria-labelledby="userDropdown">
-                                    <li><a class="dropdown-item" href="#">Profile</a></li>
-                                    <li><a class="dropdown-item" href="#">Settings</a></li>
-                                    <li><hr class="dropdown-divider" /></li>
-                                    <li>
-                                        <a class="dropdown-item" href="/auth/admin">Admin Login</a>
-                                    </li>
-                                    <li>
-                                        <div class="dropdown-item d-flex align-items-center">
-                                            <span>Dark Mode</span>
-                                            <div class="form-check form-switch ms-auto">
-                                                <input class="form-check-input" type="checkbox" id="darkModeToggle">
-                                            </div>
-                                        </div>
-                                    </li>
-                                    @if (SignInManager.IsSignedIn(User))
-                                    {
-                                        <!-- Show Sign Out -->
-                                        <li>
-                                            <form asp-action="Logout" asp-controller="Auth" method="post" class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="dropdown-item border-0 bg-transparent">Sign Out</button>
-                                            </form>
-                                        </li>
-                                    }
-                                    else
-                                    {
-                                        <!-- Show Sign In -->
-                                        <li><a class="dropdown-item" href="/auth/login">Sign In</a></li>
-                                    }
-                                </ul>
-                            </div>
+                    <div class="d-none d-md-flex flex-grow-1 me-3">
+                        <div class="input-group">
+                            <span class="input-group-text border-0 search" id="search-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     width="16"
+                                     height="16"
+                                     fill="currentColor"
+                                     class="bi bi-search text-muted"
+                                     viewBox="0 0 16 16">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                                </svg>
+                            </span>
+                            <input type="text" class="form-control formBorder border-0 ps-0 search" placeholder="Search anything..." aria-label="Search anything" aria-describedby="search-icon" />
                         </div>
                     </div>
-                </header>
-            </main>
-            @await Html.PartialAsync("_CookieConsentPartial")
-        </div>
-    </div>
+                    <div class="d-flex align-items-center ms-auto">
+                        <div class="dropdown">
+                            <a href="#" class="position-relative p-2 text-dark" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="~/images/Notification.svg" alt="Notifications" width="24" height="24" />
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    3
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm"
+                                aria-labelledby="notificationsDropdown">
+                                <li><a class="dropdown-item" href="#">New message</a></li>
+                                <li>
+                                    <a class="dropdown-item" href="#">Project updated</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">Settings updated</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="dropdown ms-2">
+                            <a href="#"
+                               class="d-flex align-items-center text-decoration-none"
+                               id="userDropdown"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                <img src="~/images/Avatar.svg"
+                                     alt="User"
+                                     width="40"
+                                     height="40"
+                                     class="rounded-circle border-start" />
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm"
+                                aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="#">Profile</a></li>
+                                <li><a class="dropdown-item" href="#">Settings</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a class="dropdown-item" href="/auth/admin">Admin Login</a>
+                                </li>
+                                <li>
+                                    <div class="dropdown-item d-flex align-items-center">
+                                        <span>Dark Mode</span>
+                                        <div class="form-check form-switch ms-auto">
+                                            <input class="form-check-input" type="checkbox" id="darkModeToggle">
+                                        </div>
+                                    </div>
+                                </li>
+                                @if (SignInManager.IsSignedIn(User))
+                                {
+                                    <li>
+                                        <form asp-action="Logout" asp-controller="Auth" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item border-0 bg-transparent">Sign Out</button>
+                                        </form>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li><a class="dropdown-item" href="/auth/login">Sign In</a></li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-  
-    <div class="col-md-9 col-lg-11 ms-sm-auto px-md-4">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+            @await Html.PartialAsync("_CookieConsentPartial")
+            <div class="container-fluid px-4 mt-5 mb-3">
+                <main role="main" class="pb-3">
+                    @RenderBody()
+                </main>
+            </div>
+        </div>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -195,6 +187,27 @@
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/darkmode-toggle.js" asp-append-version="true"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggler = document.getElementById('sidebarToggler');
+            const sidebar = document.getElementById('sidebarMenu');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (sidebarToggler && sidebar && overlay) {
+                sidebarToggler.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                    overlay.classList.toggle('d-none');
+                });
+
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    overlay.classList.add('d-none');
+                });
+            }
+        });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

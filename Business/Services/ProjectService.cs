@@ -64,6 +64,14 @@ public class ProjectService(IProjectRespository projectRespository, IStatusTypeS
             : new ProjectResult<Project> { Succeeded = false, StatusCode = 404, Error = $"Project with '{id}' was not found." };
     }
 
+    public async Task<ProjectResult<Project>> GetProjectWithDetailsAsync(Guid id)
+    {
+        var result = await _projectRespository.GetWithDetailsAsync(p => p.Id == id);
+        return result.Succeeded
+            ? new ProjectResult<Project> { Succeeded = true, StatusCode = 200, Result = result.Result }
+            : new ProjectResult<Project> { Succeeded = false, StatusCode = 500, Error = result.Error };
+    }
+
     public async Task<ProjectResult<Project>> DeleteProjectAsync(Guid id)
     {
         var projectResponse = await _projectRespository.GetAsync(x => x.Id == id);
@@ -79,8 +87,28 @@ public class ProjectService(IProjectRespository projectRespository, IStatusTypeS
         return deleteResponse.Succeeded
             ? new ProjectResult<Project> { Succeeded = true, StatusCode = 200 }
             : new ProjectResult<Project> { Succeeded = false, StatusCode = 500, Error = "Failed to delete project." };
-
     }
+
+    public async Task<ProjectResult> UpdateProjectAsync(ProjectRegForm form)
+    {
+        if (form == null || form.Id == Guid.Empty)
+            return new ProjectResult { Succeeded = false, StatusCode = 400, Error = "Invalid project data" };
+
+        try
+        {
+            var result = await _projectRespository.UpdateAsync(form, p => p.Id == form.Id);
+
+            return result.Succeeded
+                ? new ProjectResult { Succeeded = true, StatusCode = 200 }
+                : new ProjectResult { Succeeded = false, StatusCode = result.StatusCode, Error = result.Error };
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error updating project: {ex.Message}");
+            return new ProjectResult { Succeeded = false, StatusCode = 500, Error = $"An error occurred: {ex.Message}" };
+        }
+    }
+
 
 }
 
