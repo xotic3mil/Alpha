@@ -1,0 +1,310 @@
+﻿@model MemberViewModel
+@{
+    ViewData["Title"] = "Create Team Member";
+}
+
+<div class="modal fade"
+     id="addUserModal"
+     tabindex="-1"
+     aria-labelledby="addUserModalLabel"
+     aria-hidden="true"
+     data-bs-backdrop="static"
+     data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0 position-absolute w-100">
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                        onclick="resetModalForm()"></button>
+            </div>
+            <div class="text-center my-5 px-3">
+                <h1 class="modal-title px-3 text-center" id="addUserModalLabel">
+                    Add Team Member
+                </h1>
+            </div>
+            <div class="modal-body bg-white">
+                <div class="container-fluid px-4 bg-white">
+                    <form asp-action="Create" asp-controller="Member" method="post" id="createUserForm" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-4 text-center">
+                            <div class="position-relative d-inline-block" id="dropArea">
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center"
+                                     style="width: 120px; height: 120px; overflow: hidden;">
+                                    <div id="defaultUserImage"  src="/images/avatar-template-1.svg"  class="d-flex align-items-center justify-content-center w-100 h-100">
+                                        <i class="bi bi-person-fill text-secondary" style="font-size: 3rem;"></i>
+                                    </div>
+                                    <img id="imagePreview" src="#" alt="Preview" class="d-none img-fluid" style="width: 100%; height: 100%; object-fit: cover;" />
+                                </div>
+                                <div id="cameraOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rounded-circle bg-dark bg-opacity-50" style="opacity: 0; transition: opacity 0.2s;">
+                                    <i class="bi bi-camera text-white fs-4"></i>
+                                </div>
+                                <input type="file" id="userImage" name="UserImage" accept="image/*" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" style="cursor: pointer;" />
+                            </div>
+                            <p class="small text-muted mt-2">Click to upload profile picture</p>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="Form_FirstName" class="form-label">First Name *</label>
+                                <input type="text"
+                                       name="Form.FirstName"
+                                       class="form-control formBorder"
+                                       id="Form_FirstName"
+                                       placeholder="First name" 
+                                       required />
+                                <span class="text-danger field-validation-error" data-valmsg-for="Form.FirstName"></span>
+                            </div>
+                            <div class="col">
+                                <label for="Form_LastName" class="form-label">Last Name *</label>
+                                <input type="text"
+                                       name="Form.LastName"
+                                       class="form-control formBorder"
+                                       id="Form_LastName"
+                                       placeholder="Last name" 
+                                       required />
+                                <span class="text-danger field-validation-error" data-valmsg-for="Form.LastName"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="Form_Email" class="form-label">Email Address *</label>
+                            <input type="email"
+                                   name="Form.Email"
+                                   class="form-control formBorder"
+                                   id="Form_Email"
+                                   placeholder="Email address" 
+                                   required />
+                            <span class="text-danger field-validation-error" data-valmsg-for="Form.Email"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="Form_PhoneNumber" class="form-label">Phone Number *</label>
+                            <input type="tel"
+                                   name="Form.PhoneNumber"
+                                   class="form-control formBorder"
+                                   id="Form_PhoneNumber"
+                                   placeholder="Phone number" 
+                                   required />
+                            <span class="text-danger field-validation-error" data-valmsg-for="Form.PhoneNumber"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="Form_Password" class="form-label">Password *</label>
+                            <input type="password"
+                                   name="Form.Password"
+                                   class="form-control formBorder"
+                                   id="Form_Password"
+                                   placeholder="Password (min. 8 characters)" 
+                                   required />
+                            <span class="text-danger field-validation-error" data-valmsg-for="Form.Password"></span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="Form_ConfirmPassword" class="form-label">Confirm Password *</label>
+                            <input type="password"
+                                   name="Form.ConfirmPassword"
+                                   class="form-control formBorder"
+                                   id="Form_ConfirmPassword"
+                                   placeholder="Confirm password" 
+                                   required />
+                            <span class="text-danger field-validation-error" data-valmsg-for="Form.ConfirmPassword"></span>
+                        </div>
+                        
+                        <input type="hidden" name="Form.TermsAndCondition" id="Form_TermsAndCondition" value="true" />
+
+                        <div class="d-flex justify-content-center mb-4 bg-white">
+                            <button type="submit" class="btnAuth">Create Team Member</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropArea = document.getElementById('dropArea');
+        const userImageInput = document.getElementById('userImage');
+        
+        if (dropArea) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            dropArea.addEventListener('drop', handleDrop, false);
+            dropArea.addEventListener('click', function() {
+                userImageInput.click();
+            });
+        }
+
+        if (userImageInput) {
+            userImageInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    handleImageFile(this.files[0]);
+                }
+            });
+        }
+
+        $('#addUserModal').on('hidden.bs.modal', function () {
+            resetModalForm();
+        });
+
+        $('#createUserForm').on('submit', function(e) {
+            if (!validateUserForm()) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+    });
+
+    function validateUserForm() {
+        clearValidationErrors();
+        let isValid = true;
+
+        const firstNameField = document.getElementById('Form_FirstName');
+        if (!firstNameField.value.trim()) {
+            showError(firstNameField, 'First name is required');
+            isValid = false;
+        }
+
+        const lastNameField = document.getElementById('Form_LastName');
+        if (!lastNameField.value.trim()) {
+            showError(lastNameField, 'Last name is required');
+            isValid = false;
+        }
+
+        const emailField = document.getElementById('Form_Email');
+        if (!emailField.value.trim()) {
+            showError(emailField, 'Email address is required');
+            isValid = false;
+        } else if (!isValidEmail(emailField.value)) {
+            showError(emailField, 'Please enter a valid email address');
+            isValid = false;
+        }
+
+        const phoneField = document.getElementById('Form_PhoneNumber');
+        if (!phoneField.value.trim()) {
+            showError(phoneField, 'Phone number is required');
+            isValid = false;
+        }
+
+        const passwordField = document.getElementById('Form_Password');
+        if (!passwordField.value.trim()) {
+            showError(passwordField, 'Password is required');
+            isValid = false;
+        } else if (passwordField.value.length < 8) {
+            showError(passwordField, 'Password must be at least 8 characters');
+            isValid = false;
+        }
+
+        const confirmField = document.getElementById('Form_ConfirmPassword');
+        if (!confirmField.value.trim()) {
+            showError(confirmField, 'Please confirm your password');
+            isValid = false;
+        } else if (confirmField.value !== passwordField.value) {
+            showError(confirmField, 'Passwords do not match');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function showError(inputElement, message) {
+        inputElement.classList.add('is-invalid');
+        const errorSpan = inputElement.nextElementSibling;
+        if (errorSpan && errorSpan.classList.contains('field-validation-error')) {
+            errorSpan.textContent = message;
+        }
+    }
+
+    function clearValidationErrors() {
+        const errorElements = document.querySelectorAll('#createUserForm .field-validation-error');
+        errorElements.forEach(el => {
+            el.textContent = '';
+        });
+
+        const invalidInputs = document.querySelectorAll('#createUserForm .is-invalid');
+        invalidInputs.forEach(input => {
+            input.classList.remove('is-invalid');
+        });
+    }
+
+    function handleImageFile(file) {
+        console.log('handleImageFile called with file:', file ? file.name : 'no file');
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size should not exceed 5MB');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const defaultImg = document.getElementById('defaultUserImage');
+                const previewImg = document.getElementById('imagePreview');
+                
+                if (defaultImg) defaultImg.style.display = 'none';
+                if (previewImg) {
+                    previewImg.classList.remove('d-none');
+                    previewImg.src = e.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function resetModalForm() {
+        const form = document.getElementById('createUserForm');
+        if (form) form.reset();
+
+        clearValidationErrors();
+        const defaultImg = document.getElementById('defaultUserImage');
+        const previewImg = document.getElementById('imagePreview');
+
+        if (defaultImg) defaultImg.style.display = 'block';
+        if (previewImg) {
+            previewImg.classList.add('d-none');
+            previewImg.src = '';
+        }
+
+        console.log('Form reset complete');
+    }
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight() {
+        const dropArea = document.getElementById('dropArea');
+        const cameraOverlay = document.getElementById('cameraOverlay');
+
+        if (dropArea) dropArea.classList.add('bg-light');
+        if (cameraOverlay) cameraOverlay.style.opacity = '1';
+    }
+
+    function unhighlight() {
+        const dropArea = document.getElementById('dropArea');
+        const cameraOverlay = document.getElementById('cameraOverlay');
+
+        if (dropArea) dropArea.classList.remove('bg-light');
+        if (cameraOverlay) cameraOverlay.style.opacity = '0';
+    }
+
+    function handleDrop(e) {
+        preventDefaults(e);
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length && files[0].type.startsWith('image/')) {
+            handleImageFile(files[0]);
+            document.getElementById('userImage').files = files;
+        }
+    }
+</script>

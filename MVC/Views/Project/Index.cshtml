@@ -13,7 +13,7 @@
                     data-bs-target="#addProjectModal"
                     type="button"
                     class="btn btnAdd me-2">
-                + Add Project
+                + Project
             </button>
         </div>
     </div>
@@ -191,11 +191,14 @@
                 success: function (project) {
                     console.log("Project data:", project);
 
-
                     $('#projectDetailImage').attr('src', project.imageUrl || '/images/project-template-1.svg');
                     $('#projectDetailName').text(project.name || 'Unnamed Project');
                     $('#projectDetailDescription').text(project.description || 'No description available');
                     $('#projectDetailDeleteId').val(project.id);
+
+                    $('#projectDetailServiceName').text(project.service?.serviceName || 'No Service');
+                    $('#projectDetailServiceDescription').text(project.service?.serviceDescription || 'No description available');
+                    $('#projectDetailBudget').text(project.service?.budget ? `$${project.service.budget.toLocaleString()}` : 'N/A');
 
 
                     $('#projectDetailStatus').text(project.status?.statusName || 'No Status');
@@ -207,7 +210,6 @@
                     $('#projectDetailStartDate').text(formatDateString(project.startDate) || 'Not set');
                     $('#projectDetailEndDate').text(formatDateString(project.endDate) || 'Not set');
 
-
                     if (project.endDate) {
                         const endDate = new Date(project.endDate);
                         const now = new Date();
@@ -216,35 +218,38 @@
                     } else {
                         $('#projectDetailTimeRemaining').text('-');
                     }
-
+                    
 
                     if (project.customer) {
                         $('#projectDetailCustomerName').text(project.customer.companyName || '-');
                         $('#projectDetailCustomerContact').text(project.customer.contactName || '-');
                         $('#projectDetailCustomerEmail').text(project.customer.email || '-');
                         $('#projectDetailCustomerPhone').text(project.customer.phoneNumber || '-');
-
+                        
                         let address = [];
                         if (project.customer.address) address.push(project.customer.address);
                         if (project.customer.city) address.push(project.customer.city);
                         if (project.customer.country) address.push(project.customer.country);
-
+                        
                         $('#projectDetailCustomerAddress').text(address.length > 0 ? address.join(', ') : '-');
                         $('#viewCustomerLink').attr('href', `/Customer/Details/${project.customer.id}`);
                     }
-
-
-                    if (project.service) {
-                        $('#projectDetailBudget').text(`$${project.service.budget.toFixed(2)}`);
-                    }
-
-
-                    $('#commentProjectId').val(project.id);
-
+                    $('#commentForm').html(`
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="commentProjectId" name="ProjectId" value="${project.id}" />
+                        <div class="input-group">
+                            <input type="text"
+                                   id="commentContent"
+                                   name="Content"
+                                   class="form-control formBorder"
+                                   placeholder="Add a status update comment..."
+                                   required />
+                            <button type="submit" class="btn btn-primary">Post</button>
+                        </div>
+                    `);
+                    
 
                     loadComments(project.id);
-
-
                     $('#projectDetailsModal').modal('show');
                 },
                 error: function (error) {
@@ -254,7 +259,6 @@
             });
         }
 
- ings
         function formatDateString(dateString) {
             if (!dateString) return null;
 
@@ -282,12 +286,12 @@
                 success: function(comments) {
                     console.log("Comments loaded:", comments);
                     $('#commentsContainer').empty();
-
+                    
                     if (!comments || comments.length === 0) {
                         $('#commentsContainer').html('<p class="text-muted text-center">No status updates yet. Add the first comment.</p>');
                         return;
                     }
-
+                    
                     comments.forEach(comment => {
                         appendComment(comment);
                     });
@@ -302,7 +306,7 @@
         function appendComment(comment) {
             const commentDate = new Date(comment.createdAt);
             const formattedDate = commentDate.toLocaleString();
-
+            
             const commentHtml = `
                 <div class="comment ${comment.isCurrentUser ? 'current-user' : ''}" data-comment-id="${comment.id}">
                     <div class="comment-header">
@@ -324,93 +328,9 @@
                     <div class="comment-content">${comment.content}</div>
                 </div>
             `;
-
+            
             $('#commentsContainer').prepend(commentHtml);
         }
-
-        $(document).ready(function() {
-            const buttons = document.querySelectorAll(
-                ".btnAuth, .btnAdd, .btnGoogle, .btn-editor, .btn"
-            );
-
-            buttons.forEach((button) => {
-                button.classList.add("ripple-button");
-                button.addEventListener("mousedown", createRipple);
-            });
-
-                 $('#commentForm').submit(function(e) {
-
-            e.preventDefault();
-
-            const projectId = $('#commentProjectId').val();
-            const content = $('#commentContent').val().trim();
-
-            console.log("Submitting comment for project:", projectId);
-            console.log("Comment content:", content);
-
-            if (!content) {
-                console.log("Empty comment, not submitting");
-                return;
-            }
-
-            if (!projectId) {
-                console.log("Missing project ID, cannot submit");
-                alert("Error: Cannot add comment without project ID. Please try again.");
-                return;
-            }
-
-            $.ajax({
-                url: '/Comment/Create',
-                type: 'POST',
-                data: $(this).serialize(),
-                success: function(newComment) {
-                    console.log("Comment created successfully:", newComment);
-                    $('#commentContent').val('');
-
-                    if ($('#commentsContainer').find('.text-muted.text-center').length) {
-                        $('#commentsContainer').empty();
-                    }
-
-                    appendComment(newComment);
-                },
-                error: function(error) {
-                    console.error("Error posting comment:", error);
-                    console.error("Error details:", error.responseJSON);
-                    alert("Failed to post status comment. Please try again.");
-                }
-            });
-        });
-
-            $(document).on('submit', '.delete-comment-form', function(e) {
-                e.preventDefault();
-
-                if (!confirm("Delete this status comment?")) {
-                    return;
-                }
-
-                const form = $(this);
-                const commentElement = form.closest('.comment');
-
-                $.ajax({
-                    url: '/Comment/Delete',
-                    type: 'POST',
-                    data: form.serialize(),
-                    success: function(response) {
-                        commentElement.slideUp(200, function() {
-                            $(this).remove();
-
-                            if ($('#commentsContainer').children().length === 0) {
-                                $('#commentsContainer').html('<p class="text-muted text-center">No status updates yet. Add the first comment.</p>');
-                            }
-                        });
-                    },
-                    error: function(error) {
-                        console.error("Error deleting comment:", error);
-                        alert("Failed to delete status comment. " + (error.responseText || "Please try again."));
-                    }
-                });
-            });
-        });
 
         function deleteComment(commentId, projectId) {
             if (!confirm("Delete this status comment?")) {
@@ -430,7 +350,7 @@
                 success: function(response) {
                     $(`.comment[data-comment-id="${commentId}"]`).slideUp(200, function() {
                         $(this).remove();
-
+                        
                         if ($('#commentsContainer').children().length === 0) {
                             $('#commentsContainer').html('<p class="text-muted text-center">No status updates yet. Add the first comment.</p>');
                         }
@@ -438,7 +358,7 @@
                 },
                 error: function(error) {
                     console.error("Error deleting comment:", error);
-
+                    
                     if (error.status === 403) {
                         alert("You don't have permission to delete this comment.");
                     } else if (error.status === 401) {
@@ -450,5 +370,58 @@
                 }
             });
         }
+
+        $(document).ready(function() {
+            const buttons = document.querySelectorAll(
+                ".btnAuth, .btnAdd, .btnGoogle, .btn-editor, .btn"
+            );
+            
+            buttons.forEach((button) => {
+                button.classList.add("ripple-button");
+                button.addEventListener("mousedown", createRipple);
+            });
+
+            $(document).on('submit', '#commentForm', function(e) {
+                e.preventDefault();
+                
+                const projectId = $('#commentProjectId').val();
+                const content = $('#commentContent').val().trim();
+                
+                console.log("Submitting comment for project:", projectId);
+                console.log("Comment content:", content);
+                
+                if (!content) {
+                    console.log("Empty comment, not submitting");
+                    return;
+                }
+                
+                if (!projectId) {
+                    console.log("Missing project ID, cannot submit");
+                    alert("Error: Cannot add comment without project ID. Please try again.");
+                    return;
+                }
+                
+                $.ajax({
+                    url: '/Comment/Create',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function(newComment) {
+                        console.log("Comment created successfully:", newComment);
+                        $('#commentContent').val('');
+                        
+                        if ($('#commentsContainer').find('.text-muted.text-center').length) {
+                            $('#commentsContainer').empty();
+                        }
+                        
+                        appendComment(newComment);
+                    },
+                    error: function(error) {
+                        console.error("Error posting comment:", error);
+                        console.error("Error details:", error.responseJSON);
+                        alert("Failed to post status comment. Please try again.");
+                    }
+                });
+            });
+        });
     </script>
 }

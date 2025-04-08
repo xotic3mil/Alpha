@@ -105,9 +105,6 @@ namespace MVC.Controllers
             return Json(result.Result);
         }
 
-
-
-
         private async Task PopulateViewModelAsync(StatusViewModel model)
         {
             var statuses = await _statusService.GetStatusesAsync();

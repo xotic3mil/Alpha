@@ -24,6 +24,7 @@ public class UserRegForm
     [Display(Name = "Phone", Prompt = "Enter your Phone number")]
     [DataType(DataType.PhoneNumber)]
     public string PhoneNumber { get; set; } = null!;
+    public string? AvatarUrl { get; set; }
 
     [Required(ErrorMessage = "Required")]
     [Display(Name = "Password", Prompt = "Enter your Password")]

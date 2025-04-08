@@ -113,9 +113,8 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
         modelBuilder.Entity<IdentityUserToken<Guid>>(entity => {
             entity.ToTable("UserTokens");
         });
+
     }
-
-
 }
 
 

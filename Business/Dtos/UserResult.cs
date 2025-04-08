@@ -9,6 +9,11 @@ namespace Business.Dtos
 {
     public class UserResult : StatusResults
     {
-        public IEnumerable<User>? Result { get; set; }
+
+    }
+
+    public class UserResult<T> : StatusResults
+    {
+        public T? Result { get; set; }
     }
 }

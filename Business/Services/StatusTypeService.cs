@@ -59,8 +59,8 @@ public class StatusTypeService(IStatusTypeRepository statusTypeRepository) : ISt
             return new StatusTypeResults<Status> { Succeeded = false, StatusCode = 404, Error = $"Project with ID '{id}' not found." };
         }
 
-        var StatusEntity = StatusResponse.Result.MapTo<StatusEntity>();
-        var deleteResponse = await _statusTypeRepository.DeleteAsync(StatusEntity);
+        var statusEntity = StatusResponse.Result.MapTo<StatusEntity>();
+        var deleteResponse = await _statusTypeRepository.DeleteAsync(statusEntity);
 
         return deleteResponse.Succeeded
             ? new StatusTypeResults<Status> { Succeeded = true, StatusCode = 200 }

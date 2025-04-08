@@ -11,31 +11,21 @@ using System.Diagnostics;
 namespace MVC.Controllers;
 
 [Authorize]
-public class ProjectController : Controller
+public class ProjectController(
+    IProjectsService projectService,
+    IStatusTypeService statusService,
+    IServicesService serviceService,
+    ICustomersService customerService,
+    IUserService userService,
+    UserManager<UserEntity> userManager
+        ) : Controller
 {
-    private readonly IProjectsService _projectService;
-    private readonly IStatusTypeService _statusService;
-    private readonly IServicesService _serviceService;
-    private readonly ICustomersService _customerService;
-    private readonly IUserService _userService;
-    private readonly UserManager<UserEntity> _userManager;
-
-    public ProjectController(
-        IProjectsService projectService,
-        IStatusTypeService statusService,
-        IServicesService serviceService,
-        ICustomersService customerService,
-        IUserService userService,
-        UserManager<UserEntity> userManager
-        )
-    {
-        _projectService = projectService;
-        _statusService = statusService;
-        _serviceService = serviceService;
-        _customerService = customerService;
-        _userService = userService;
-        _userManager = userManager;
-    }
+    private readonly IProjectsService _projectService = projectService;
+    private readonly IStatusTypeService _statusService = statusService;
+    private readonly IServicesService _serviceService = serviceService;
+    private readonly ICustomersService _customerService = customerService;
+    private readonly IUserService _userService = userService;
+    private readonly UserManager<UserEntity> _userManager = userManager;
 
     [HttpGet]
     public async Task<IActionResult> Index(string statusFilter = null)
