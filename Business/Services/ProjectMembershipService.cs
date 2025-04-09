@@ -144,6 +144,14 @@ namespace Business.Services
                 var projectUserIds = project.Users?.Select(u => u.Id).ToList() ?? new List<Guid>();
                 var availableUsers = await _userRepository.GetAllExceptAsync(projectUserIds);
 
+                if (!availableUsers.Any())
+                    return new ProjectManagementResult<IEnumerable<UserEntity>>
+                    {
+                        Succeeded = false,
+                        StatusCode = 404,
+                        Error = "No available users found. Please create users first."
+                    };
+
                 return new ProjectManagementResult<IEnumerable<UserEntity>> { Succeeded = true, StatusCode = 200, Result = availableUsers };
             }
             catch (Exception ex)
@@ -175,7 +183,6 @@ namespace Business.Services
         {
             try
             {
-                // Check if user is already assigned to the project
                 var project = await _projectRepository.GetWithUsersAsync(projectId);
                 if (project == null)
                     return new ProjectManagementResult { Succeeded = false, StatusCode = 404, Error = "Project not found" };
@@ -183,12 +190,10 @@ namespace Business.Services
                 if (project.Users?.Any(u => u.Id == userId) ?? false)
                     return new ProjectManagementResult { Succeeded = false, StatusCode = 400, Error = "User is already assigned to this project" };
 
-                // Check if there's already a pending request
                 var existingRequest = await _requestRepository.GetPendingRequestAsync(projectId, userId);
                 if (existingRequest != null)
                     return new ProjectManagementResult { Succeeded = false, StatusCode = 400, Error = "A pending request already exists" };
 
-                // Create new request
                 var request = new ProjectRequest
                 {
                     ProjectId = projectId,

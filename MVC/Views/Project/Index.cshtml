@@ -70,6 +70,7 @@
 
 @section Scripts {
     <script>
+        // Ripple effect function
         function createRipple(event) {
             const button = event.currentTarget;
             const ripple = button.querySelector(".ripple");
@@ -90,7 +91,10 @@
             button.appendChild(circle);
         }
 
+        // Open project details function
         function openProjectDetails(id) {
+            console.log("Opening project details for ID:", id);
+
             $.ajax({
                 url: `/Project/GetProjectByIdWithDetails?id=${id}`,
                 type: 'GET',
@@ -98,21 +102,23 @@
                 success: function (project) {
                     console.log("Project data:", project);
 
+                    // Set hidden ID for other functions to use
+                    $('#projectDetailDeleteId').val(project.id);
+                    $('#projectDetailId').val(project.id);
+
+                    // Update UI with project details
                     $('#projectDetailImage').attr('src', project.imageUrl || '/images/project-template-1.svg');
                     $('#projectDetailName').text(project.name || 'Unnamed Project');
                     $('#projectDetailDescription').text(project.description || 'No description available');
-                    $('#projectDetailDeleteId').val(project.id);
 
                     $('#projectDetailServiceName').text(project.service?.serviceName || 'No Service');
                     $('#projectDetailServiceDescription').text(project.service?.serviceDescription || 'No description available');
                     $('#projectDetailBudget').text(project.service?.budget ? `$${project.service.budget.toLocaleString()}` : 'N/A');
 
-
                     $('#projectDetailStatus').text(project.status?.statusName || 'No Status');
                     const statusColor = project.status?.colorCode || '#4caf50';
                     $('#projectDetailStatusIndicator').css('background-color', statusColor);
                     $('#projectDetailHeader').css('background-color', statusColor + '15');
-
 
                     $('#projectDetailStartDate').text(formatDateString(project.startDate) || 'Not set');
                     $('#projectDetailEndDate').text(formatDateString(project.endDate) || 'Not set');
@@ -125,24 +131,26 @@
                     } else {
                         $('#projectDetailTimeRemaining').text('-');
                     }
-                    
 
+                    // Set customer info
                     if (project.customer) {
                         $('#projectDetailCustomerName').text(project.customer.companyName || '-');
                         $('#projectDetailCustomerContact').text(project.customer.contactName || '-');
                         $('#projectDetailCustomerEmail').text(project.customer.email || '-');
                         $('#projectDetailCustomerPhone').text(project.customer.phoneNumber || '-');
-                        
+
                         let address = [];
                         if (project.customer.address) address.push(project.customer.address);
                         if (project.customer.city) address.push(project.customer.city);
                         if (project.customer.country) address.push(project.customer.country);
-                        
+
                         $('#projectDetailCustomerAddress').text(address.length > 0 ? address.join(', ') : '-');
                         $('#viewCustomerLink').attr('href', `/Customer/Details/${project.customer.id}`);
                     }
+
+                    // Setup comment form
                     $('#commentForm').html(`
-                        @Html.AntiForgeryToken()
+        @Html.AntiForgeryToken()
                         <input type="hidden" id="commentProjectId" name="ProjectId" value="${project.id}" />
                         <div class="input-group">
                             <input type="text"
@@ -155,12 +163,13 @@
                         </div>
                     `);
 
+                    // Load project members and comments
                     loadProjectMembers(project.id);
                     loadComments(project.id);
+                    loadPendingRequests(project.id);
+
+                    // Show modal
                     $('#projectDetailsModal').modal('show');
-
-                    
-
                 },
                 error: function (error) {
                     console.error('Error fetching project details:', error);
@@ -171,13 +180,12 @@
 
         function formatDateString(dateString) {
             if (!dateString) return null;
-
             const date = new Date(dateString);
             if (isNaN(date)) return null;
-
             return date.toLocaleDateString();
         }
 
+        // Load comments function
         function loadComments(projectId) {
             console.log("Loading comments for project:", projectId);
 
@@ -196,12 +204,12 @@
                 success: function(comments) {
                     console.log("Comments loaded:", comments);
                     $('#commentsContainer').empty();
-                    
+
                     if (!comments || comments.length === 0) {
                         $('#commentsContainer').html('<p class="text-muted text-center">No status updates yet. Add the first comment.</p>');
                         return;
                     }
-                    
+
                     comments.forEach(comment => {
                         appendComment(comment);
                     });
@@ -213,10 +221,11 @@
             });
         }
 
+        // Append comment function
         function appendComment(comment) {
             const commentDate = new Date(comment.createdAt);
             const formattedDate = commentDate.toLocaleString();
-            
+
             const commentHtml = `
                 <div class="comment ${comment.isCurrentUser ? 'current-user' : ''}" data-comment-id="${comment.id}">
                     <div class="comment-header">
@@ -238,10 +247,11 @@
                     <div class="comment-content">${comment.content}</div>
                 </div>
             `;
-            
+
             $('#commentsContainer').prepend(commentHtml);
         }
 
+        // Delete comment function
         function deleteComment(commentId, projectId) {
             if (!confirm("Delete this status comment?")) {
                 return;
@@ -260,7 +270,7 @@
                 success: function(response) {
                     $(`.comment[data-comment-id="${commentId}"]`).slideUp(200, function() {
                         $(this).remove();
-                        
+
                         if ($('#commentsContainer').children().length === 0) {
                             $('#commentsContainer').html('<p class="text-muted text-center">No status updates yet. Add the first comment.</p>');
                         }
@@ -268,7 +278,7 @@
                 },
                 error: function(error) {
                     console.error("Error deleting comment:", error);
-                    
+
                     if (error.status === 403) {
                         alert("You don't have permission to delete this comment.");
                     } else if (error.status === 401) {
@@ -281,60 +291,8 @@
             });
         }
 
-        $(document).ready(function() {
-            const buttons = document.querySelectorAll(
-                ".btnAuth, .btnAdd, .btnGoogle, .btn-editor, .btn"
-            );
-            
-            buttons.forEach((button) => {
-                button.classList.add("ripple-button");
-                button.addEventListener("mousedown", createRipple);
-            });
-
-            $(document).on('submit', '#commentForm', function(e) {
-                e.preventDefault();
-                
-                const projectId = $('#commentProjectId').val();
-                const content = $('#commentContent').val().trim();
-                
-                console.log("Submitting comment for project:", projectId);
-                console.log("Comment content:", content);
-                
-                if (!content) {
-                    console.log("Empty comment, not submitting");
-                    return;
-                }
-                
-                if (!projectId) {
-                    console.log("Missing project ID, cannot submit");
-                    alert("Error: Cannot add comment without project ID. Please try again.");
-                    return;
-                }
-                
-                $.ajax({
-                    url: '/Comment/Create',
-                    type: 'POST',
-                    data: $(this).serialize(),
-                    success: function(newComment) {
-                        console.log("Comment created successfully:", newComment);
-                        $('#commentContent').val('');
-                        
-                        if ($('#commentsContainer').find('.text-muted.text-center').length) {
-                            $('#commentsContainer').empty();
-                        }
-                        
-                        appendComment(newComment);
-                    },
-                    error: function(error) {
-                        console.error("Error posting comment:", error);
-                        console.error("Error details:", error.responseJSON);
-                        alert("Failed to post status comment. Please try again.");
-                    }
-                });
-            });
-        });
-
-                  function loadProjectMembers(projectId) {
+        // Load project members function
+        function loadProjectMembers(projectId) {
             $('#projectDetailTeamMembers').html(`
                 <div class="text-center py-3">
                     <div class="spinner-border spinner-border-sm text-primary" role="status">
@@ -348,46 +306,46 @@
                 url: `/ProjectMembership/GetProjectMembers?projectId=${projectId}`,
                 type: 'GET',
                 success: function(response) {
+                    console.log("Team members response:", response);
                     $('#projectDetailTeamMembers').empty();
 
                     if (!response.success) {
-                        $('#projectDetailTeamMembers').html(`<p class="text-danger">${response.message || 'Error loading members'}</p>`);
+                        $('#projectDetailTeamMembers').html(`<p class="text-danger">${response.message || 'Failed to load team members'}</p>`);
                         return;
                     }
 
-                    if (!response.members || response.members.length === 0) {
-                        $('#projectDetailTeamMembers').html('<p class="text-muted">No team members assigned to this project.</p>');
-                        return;
-                    }
-
-                    response.members.forEach(member => {
-                        $('#projectDetailTeamMembers').append(`
-                            <div class="team-member-item d-flex align-items-center mb-2 position-relative" data-member-id="${member.id}">
-                                <img src="${member.avatarUrl}" alt="${member.firstName} ${member.lastName}"
-                                     class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
-                                <div class="ms-2">
-                                    <div class="fw-medium">${member.firstName} ${member.lastName}</div>
-                                    <div class="text-muted small">${member.email}</div>
+                    if (response.members && response.members.length > 0) {
+                        $.each(response.members, function(i, member) {
+                            $('#projectDetailTeamMembers').append(`
+                                <div class="d-flex align-items-center justify-content-between mb-2 team-member-item" data-member-id="${member.id}">
+                                    <div class="d-flex align-items-center">
+                                        <img src="${member.avatarUrl}" class="rounded-circle me-2" alt="${member.name}" width="32" height="32">
+                                        <div>
+                                            <h6 class="mb-0">${member.name}</h6>
+                                            <small class="text-muted">${member.email}</small>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-danger rounded-pill"
+                                            onclick="removeTeamMember('${projectId}', '${member.id}')">
+                                        <i class="bi bi-person-x"></i>
+                                    </button>
                                 </div>
-                                <button type="button" class="btn btn-sm text-danger position-absolute end-0 top-0"
-                                        onclick="removeMemberFromProject('${member.id}')">
-                                    <i class="bi bi-x-circle"></i>
-                                </button>
-                            </div>
-                        `);
-                    });
+                            `);
+                        });
+                    } else {
+                        $('#projectDetailTeamMembers').html('<p class="text-muted">No team members assigned to this project.</p>');
+                    }
                 },
-                error: function(error) {
+                error: function(xhr, status, error) {
                     console.error("Error loading team members:", error);
+                    console.error("Response:", xhr.responseText);
                     $('#projectDetailTeamMembers').html('<p class="text-danger">Failed to load team members</p>');
                 }
             });
-
-
-            loadPendingRequests(projectId);
         }
 
-               function loadPendingRequests(projectId) {
+        // Load pending requests function
+        function loadPendingRequests(projectId) {
             $.ajax({
                 url: `/ProjectMembership/GetPendingRequests?projectId=${projectId}`,
                 type: 'GET',
@@ -411,12 +369,12 @@
                             <div class="request-item card bg-light mb-2" data-request-id="${request.id}">
                                 <div class="card-body p-3">
                                     <div class="d-flex align-items-center mb-2">
-                                        <img src="${request.userAvatarUrl}"
+                                        <img src="${request.userAvatarUrl || '/images/avatar-template-1.svg'}"
                                              class="rounded-circle me-2"
                                              style="width: 32px; height: 32px; object-fit: cover;">
                                         <div>
                                             <h6 class="mb-0">${request.userName}</h6>
-                                            <small class="text-muted">${request.userEmail}</small>
+                                            <small class="text-muted">${request.userEmail || ''}</small>
                                         </div>
                                     </div>
                                     <p class="card-text small mb-2">
@@ -442,16 +400,27 @@
             });
         }
 
-                function openAddTeamMemberModal() {
-            const projectId = $('#projectDetailDeleteId').val();
+        // Open team member modal function
+        function openAddTeamMemberModal() {
+            // Get project ID from hidden field
+            const projectId = $('#projectDetailId').val();
+
+            if (!projectId) {
+                console.error("Project ID not found");
+                return;
+            }
+
             $('#addTeamMemberProjectId').val(projectId);
+            $('#userSelect').html('<option value="" selected disabled>Loading users...</option>');
+
+            console.log("Opening team member modal for project:", projectId);
 
             // Load available users
-            $('#userSelect').html('<option value="" selected disabled>Loading users...</option>');
             $.ajax({
                 url: `/ProjectMembership/GetAvailableUsers?projectId=${projectId}`,
                 type: 'GET',
                 success: function(response) {
+                    console.log("API response:", response);
                     $('#userSelect').empty();
 
                     if (!response.success) {
@@ -459,18 +428,20 @@
                         return;
                     }
 
-                    if (!response.users || response.users.length === 0) {
+                    if (response.users && response.users.length > 0) {
+                        $.each(response.users, function(i, user) {
+                            $('#userSelect').append($('<option>', {
+                                value: user.id,
+                                text: user.name
+                            }));
+                        });
+                    } else {
                         $('#userSelect').html('<option value="" selected disabled>No available users</option>');
-                        return;
                     }
-
-                    $('#userSelect').append('<option value="" selected disabled>Select a user</option>');
-                    response.users.forEach(user => {
-                        $('#userSelect').append(`<option value="${user.id}">${user.name} (${user.email})</option>`);
-                    });
                 },
-                error: function(error) {
-                    console.error("Error loading available users:", error);
+                error: function(xhr, status, error) {
+                    console.error("Error loading users:", error);
+                    console.error("Response:", xhr.responseText);
                     $('#userSelect').html('<option value="" selected disabled>Error loading users</option>');
                 }
             });
@@ -478,14 +449,17 @@
             $('#addTeamMemberModal').modal('show');
         }
 
-            function addMemberToProject() {
+        // Add team member function
+        function addMemberToProject() {
             const projectId = $('#addTeamMemberProjectId').val();
             const userId = $('#userSelect').val();
 
             if (!userId) {
-                alert('Please select a user to add to the project');
+                alert('Please select a user');
                 return;
             }
+
+            console.log("Adding user", userId, "to project", projectId);
 
             $.ajax({
                 url: '/ProjectMembership/AddUserToProject',
@@ -493,29 +467,42 @@
                 data: {
                     projectId: projectId,
                     userId: userId,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
                 },
                 success: function(response) {
                     if (response.success) {
                         $('#addTeamMemberModal').modal('hide');
                         loadProjectMembers(projectId);
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success('Team member added successfully');
+                        } else {
+                            alert('Team member added successfully');
+                        }
                     } else {
-                        alert(response.message || 'Failed to add user to project');
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(response.message || 'Error adding team member');
+                        } else {
+                            alert(response.message || 'Error adding team member');
+                        }
                     }
                 },
-                error: function(error) {
-                    console.error("Error adding user to project:", error);
-                    alert('An error occurred while adding the user to the project');
+                error: function(xhr, status, error) {
+                    console.error("Error adding team member:", error);
+                    console.error("Response:", xhr.responseText);
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Error adding team member');
+                    } else {
+                        alert('Error adding team member');
+                    }
                 }
             });
         }
 
-                function removeMemberFromProject(userId) {
+        // Remove team member function
+        function removeTeamMember(projectId, userId) {
             if (!confirm('Are you sure you want to remove this team member from the project?')) {
                 return;
             }
-
-            const projectId = $('#projectDetailDeleteId').val();
 
             $.ajax({
                 url: '/ProjectMembership/RemoveUserFromProject',
@@ -523,43 +510,51 @@
                 data: {
                     projectId: projectId,
                     userId: userId,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
                 },
                 success: function(response) {
                     if (response.success) {
-                        $(`.team-member-item[data-member-id="${userId}"]`).fadeOut(300, function() {
-                            $(this).remove();
-
-                            if ($('#projectDetailTeamMembers').children().length === 0) {
-                                $('#projectDetailTeamMembers').html('<p class="text-muted">No team members assigned to this project.</p>');
-                            }
-                        });
+                        loadProjectMembers(projectId);
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success('Team member removed successfully');
+                        } else {
+                            alert('Team member removed successfully');
+                        }
                     } else {
-                        alert(response.message || 'Failed to remove user from project');
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(response.message || 'Failed to remove user from project');
+                        } else {
+                            alert(response.message || 'Failed to remove user from project');
+                        }
                     }
                 },
                 error: function(error) {
                     console.error("Error removing user from project:", error);
-                    alert('An error occurred while removing the user from the project');
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('An error occurred while removing the user');
+                    } else {
+                        alert('An error occurred while removing the user');
+                    }
                 }
             });
         }
 
-                function approveRequest(requestId) {
+        // Approve request function
+        function approveRequest(requestId) {
             if (!confirm('Are you sure you want to approve this request?')) {
                 return;
             }
 
             $.ajax({
-                url: '/ProjectMembership/ApproveRequest',
+                url: '/ProjectMembership/ApproveProjectRequest',
                 type: 'POST',
                 data: {
                     requestId: requestId,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
                 },
                 success: function(response) {
                     if (response.success) {
-                        const projectId = $('#projectDetailDeleteId').val();
+                        const projectId = $('#projectDetailId').val();
                         $(`.request-item[data-request-id="${requestId}"]`).fadeOut(300, function() {
                             $(this).remove();
 
@@ -579,17 +574,18 @@
             });
         }
 
+        // Reject request function
         function rejectRequest(requestId) {
             if (!confirm('Are you sure you want to reject this request?')) {
                 return;
             }
 
             $.ajax({
-                url: '/ProjectMembership/RejectRequest',
+                url: '/ProjectMembership/RejectProjectRequest',
                 type: 'POST',
                 data: {
                     requestId: requestId,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
                 },
                 success: function(response) {
                     if (response.success) {
@@ -611,5 +607,68 @@
             });
         }
 
+        // DOM ready function
+        $(document).ready(function() {
+            // Add ripple effect to buttons
+            const buttons = document.querySelectorAll(
+                ".btnAuth, .btnAdd, .btnGoogle, .btn-editor, .btn"
+            );
+
+            buttons.forEach((button) => {
+                button.classList.add("ripple-button");
+                button.addEventListener("mousedown", createRipple);
+            });
+
+            // Handle comment form submission
+            $(document).on('submit', '#commentForm', function(e) {
+                e.preventDefault();
+
+                const projectId = $('#commentProjectId').val();
+                const content = $('#commentContent').val().trim();
+
+                console.log("Submitting comment for project:", projectId);
+                console.log("Comment content:", content);
+
+                if (!content) {
+                    console.log("Empty comment, not submitting");
+                    return;
+                }
+
+                if (!projectId) {
+                    console.log("Missing project ID, cannot submit");
+                    alert("Error: Cannot add comment without project ID. Please try again.");
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Comment/Create',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function(newComment) {
+                        console.log("Comment created successfully:", newComment);
+                        $('#commentContent').val('');
+
+                        if ($('#commentsContainer').find('.text-muted.text-center').length) {
+                            $('#commentsContainer').empty();
+                        }
+
+                        appendComment(newComment);
+                    },
+                    error: function(error) {
+                        console.error("Error posting comment:", error);
+                        console.error("Error details:", error.responseJSON);
+                        alert("Failed to post status comment. Please try again.");
+                    }
+                });
+            });
+
+            if ($('#projectDetailId').length === 0) {
+                $('body').append('<input type="hidden" id="projectDetailId" value="" />');
+            }
+
+            if ($('#projectDetailDeleteId').length === 0) {
+                $('body').append('<input type="hidden" id="projectDetailDeleteId" value="" />');
+            }
+        });
     </script>
 }

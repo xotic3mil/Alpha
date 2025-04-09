@@ -6,29 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace MVC.Controllers
 {
     [Authorize]
-    public class ProjectMemberController(IProjectMembershipService projectMembershipService) : Controller
+    public class ProjectMembershipController(IProjectMembershipService projectMembershipService) : Controller
     {
         private readonly IProjectMembershipService _projectMembershipService = projectMembershipService;
-
-        [HttpGet]
-        public async Task<IActionResult> GetProjectMembers(Guid projectId)
-        {
-            var result = await _projectMembershipService.GetProjectMembersAsync(projectId);
-            if (!result.Succeeded)
-                return Json(new { success = false, message = result.Error });
-
-            return Json(new
-            {
-                success = true,
-                members = result.Result.Select(m => new {
-                    id = m.Id,
-                    firstName = m.FirstName,
-                    lastName = m.LastName,
-                    email = m.Email,
-                    avatarUrl = m.AvatarUrl ?? "/images/avatar-template-1.svg"
-                })
-            });
-        }
 
         [HttpGet]
         public async Task<IActionResult> GetAvailableUsers(Guid projectId)
@@ -40,7 +20,8 @@ namespace MVC.Controllers
             return Json(new
             {
                 success = true,
-                users = result.Result.Select(u => new {
+                users = result.Result.Select(u => new
+                {
                     id = u.Id,
                     name = $"{u.FirstName} {u.LastName}",
                     email = u.Email,
@@ -75,35 +56,17 @@ namespace MVC.Controllers
             return Json(new
             {
                 success = true,
-                requests = result.Result.Select(r => new {
+                requests = result.Result.Select(r => new
+                {
                     id = r.Id,
-                    projectId = r.ProjectId,
-                    projectName = r.ProjectName,
+                    userName = $"{r.UserName}",
                     userId = r.UserId,
-                    userName = r.UserName,
-                    userEmail = r.UserEmail,
-                    userAvatarUrl = r.UserAvatarUrl ?? "/images/avatar-template-1.svg",
-                    requestDate = r.RequestDate,
-                    message = r.Message
+                    message = r.Message,
+                    requestDate = r.RequestDate.ToString("MMM d, yyyy")
                 })
             });
         }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ApproveRequest(Guid requestId)
-        {
-            var result = await _projectMembershipService.ApproveProjectRequestAsync(requestId);
-            return Json(new { success = result.Succeeded, message = result.Succeeded ? "Request approved" : result.Error });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RejectRequest(Guid requestId)
-        {
-            var result = await _projectMembershipService.RejectProjectRequestAsync(requestId);
-            return Json(new { success = result.Succeeded, message = result.Succeeded ? "Request rejected" : result.Error });
-        }
     }
 }
+
 

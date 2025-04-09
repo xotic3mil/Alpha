@@ -27,12 +27,10 @@ namespace Data.Repositories
                 .FirstOrDefaultAsync(u => u.Id == userId);
         }
 
-        public async Task<IEnumerable<UserEntity>> GetAllExceptAsync(List<Guid> excludeUserIds)
+        public async Task<IEnumerable<UserEntity>> GetAllExceptAsync(List<Guid> excludeIds)
         {
             return await _context.Users
-                .Where(u => !excludeUserIds.Contains(u.Id))
-                .OrderBy(u => u.FirstName)
-                .ThenBy(u => u.LastName)
+                .Where(u => !excludeIds.Contains(u.Id))
                 .ToListAsync();
         }
     }
