@@ -21,8 +21,8 @@
                     Add Status
                 </h1>
             </div>
-            <div class="modal-body bg-white">
-                <div class="container-fluid px-4 bg-white">
+            <div class="modal-body">
+                <div class="container-fluid px-4">
                     <form asp-action="Create" method="post">
                         @Html.AntiForgeryToken()
                         <div class="mb-3">
@@ -55,7 +55,7 @@
                                       required></textarea>
                             <span class="text-danger" asp-validation-for="Form.Description"></span>
                         </div>
-                        <div class="d-flex justify-content-center mb-4 bg-white">
+                        <div class="d-flex justify-content-center mb-4 ">
                             <button type="submit" class="btnAuth">Create Status</button>
                         </div>
                     </form>

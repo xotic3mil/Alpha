@@ -21,8 +21,8 @@
                     Edit Service
                 </h1>
             </div>
-            <div class="modal-body bg-white">
-                <div class="container-fluid px-4 bg-white">
+            <div class="modal-body">
+                <div class="container-fluid px-4">
                     <form asp-action="Edit" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" id="Form_Id" name="Form.Id" />
@@ -54,7 +54,7 @@
                                    placeholder="Enter budget amount" />
                             <span class="text-danger" asp-validation-for="Form.Budget"></span>
                         </div>
-                        <div class="d-flex justify-content-center mb-4 bg-white">
+                        <div class="d-flex justify-content-center mb-4 ">
                             <button type="submit" class="btnAuth">Update Service</button>
                         </div>
                     </form>

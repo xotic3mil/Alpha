@@ -10,9 +10,8 @@ public class Project
       public Status Status { get; set; } = null!;
       public Customer Customer { get; set; } = null!;
       public Service Service { get; set; } = null!;
-      public string? ImageUrl { get; set; } 
-
-
-     //public List<User>? Users { get; set; }
+      public User User { get; set; } = null!;
+    public string? ImageUrl { get; set; }
+     
 
 }

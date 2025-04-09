@@ -11,8 +11,8 @@
      aria-labelledby="loginModalLabel"
      aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content bg-white">
-            <div class="text-center my-5 bg-white">
+        <div class="modal-content ">
+            <div class="text-center my-5">
                 <h1 class="modal-title fs-3" id="loginModalLabel">Login</h1>
             </div>
             <div>
@@ -24,15 +24,14 @@
                 </div>
             </div>
             <div class="px-5 mb-4">
-                <div class="position-relative">
-                    <hr class="text-muted" />
-                    <div class="position-absolute top-50 start-50 translate-middle px-3 bg-white text-muted small">
-                        OR
-                    </div>
+                <div class="d-flex align-items-center">
+                    <hr class="flex-grow-1 text-muted" />
+                    <div class="px-3 text-muted small">OR</div>
+                    <hr class="flex-grow-1 text-muted" />
                 </div>
             </div>
-            <div class="modal-body bg-white">
-                <div class="container-fluid px-5 bg-white">
+            <div class="modal-body">
+                <div class="container-fluid px-5 ">
                     <form asp-action="Login" asp-controller="Auth" method="post">
                         @Html.AntiForgeryToken()
                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
@@ -46,7 +45,7 @@
                             @Html.PasswordFor(m => m.Password, new { @class = "form-control formBorder", placeholder = "Enter your password", id = "Password" })
                             @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
                         </div>
-                        <div class="container-fluid bg-white">
+                        <div class="container-fluid ">
                             <div class="form-check">
                                 @Html.CheckBoxFor(m => m.RememberMe, new { @class = "form-check-input", id = "RememberMe" })
                                 <label class="form-check-label" for="flexCheckDefault">
@@ -54,13 +53,13 @@
                                 </label>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-center mb-5 bg-white">
+                        <div class="d-flex justify-content-center mb-5 ">
                             <button type="submit" class="btnAuth">Log In</button>
                         </div>
                     </form>
                 </div>
             </div>
-            <div class="d-flex justify-content-center mb-3 bg-white">
+            <div class="d-flex justify-content-center mb-3 ">
                 <span>
                     Don't have an account?
                     <a href="/auth/register" class="text-decoration-none">

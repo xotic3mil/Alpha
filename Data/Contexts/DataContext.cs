@@ -15,6 +15,7 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
     public DbSet<CommentEntity> Comments { get; set; }
     public DbSet<UserEntity> Users { get; set; }
     public DbSet<RoleEntity> Roles { get; set; }
+    public DbSet<ProjectRequestEntity> ProjectRequests { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -10,5 +10,9 @@ namespace Data.Interfaces
 {
     public interface IUserRepository : IBaseRepository<UserEntity, User>
     {
+        public Task<IEnumerable<UserEntity>> GetAllExceptAsync(List<Guid> excludeUserIds);
+        public Task<UserEntity> GetWithProjectsAsync(Guid userId);
+
+        public Task<UserEntity> GetByIdAsync(Guid userId);
     }
 }

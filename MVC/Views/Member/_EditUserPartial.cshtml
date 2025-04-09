@@ -24,8 +24,8 @@
                     Edit Team Member
                 </h1>
             </div>
-            <div class="modal-body bg-white">
-                <div class="container-fluid px-4 bg-white">
+            <div class="modal-body">
+                <div class="container-fluid px-4">
                     <form asp-action="Edit" asp-controller="Member" method="post" id="editUserForm" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
                         <input type="hidden" id="editUserId" name="Form.Id" />

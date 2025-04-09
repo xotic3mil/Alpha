@@ -1,0 +1,74 @@
+﻿@using Domain.Models
+@model User
+
+@{
+    var user = Model;
+}
+
+<div class="col-12 col-md-6 col-lg-4 col-xl-3">
+    <div class="card shadow-sm h-100 rounded-4" data-user-id="@user.Id" style="cursor: pointer;">
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="d-flex justify-content-between">
+                    @if (User.IsInRole("Admin"))
+                    { 
+                    <div class="dropdown ms-auto">
+                        <button class="btn btn-sm btn-link text-muted p-0"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                onclick="event.stopPropagation();">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 width="20"
+                                 height="20"
+                                 fill="currentColor"
+                                 class="bi bi-three-dots-vertical"
+                                 viewBox="0 0 16 16">
+                                <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+                            </svg>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="event.stopPropagation(); openEditUserModal('@user.Id')">
+                                    <i class="bi bi-pencil me-2"></i>Edit Member
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <form asp-action="Delete" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@user.Id" />
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="bi bi-trash me-2"></i>Delete Member
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    }
+                </div>
+                <div class="d-flex justify-content-center">
+                    <img src="@(string.IsNullOrEmpty(user.AvatarUrl) ? "/images/member-template-1.svg" : user.AvatarUrl)"
+                         alt="@user.FirstName @user.LastName"
+                         class="rounded-circle"
+                         style="width: 100px; height: 100px; object-fit: cover;" />
+                </div>
+            </div>
+            <div class="text-center">
+                <h4>@user.FirstName @user.LastName</h4>
+                <div class="mb-3">
+                    <small class="d-block mb-1">
+                        <i class="bi bi-envelope-fill me-1"></i>@user.Email
+                    </small>
+                    @if (!string.IsNullOrEmpty(user.PhoneNumber))
+                    {
+                        <small class="d-block">
+                            <i class="bi bi-telephone-fill me-1"></i>
+                            @user.PhoneNumber
+                        </small>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

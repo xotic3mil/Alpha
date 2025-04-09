@@ -24,8 +24,8 @@
                     Add Team Member
                 </h1>
             </div>
-            <div class="modal-body bg-white">
-                <div class="container-fluid px-4 bg-white">
+            <div class="modal-body ">
+                <div class="container-fluid px-4 ">
                     <form asp-action="Create" asp-controller="Member" method="post" id="createUserForm" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
 
@@ -115,7 +115,7 @@
                         
                         <input type="hidden" name="Form.TermsAndCondition" id="Form_TermsAndCondition" value="true" />
 
-                        <div class="d-flex justify-content-center mb-4 bg-white">
+                        <div class="d-flex justify-content-center mb-4 ">
                             <button type="submit" class="btnAuth">Create Team Member</button>
                         </div>
                     </form>

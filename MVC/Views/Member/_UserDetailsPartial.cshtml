@@ -22,26 +22,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4 text-md-end">
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="userDetailActions" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Actions
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDetailActions">
-                                        <li><a class="dropdown-item" href="javascript:void(0);" onclick="openEditFromDetail()"><i class="bi bi-pencil me-2"></i>Edit Member</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form id="userDetailDeleteForm" asp-action="Delete" method="post">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" id="userDetailDeleteId" name="id" value="" />
-                                                <button type="submit" class="dropdown-item text-danger">
-                                                    <i class="bi bi-trash me-2"></i>Delete Member
-                                                </button>
-                                            </form>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
                         </div>
                     </div>
                     <div class="p-4">

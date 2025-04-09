@@ -58,103 +58,10 @@
             }
              @foreach (var project in Model.Projects)
             {
-                <div class="col-12 col-md-9 col-lg-4 col-xl-4 col-xxl-3">
-                <div class="card shadow-sm h-100 rounded-4"
-                     onclick="openProjectDetails('@project.Id')"
-                     style="cursor: pointer;">
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <div class="d-flex flex-wrap align-items-center">
-                                    <div class="d-flex align-items-center flex-grow-1 me-2 mb-2 mb-sm-0">
-                                        <img src="@(string.IsNullOrEmpty(project.ImageUrl) ? "/images/project-template-1.svg" : project.ImageUrl)"
-                                             class="img-fluid rounded-2"
-                                             alt="@project.Name"
-                                             style="width: 56px; height: 56px;" />
-                                        <div class="mx-3">
-                                            <h6>@project.Name</h6>
-                                            <p class="text-muted">@(project.Customer?.CompanyName)</p>
-                                        </div>
-                                    </div>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-link text-muted p-0"
-                                            type="button"
-                                            data-bs-toggle="dropdown"
-                                            aria-expanded="false"
-                                            onclick="event.stopPropagation()">
-                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                             width="20"
-                                             height="20"
-                                             fill="currentColor"
-                                             class="bi bi-three-dots-vertical"
-                                             viewBox="0 0 16 16">
-                                            <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
-                                        </svg>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                        <li>
-                                            <a class="dropdown-item" href="javascript:void(0);" onclick="event.stopPropagation(); openEditProjectModal('@project.Id')">
-                                                <i class="bi bi-pencil me-2"></i>Edit Project
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="#" onclick="event.stopPropagation();">
-                                                <i class="bi bi-person-plus me-2"></i>Add Member
-                                            </a>
-                                        </li>
-                                        <li><hr class="dropdown-divider" /></li>
-                                        <li>
-                                            <form asp-action="Delete" method="post" class="dropdown-item" onsubmit="event.stopPropagation();">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@project.Id" />
-                                                <button type="submit" class="btn text-danger p-0" onclick="event.stopPropagation();">
-                                                    <i class="bi bi-trash me-2"></i>Delete Project
-                                                </button>
-                                            </form>
-                                        </li>
-                                    </ul>
-                                </div>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 mb-3">
-                                <p class="card-text text-muted">
-                                    @project.Description
-                                </p>
-                            </div>
-                            <div class="d-flex flex-wrap align-items-center gap-2">
-                            <div class="time-container d-inline-flex align-items-center">
-                                <div class="time">
-                                    <div class="d-flex align-items-center">
-                                        <img src="/images/clock.svg" alt="clock" class="me-1" />
-                                        @{
-                                            var daysLeft = Math.Ceiling((project.EndDate.ToDateTime(TimeOnly.MinValue) - DateTime.Now).TotalDays);
-                                        }
-                                        <span class="text-nowrap">@daysLeft days left</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="shadow-sm status-container"
-                                 style="background-color: @(string.IsNullOrEmpty(project.Status?.ColorCode) ? "#b3ff0352" : project.Status.ColorCode + "52")">
-                                <div class="status d-flex align-items-center">
-                                    <div class="status-indicator me-2"
-                                         style="background-color: @(string.IsNullOrEmpty(project.Status?.ColorCode) ? "#4caf50" : project.Status.ColorCode);
-                                    width: 10px;
-                                    height: 10px;
-                                    border-radius: 50%;">
-                                    </div>
-                                    <span>@project.Status?.StatusName</span>
-                                </div>
-                            </div>
-                                <div class="ms-auto">
-                                    <img src="/images/avatar-template-1.svg" alt="avatar" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_ProjectCardPartial", project)
             } 
     </div>
 </div>
-
 
     @await Html.PartialAsync("_CreateProjectPartial", Model)
     @await Html.PartialAsync("_EditProjectPartial", Model)
@@ -247,10 +154,13 @@
                             <button type="submit" class="btn btn-primary">Post</button>
                         </div>
                     `);
-                    
 
+                    loadProjectMembers(project.id);
                     loadComments(project.id);
                     $('#projectDetailsModal').modal('show');
+
+                    
+
                 },
                 error: function (error) {
                     console.error('Error fetching project details:', error);
@@ -423,5 +333,283 @@
                 });
             });
         });
+
+                  function loadProjectMembers(projectId) {
+            $('#projectDetailTeamMembers').html(`
+                <div class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">Loading team members...</span>
+                    </div>
+                    <p class="text-muted mt-2">Loading team members...</p>
+                </div>
+            `);
+
+            $.ajax({
+                url: `/ProjectMembership/GetProjectMembers?projectId=${projectId}`,
+                type: 'GET',
+                success: function(response) {
+                    $('#projectDetailTeamMembers').empty();
+
+                    if (!response.success) {
+                        $('#projectDetailTeamMembers').html(`<p class="text-danger">${response.message || 'Error loading members'}</p>`);
+                        return;
+                    }
+
+                    if (!response.members || response.members.length === 0) {
+                        $('#projectDetailTeamMembers').html('<p class="text-muted">No team members assigned to this project.</p>');
+                        return;
+                    }
+
+                    response.members.forEach(member => {
+                        $('#projectDetailTeamMembers').append(`
+                            <div class="team-member-item d-flex align-items-center mb-2 position-relative" data-member-id="${member.id}">
+                                <img src="${member.avatarUrl}" alt="${member.firstName} ${member.lastName}"
+                                     class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                <div class="ms-2">
+                                    <div class="fw-medium">${member.firstName} ${member.lastName}</div>
+                                    <div class="text-muted small">${member.email}</div>
+                                </div>
+                                <button type="button" class="btn btn-sm text-danger position-absolute end-0 top-0"
+                                        onclick="removeMemberFromProject('${member.id}')">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </div>
+                        `);
+                    });
+                },
+                error: function(error) {
+                    console.error("Error loading team members:", error);
+                    $('#projectDetailTeamMembers').html('<p class="text-danger">Failed to load team members</p>');
+                }
+            });
+
+
+            loadPendingRequests(projectId);
+        }
+
+               function loadPendingRequests(projectId) {
+            $.ajax({
+                url: `/ProjectMembership/GetPendingRequests?projectId=${projectId}`,
+                type: 'GET',
+                success: function(response) {
+                    if (!response.success) {
+                        console.error(response.message);
+                        return;
+                    }
+
+                    if (!response.requests || response.requests.length === 0) {
+                        $('#pendingRequestsSection').hide();
+                        return;
+                    }
+
+                    $('#pendingRequests').empty();
+                    $('#pendingRequestsSection').show();
+
+                    response.requests.forEach(request => {
+                        const requestDate = new Date(request.requestDate);
+                        $('#pendingRequests').append(`
+                            <div class="request-item card bg-light mb-2" data-request-id="${request.id}">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <img src="${request.userAvatarUrl}"
+                                             class="rounded-circle me-2"
+                                             style="width: 32px; height: 32px; object-fit: cover;">
+                                        <div>
+                                            <h6 class="mb-0">${request.userName}</h6>
+                                            <small class="text-muted">${request.userEmail}</small>
+                                        </div>
+                                    </div>
+                                    <p class="card-text small mb-2">
+                                        ${request.message || 'No additional message'}
+                                    </p>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <small class="text-muted">Requested: ${requestDate.toLocaleDateString()}</small>
+                                        <div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    onclick="rejectRequest('${request.id}')">Reject</button>
+                                            <button type="button" class="btn btn-sm btn-success ms-1"
+                                                    onclick="approveRequest('${request.id}')">Approve</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    });
+                },
+                error: function(error) {
+                    console.error("Error loading pending requests:", error);
+                }
+            });
+        }
+
+                function openAddTeamMemberModal() {
+            const projectId = $('#projectDetailDeleteId').val();
+            $('#addTeamMemberProjectId').val(projectId);
+
+            // Load available users
+            $('#userSelect').html('<option value="" selected disabled>Loading users...</option>');
+            $.ajax({
+                url: `/ProjectMembership/GetAvailableUsers?projectId=${projectId}`,
+                type: 'GET',
+                success: function(response) {
+                    $('#userSelect').empty();
+
+                    if (!response.success) {
+                        $('#userSelect').html(`<option value="" selected disabled>${response.message || 'Error loading users'}</option>`);
+                        return;
+                    }
+
+                    if (!response.users || response.users.length === 0) {
+                        $('#userSelect').html('<option value="" selected disabled>No available users</option>');
+                        return;
+                    }
+
+                    $('#userSelect').append('<option value="" selected disabled>Select a user</option>');
+                    response.users.forEach(user => {
+                        $('#userSelect').append(`<option value="${user.id}">${user.name} (${user.email})</option>`);
+                    });
+                },
+                error: function(error) {
+                    console.error("Error loading available users:", error);
+                    $('#userSelect').html('<option value="" selected disabled>Error loading users</option>');
+                }
+            });
+
+            $('#addTeamMemberModal').modal('show');
+        }
+
+            function addMemberToProject() {
+            const projectId = $('#addTeamMemberProjectId').val();
+            const userId = $('#userSelect').val();
+
+            if (!userId) {
+                alert('Please select a user to add to the project');
+                return;
+            }
+
+            $.ajax({
+                url: '/ProjectMembership/AddUserToProject',
+                type: 'POST',
+                data: {
+                    projectId: projectId,
+                    userId: userId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#addTeamMemberModal').modal('hide');
+                        loadProjectMembers(projectId);
+                    } else {
+                        alert(response.message || 'Failed to add user to project');
+                    }
+                },
+                error: function(error) {
+                    console.error("Error adding user to project:", error);
+                    alert('An error occurred while adding the user to the project');
+                }
+            });
+        }
+
+                function removeMemberFromProject(userId) {
+            if (!confirm('Are you sure you want to remove this team member from the project?')) {
+                return;
+            }
+
+            const projectId = $('#projectDetailDeleteId').val();
+
+            $.ajax({
+                url: '/ProjectMembership/RemoveUserFromProject',
+                type: 'POST',
+                data: {
+                    projectId: projectId,
+                    userId: userId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $(`.team-member-item[data-member-id="${userId}"]`).fadeOut(300, function() {
+                            $(this).remove();
+
+                            if ($('#projectDetailTeamMembers').children().length === 0) {
+                                $('#projectDetailTeamMembers').html('<p class="text-muted">No team members assigned to this project.</p>');
+                            }
+                        });
+                    } else {
+                        alert(response.message || 'Failed to remove user from project');
+                    }
+                },
+                error: function(error) {
+                    console.error("Error removing user from project:", error);
+                    alert('An error occurred while removing the user from the project');
+                }
+            });
+        }
+
+                function approveRequest(requestId) {
+            if (!confirm('Are you sure you want to approve this request?')) {
+                return;
+            }
+
+            $.ajax({
+                url: '/ProjectMembership/ApproveRequest',
+                type: 'POST',
+                data: {
+                    requestId: requestId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const projectId = $('#projectDetailDeleteId').val();
+                        $(`.request-item[data-request-id="${requestId}"]`).fadeOut(300, function() {
+                            $(this).remove();
+
+                            if ($('#pendingRequests').children().length === 0) {
+                                $('#pendingRequestsSection').hide();
+                            }
+                            loadProjectMembers(projectId);
+                        });
+                    } else {
+                        alert(response.message || 'Failed to approve request');
+                    }
+                },
+                error: function(error) {
+                    console.error("Error approving request:", error);
+                    alert('An error occurred while approving the request');
+                }
+            });
+        }
+
+        function rejectRequest(requestId) {
+            if (!confirm('Are you sure you want to reject this request?')) {
+                return;
+            }
+
+            $.ajax({
+                url: '/ProjectMembership/RejectRequest',
+                type: 'POST',
+                data: {
+                    requestId: requestId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $(`.request-item[data-request-id="${requestId}"]`).fadeOut(300, function() {
+                            $(this).remove();
+
+                            if ($('#pendingRequests').children().length === 0) {
+                                $('#pendingRequestsSection').hide();
+                            }
+                        });
+                    } else {
+                        alert(response.message || 'Failed to reject request');
+                    }
+                },
+                error: function(error) {
+                    console.error("Error rejecting request:", error);
+                    alert('An error occurred while rejecting the request');
+                }
+            });
+        }
+
     </script>
 }

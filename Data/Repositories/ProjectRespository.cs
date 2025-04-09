@@ -39,5 +39,41 @@ public class ProjectRespository(DataContext context) : BaseRepository<ProjectEnt
         }
     }
 
+    public async Task<ProjectEntity> GetWithUsersAsync(Guid projectId)
+    {
+        return await _context.Projects
+            .Include(p => p.Users)
+            .Include(p => p.Status)
+            .Include(p => p.Customer)
+            .Include(p => p.Service)
+            .FirstOrDefaultAsync(p => p.Id == projectId);
+    }
+
+    public async Task<ProjectEntity> GetWithProjectsAsync(Guid projectId)
+    {
+        return await _context.Projects
+            .Include(p => p.Users)
+            .Include(p => p.Status)
+            .Include(p => p.Customer)
+            .Include(p => p.Service)
+            .FirstOrDefaultAsync(p => p.Id == projectId);
+    }
+
+    public async Task<IEnumerable<ProjectEntity>> GetAllExceptAsync(List<Guid> excludeProjectIds)
+    {
+        return await _context.Projects
+            .Include(p => p.Status)
+            .Include(p => p.Customer)
+            .Include(p => p.Service)
+            .Where(p => !excludeProjectIds.Contains(p.Id))
+            .OrderBy(p => p.Name)
+            .ToListAsync();
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
+    }
+
 }
 

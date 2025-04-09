@@ -1,19 +1,73 @@
 ﻿document.addEventListener('DOMContentLoaded', function () {
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    applyDarkModePreference();
 
-    if (isDarkMode) {
-        document.body.classList.add('dark-mode');
-        darkModeToggle.checked = true;
-    }
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    if (!darkModeToggle) return; 
+
+
+    darkModeToggle.checked = isDarkModeEnabled();
+
 
     darkModeToggle.addEventListener('change', function () {
         if (darkModeToggle.checked) {
-            document.body.classList.add('dark-mode');
-            localStorage.setItem('darkMode', 'true');
+            enableDarkMode();
         } else {
-            document.body.classList.remove('dark-mode');
-            localStorage.setItem('darkMode', 'false');
+            disableDarkMode();
         }
     });
+
+
+    checkSystemPreference();
 });
+
+function isDarkModeEnabled() {
+    return localStorage.getItem('darkMode') === 'true';
+}
+
+function enableDarkMode() {
+    document.body.classList.add('dark-mode');
+    localStorage.setItem('darkMode', 'true');
+
+
+    document.dispatchEvent(new CustomEvent('darkModeChange', { detail: { darkMode: true } }));
+}
+
+function disableDarkMode() {
+    document.body.classList.remove('dark-mode');
+    localStorage.setItem('darkMode', 'false');
+
+    document.dispatchEvent(new CustomEvent('darkModeChange', { detail: { darkMode: false } }));
+}
+
+
+function applyDarkModePreference() {
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+    }
+}
+
+
+function checkSystemPreference() {
+    if (localStorage.getItem('darkMode') === null) {
+        const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDarkMode) {
+            enableDarkMode();
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (darkModeToggle) darkModeToggle.checked = true;
+        }
+    }
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (localStorage.getItem('darkMode') === null) {
+                if (e.matches) {
+                    enableDarkMode();
+                } else {
+                    disableDarkMode();
+                }
+
+                const darkModeToggle = document.getElementById('darkModeToggle');
+                if (darkModeToggle) darkModeToggle.checked = e.matches;
+            }
+        });
+    }
+}

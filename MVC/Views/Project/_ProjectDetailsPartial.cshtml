@@ -22,32 +22,12 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4 text-md-end">
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="projectDetailActions" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Actions
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="projectDetailActions">
-                                        <li><a class="dropdown-item" href="javascript:void(0);" onclick="openEditFromDetail()"><i class="bi bi-pencil me-2"></i>Edit Project</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="bi bi-person-plus me-2"></i>Add Member</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form id="projectDetailDeleteForm" asp-action="Delete" method="post">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" id="projectDetailDeleteId" name="id" value="" />
-                                                <button type="submit" class="dropdown-item text-danger">
-                                                    <i class="bi bi-trash me-2"></i>Delete Project
-                                                </button>
-                                            </form>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
                         </div>
                     </div>
                     <div class="p-4">
                         <div class="row g-4">
                             <div class="col-lg-8">
+                                <!-- Left column content stays the same -->
                                 <div class="card shadow-sm rounded-4 mb-4">
                                     <div class="card-body">
                                         <h5 class="card-title mb-3">Description</h5>
@@ -175,9 +155,26 @@
                                     <div class="card-body">
                                         <h5 class="card-title d-flex justify-content-between align-items-center mb-3">
                                             Team Members
-                                            <button class="btn btn-sm btn-outline-primary rounded-pill">Add</button>
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill"
+                                                    id="addTeamMemberBtn"
+                                                    onclick="openAddTeamMemberModal()"
+                                                    type="button">
+                                                <i class="bi bi-person-plus me-1"></i> Add
+                                            </button>
                                         </h5>
-                                        <div id="projectDetailTeamMembers" class="d-flex flex-wrap gap-2">
+                                        <div id="projectDetailTeamMembers" class="d-flex flex-column gap-2">
+                                            <div class="text-center py-3">
+                                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                    <span class="visually-hidden">Loading team members...</span>
+                                                </div>
+                                                <p class="text-muted mt-2">Loading team members...</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-4" id="pendingRequestsSection" style="display: none;">
+                                            <h6 class="card-subtitle mb-3">Pending Requests</h6>
+                                            <div id="pendingRequests" class="d-flex flex-column gap-2">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -185,6 +182,31 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="addTeamMemberModal" tabindex="-1" aria-labelledby="addTeamMemberModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="addTeamMemberModalLabel">Add Team Member</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="addTeamMemberProjectId" value="">
+                <div class="mb-3">
+                    <label for="userSelect" class="form-label">Select User</label>
+                    <select class="form-select formBorder" id="userSelect">
+                        <option value="" selected disabled>Loading users...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="addMemberToProjectBtn" onclick="addMemberToProject()">Add to Project</button>
             </div>
         </div>
     </div>

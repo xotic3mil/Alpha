@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Domain.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,22 +44,26 @@ builder.Services.ConfigureApplicationCookie(x =>
 });
 
 // Register Repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProjectRespository, ProjectRespository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
-builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IStatusTypeRepository, StatusTypeRepository>();
+builder.Services.AddScoped<IProjectRequestRepository, ProjectRequestRepository>();
 
 // Register Services
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<DatabaseInitializationService>();
 builder.Services.AddScoped<IStatusTypeService, StatusTypeService>();
-builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IProjectsService, ProjectService>();
 builder.Services.AddScoped<ICustomersService, CustomerService>();
 builder.Services.AddScoped<IServicesService, ServicesService>();
+builder.Services.AddScoped<IProjectMembershipService, ProjectMembershipService>();
+
 
 builder.Services.AddControllersWithViews(options =>
 {
