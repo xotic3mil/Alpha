@@ -1,0 +1,143 @@
+﻿@using Domain.Models
+@model IEnumerable<ProjectRequest>
+
+<div class="pt-3">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3">
+        <h1 class="h2">Projects</h1>
+    </div>
+
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link"
+               asp-controller="Project" asp-action="Index">
+                <i class="bi bi-grid me-1"></i> My Projects
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link"
+               asp-controller="UserProjects" asp-action="AvailableProjects">
+                <i class="bi bi-search me-1"></i> Join Projects
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active"
+               asp-controller="UserProjects" asp-action="MyRequests">
+                <i class="bi bi-clipboard-check me-1"></i> My Requests
+            </a>
+        </li>
+    </ul>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <ul>
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="card rounded-4 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Project</th>
+                                <th>Requested On</th>
+                                <th>Status</th>
+                                <th>Message</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var request in Model)
+                            {
+                                <tr data-request-id="@request.Id">
+                                    <td class="ps-4">@request.Project?.Name</td>
+                                    <td>@request.RequestDate.ToString("MMM d, yyyy")</td>
+                                    <td>
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    </td>
+                                    <td>@(string.IsNullOrEmpty(request.Message) ? "No message" : request.Message)</td>
+                                    <td class="text-end pe-4">
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                onclick="cancelRequest('@request.Id')">
+                                            Cancel
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center p-5 bg-light rounded-4">
+            <i class="bi bi-clipboard-x" style="font-size: 2rem;"></i>
+            <h4 class="mt-3">No pending requests</h4>
+            <p class="text-muted">
+                You don't have any pending project join requests.
+                <a asp-controller="UserProjects" asp-action="AvailableProjects" class="text-decoration-none">Browse available projects</a>
+                to find teams you'd like to join.
+            </p>
+        </div>
+    }
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        function cancelRequest(requestId) {
+            if (!confirm('Are you sure you want to cancel this request?')) {
+                return;
+            }
+
+            $.ajax({
+                url: '/UserProjects/CancelRequest',
+                type: 'POST',
+                data: {
+                    requestId: requestId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success('Request canceled successfully');
+                        } else {
+                            alert('Request canceled successfully');
+                        }
+                        $(`tr[data-request-id="${requestId}"]`).fadeOut(300, function() {
+                            $(this).remove();
+                            if ($('tbody tr').length === 0) {
+                                location.reload();
+                            }
+                        });
+                    } else {
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(response.message || 'Failed to cancel request');
+                        } else {
+                            alert(response.message || 'Failed to cancel request');
+                        }
+                    }
+                },
+                error: function(error) {
+                    console.error("Error canceling request:", error);
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Failed to cancel request');
+                    } else {
+                        alert('Failed to cancel request');
+                    }
+                }
+            });
+        }
+    </script>
+}

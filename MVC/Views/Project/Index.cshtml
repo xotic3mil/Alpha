@@ -17,26 +17,61 @@
             </button>
         </div>
     </div>
-        <ul class="nav mb-4">
+    <div class="navigation-container mb-4">
+        <ul class="nav nav-tabs mb-0">
             <li class="nav-item">
-                <a class="nav-link @(ViewBag.StatusFilter == null || ViewBag.StatusFilter == "All" ? "active" : "")"
+                <a class="nav-link @(ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")"
                    asp-controller="Project" asp-action="Index">
-                    All Projects (@(ViewBag.TotalCount ?? 0))
+                    <i class="bi bi-grid me-1"></i> My Projects
                 </a>
             </li>
-            @if (ViewBag.StatusCounts != null)
-            {
-                @foreach (var statusGroup in ViewBag.StatusCounts)
-                {
-                    <li class="nav-item">
-                        <a class="nav-link @(ViewBag.StatusFilter == statusGroup.Key ? "active" : "")"
-                           asp-controller="Project" asp-action="Index" asp-route-statusFilter="@statusGroup.Key">
-                            @statusGroup.Key (@statusGroup.Value)
-                        </a>
-                    </li>
-                }
-            }
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["action"].ToString() == "AvailableProjects" ? "active" : "")"
+                   asp-controller="UserProjects" asp-action="AvailableProjects">
+                    <i class="bi bi-search me-1"></i> Join Projects
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["action"].ToString() == "MyRequests" ? "active" : "")"
+                   asp-controller="UserProjects" asp-action="MyRequests">
+                    <i class="bi bi-clipboard-check me-1"></i> My Requests
+                    @{
+                        var pendingCount = TempData["PendingRequestCount"] as int?;
+                        if (pendingCount > 0)
+                        {
+                            <span class="badge bg-danger rounded-pill ms-1">@pendingCount</span>
+                        }
+                    }
+                </a>
+            </li>
         </ul>
+
+        @if (ViewContext.RouteData.Values["action"].ToString() == "Index" &&
+        ViewContext.RouteData.Values["controller"].ToString() == "Project")
+        {
+            <div class="sub-navigation border-start border-end border-bottom rounded-bottom pt-2 px-3 pb-2 bg-light">
+                <div class="d-flex flex-wrap">
+                    <span class="me-3 text-muted small pt-1">Filter by status:</span>
+                    <div class="nav nav-pills nav-pills-sm">
+                        <a class="nav-link btn-sm @(ViewBag.StatusFilter == null || ViewBag.StatusFilter == "All" ? "active" : "")"
+                           asp-controller="Project" asp-action="Index">
+                            All (@(ViewBag.TotalCount ?? 0))
+                        </a>
+                        @if (ViewBag.StatusCounts != null)
+                        {
+                            @foreach (var statusGroup in ViewBag.StatusCounts)
+                            {
+                                <a class="nav-link btn-sm @(ViewBag.StatusFilter == statusGroup.Key ? "active" : "")"
+                                   asp-controller="Project" asp-action="Index" asp-route-statusFilter="@statusGroup.Key">
+                                    @statusGroup.Key (@statusGroup.Value)
+                                </a>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
     <div class="row g-3">
             @if (ViewBag.SuccessMessage != null)
             {
@@ -70,7 +105,6 @@
 
 @section Scripts {
     <script>
-        // Ripple effect function
         function createRipple(event) {
             const button = event.currentTarget;
             const ripple = button.querySelector(".ripple");
@@ -91,7 +125,6 @@
             button.appendChild(circle);
         }
 
-        // Open project details function
         function openProjectDetails(id) {
             console.log("Opening project details for ID:", id);
 
@@ -102,11 +135,9 @@
                 success: function (project) {
                     console.log("Project data:", project);
 
-                    // Set hidden ID for other functions to use
                     $('#projectDetailDeleteId').val(project.id);
                     $('#projectDetailId').val(project.id);
 
-                    // Update UI with project details
                     $('#projectDetailImage').attr('src', project.imageUrl || '/images/project-template-1.svg');
                     $('#projectDetailName').text(project.name || 'Unnamed Project');
                     $('#projectDetailDescription').text(project.description || 'No description available');
@@ -132,7 +163,6 @@
                         $('#projectDetailTimeRemaining').text('-');
                     }
 
-                    // Set customer info
                     if (project.customer) {
                         $('#projectDetailCustomerName').text(project.customer.companyName || '-');
                         $('#projectDetailCustomerContact').text(project.customer.contactName || '-');
@@ -148,7 +178,6 @@
                         $('#viewCustomerLink').attr('href', `/Customer/Details/${project.customer.id}`);
                     }
 
-                    // Setup comment form
                     $('#commentForm').html(`
         @Html.AntiForgeryToken()
                         <input type="hidden" id="commentProjectId" name="ProjectId" value="${project.id}" />
@@ -163,12 +192,10 @@
                         </div>
                     `);
 
-                    // Load project members and comments
                     loadProjectMembers(project.id);
                     loadComments(project.id);
                     loadPendingRequests(project.id);
 
-                    // Show modal
                     $('#projectDetailsModal').modal('show');
                 },
                 error: function (error) {
@@ -185,7 +212,6 @@
             return date.toLocaleDateString();
         }
 
-        // Load comments function
         function loadComments(projectId) {
             console.log("Loading comments for project:", projectId);
 
@@ -221,7 +247,6 @@
             });
         }
 
-        // Append comment function
         function appendComment(comment) {
             const commentDate = new Date(comment.createdAt);
             const formattedDate = commentDate.toLocaleString();
@@ -251,7 +276,6 @@
             $('#commentsContainer').prepend(commentHtml);
         }
 
-        // Delete comment function
         function deleteComment(commentId, projectId) {
             if (!confirm("Delete this status comment?")) {
                 return;
@@ -291,7 +315,6 @@
             });
         }
 
-        // Load project members function
         function loadProjectMembers(projectId) {
             $('#projectDetailTeamMembers').html(`
                 <div class="text-center py-3">
@@ -344,7 +367,6 @@
             });
         }
 
-        // Load pending requests function
         function loadPendingRequests(projectId) {
             $.ajax({
                 url: `/ProjectMembership/GetPendingRequests?projectId=${projectId}`,
@@ -400,9 +422,7 @@
             });
         }
 
-        // Open team member modal function
         function openAddTeamMemberModal() {
-            // Get project ID from hidden field
             const projectId = $('#projectDetailId').val();
 
             if (!projectId) {
@@ -415,7 +435,6 @@
 
             console.log("Opening team member modal for project:", projectId);
 
-            // Load available users
             $.ajax({
                 url: `/ProjectMembership/GetAvailableUsers?projectId=${projectId}`,
                 type: 'GET',
@@ -449,7 +468,6 @@
             $('#addTeamMemberModal').modal('show');
         }
 
-        // Add team member function
         function addMemberToProject() {
             const projectId = $('#addTeamMemberProjectId').val();
             const userId = $('#userSelect').val();
@@ -498,7 +516,6 @@
             });
         }
 
-        // Remove team member function
         function removeTeamMember(projectId, userId) {
             if (!confirm('Are you sure you want to remove this team member from the project?')) {
                 return;
@@ -539,7 +556,6 @@
             });
         }
 
-        // Approve request function
         function approveRequest(requestId) {
             if (!confirm('Are you sure you want to approve this request?')) {
                 return;
@@ -574,7 +590,6 @@
             });
         }
 
-        // Reject request function
         function rejectRequest(requestId) {
             if (!confirm('Are you sure you want to reject this request?')) {
                 return;
@@ -607,9 +622,7 @@
             });
         }
 
-        // DOM ready function
         $(document).ready(function() {
-            // Add ripple effect to buttons
             const buttons = document.querySelectorAll(
                 ".btnAuth, .btnAdd, .btnGoogle, .btn-editor, .btn"
             );
@@ -619,7 +632,6 @@
                 button.addEventListener("mousedown", createRipple);
             });
 
-            // Handle comment form submission
             $(document).on('submit', '#commentForm', function(e) {
                 e.preventDefault();
 

@@ -1,11 +1,15 @@
 ﻿using Business.Interfaces;
+using Data.Entities;
+using Domain.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MVC.Controllers
 {
-    public class UserProjectsController(IProjectMembershipService projectMembershipService) : Controller
+    public class UserProjectsController(IProjectMembershipService projectMembershipService, UserManager<UserEntity> userManager) : Controller
     {
         private readonly IProjectMembershipService _projectMembershipService = projectMembershipService;
+        private readonly UserManager<UserEntity> _userManager = userManager;
 
         [HttpGet]
         public async Task<IActionResult> GetProjectMembers(Guid projectId)
@@ -101,6 +105,85 @@ namespace MVC.Controllers
             var result = await projectMembershipService.RejectProjectRequestAsync(requestId);
             return Json(new { success = result.Succeeded, message = result.Succeeded ? "Request rejected" : result.Error });
         }
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> AvailableProjects()
+        {
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login", "Auth");
+
+            var result = await _projectMembershipService.GetAvailableProjectsForUserAsync(Guid.Parse(userId));
+
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, result.Error ?? "Failed to load available projects.");
+                return View(Array.Empty<ProjectEntity>());
+            }
+
+            return View(result.Result);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> MyRequests()
+        {
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login", "Auth");
+
+            var result = await _projectMembershipService.GetPendingRequestsForUserAsync(Guid.Parse(userId));
+
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, result.Error ?? "Failed to load your requests.");
+                return View(Array.Empty<ProjectRequest>());
+            }
+
+            return View(result.Result);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RequestJoin(Guid projectId, string message)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+                return Json(new { success = false, message = "User not authenticated" });
+
+            var result = await _projectMembershipService.RequestProjectAssignmentAsync(
+                projectId,
+                Guid.Parse(userId),
+                message);
+
+            return Json(new
+            {
+                success = result.Succeeded,
+                message = result.Succeeded ? "Request submitted successfully" : result.Error
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelRequest(Guid requestId)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+                return Json(new { success = false, message = "User not authenticated" });
+
+            var result = await _projectMembershipService.CancelProjectRequestAsync(requestId);
+
+            return Json(new
+            {
+                success = result.Succeeded,
+                message = result.Succeeded ? "Request canceled" : result.Error
+            });
+        }
+
+
+
+
     }
 }
 

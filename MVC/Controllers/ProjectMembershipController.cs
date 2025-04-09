@@ -66,6 +66,27 @@ namespace MVC.Controllers
                 })
             });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProjectMembers(Guid projectId)
+        {
+
+            var result = await _projectMembershipService.GetProjectMembersAsync(projectId);
+
+            if (!result.Succeeded)
+                return Json(new { success = false, message = result.Error });
+
+            return Json(new
+            {
+                success = true,
+                members = result.Result.Select(m => new {
+                    id = m.Id,
+                    name = $"{m.FirstName} {m.LastName}",
+                    email = m.Email,
+                    avatarUrl = m.AvatarUrl ?? "/images/avatar-template-1.svg"
+                }).ToList() // 
+            });
+        }
     }
 }
 

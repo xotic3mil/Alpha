@@ -25,6 +25,7 @@ public class ProjectRespository(DataContext context) : BaseRepository<ProjectEnt
                 .Include(p => p.Status)
                 .Include(p => p.Service)
                 .Include(p => p.Customer)
+                .Include(p => p.Users)
                 .FirstOrDefaultAsync(predicate);
 
             if (entity == null)

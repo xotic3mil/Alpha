@@ -2,7 +2,7 @@
 @model Project
 
 @{
-    var project = Model; 
+    var project = Model;
 }
 
 <div class="col-12 col-md-9 col-lg-4 col-xl-4 col-xxl-3">
@@ -44,7 +44,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="#" onclick="event.stopPropagation();">
+                                <a class="dropdown-item" href="#" onclick="event.stopPropagation(); openAddTeamMemberModal('@project.Id')">
                                     <i class="bi bi-person-plus me-2"></i>Add Member
                                 </a>
                             </li>
@@ -92,20 +92,44 @@
                     </div>
                 </div>
                 <div class="ms-auto">
-                    @if (project.User != null)
+                    @if (project.Users != null && project.Users.Any())
+                    {
+                        <div class="d-flex align-items-center team-members">
+                            @{
+                                var maxDisplay = 3;
+                                var displayUsers = project.Users.Take(maxDisplay).ToList();
+                                var remainingCount = project.Users.Count - maxDisplay;
+                            }
+
+                            @foreach (var user in displayUsers)
+                            {
+                                <img src="@(string.IsNullOrEmpty(user.AvatarUrl) ? "/images/avatar-template-1.svg" : user.AvatarUrl)"
+                                     alt="@user.FirstName @user.LastName"
+                                     class="rounded-circle team-avatar"
+                                     title="@user.FirstName @user.LastName"
+                                     style="width: 28px; height: 28px; border: 2px solid white; margin-left: -8px;" />
+                            }
+
+                            @if (remainingCount > 0)
+                            {
+                                <span class="ms-1 text-muted small">+@remainingCount</span>
+                            }
+                        </div>
+                    }
+                    else if (project.User != null)
                     {
                         <div class="d-flex align-items-center">
                             <img src="@(string.IsNullOrEmpty(project.User.AvatarUrl) ? "/images/avatar-template-1.svg" : project.User.AvatarUrl)"
                                  alt="@project.User.FirstName @project.User.LastName"
                                  class="rounded-circle"
                                  title="@project.User.FirstName @project.User.LastName"
-                                 style="width: 30px; height: 30px;" />
+                                 style="width: 28px; height: 28px;" />
                             <span class="ms-2 text-muted small">@project.User.FirstName</span>
                         </div>
                     }
                     else
                     {
-                        <span class="text-muted small">No user assigned</span>
+                        <span class="text-muted small">No team assigned</span>
                     }
                 </div>
             </div>

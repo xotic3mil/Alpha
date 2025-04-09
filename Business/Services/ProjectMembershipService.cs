@@ -287,5 +287,29 @@ namespace Business.Services
                 return new ProjectManagementResult<IEnumerable<ProjectRequest>> { Succeeded = false, StatusCode = 500, Error = ex.Message };
             }
         }
+
+
+        public async Task<ProjectManagementResult> CancelProjectRequestAsync(Guid requestId)
+        {
+            try
+            {
+                var request = await _requestRepository.GetByIdAsync(requestId);
+                if (request == null)
+                    return new ProjectManagementResult { Succeeded = false, StatusCode = 404, Error = "Request not found" };
+
+                if (request.Status != "Pending")
+                    return new ProjectManagementResult { Succeeded = false, StatusCode = 400, Error = "Only pending requests can be canceled" };
+
+                request.Status = "Canceled";
+                request.ResolutionDate = DateTime.UtcNow;
+                await _requestRepository.UpdateAsync(request);
+
+                return new ProjectManagementResult { Succeeded = true, StatusCode = 200 };
+            }
+            catch (Exception ex)
+            {
+                return new ProjectManagementResult { Succeeded = false, StatusCode = 500, Error = ex.Message };
+            }
+        }
     }
 }

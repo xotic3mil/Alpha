@@ -73,6 +73,8 @@ body.dark-mode {
     --navbar-border: #38383B;
 }
 
+
+
 .nav-link {
     color: var(--nav-link-color) !important;
     transition: color 0.2s ease !important;
@@ -80,6 +82,7 @@ body.dark-mode {
 
     .nav-link:hover {
         background-color: var(--nav-link-hover-bg) !important;
+
     }
 
     .nav-link.active {

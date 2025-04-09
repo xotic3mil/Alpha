@@ -43,7 +43,7 @@ builder.Services.ConfigureApplicationCookie(x =>
     x.SlidingExpiration = true;
 });
 
-// Register Repositories
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProjectRespository, ProjectRespository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
@@ -53,7 +53,7 @@ builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IStatusTypeRepository, StatusTypeRepository>();
 builder.Services.AddScoped<IProjectRequestRepository, ProjectRequestRepository>();
 
-// Register Services
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<DatabaseInitializationService>();
