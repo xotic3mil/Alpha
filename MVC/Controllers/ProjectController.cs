@@ -38,6 +38,18 @@ public class ProjectController(
             var viewModel = new ProjectViewModel();
             await PopulateViewModelAsync(viewModel);
 
+            ViewBag.StatusFilter = statusFilter;
+            var allProjects = viewModel.Projects.ToList();
+
+            var statusCounts = allProjects
+                .Where(p => p.Status?.StatusName != null)
+                .GroupBy(p => p.Status!.StatusName)
+                .ToDictionary(g => g.Key!, g => g.Count());
+
+            ViewBag.StatusCounts = statusCounts;
+            ViewBag.TotalCount = allProjects.Count;
+
+
             if (!string.IsNullOrEmpty(statusFilter))
             {
                 viewModel.Projects = viewModel.Projects.Where(p => p.Status?.StatusName == statusFilter);
