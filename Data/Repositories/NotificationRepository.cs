@@ -74,6 +74,42 @@ namespace Data.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task MarkAllAdminNotificationsAsReadAsync() 
+        {
+            var notifications = await _context.Notifications
+                .Where(n => n.ForAdminsOnly && !n.IsRead)
+                .ToListAsync();
+            foreach (var notification in notifications)
+            {
+                notification.IsRead = true;
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task MarkAllProjectManagerNotificationsAsReadAsync()
+        {
+            var notifications = await _context.Notifications
+                .Where(n => n.ForProjectManagersOnly && !n.IsRead)
+                .ToListAsync();
+            foreach (var notification in notifications)
+            {
+                notification.IsRead = true;
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task MarkAllUserNotificationsAsReadAsync(Guid userId)
+        {
+            var notifications = await _context.Notifications
+                .Where(n => n.RecipientId == userId && !n.IsRead)
+                .ToListAsync();
+            foreach (var notification in notifications)
+            {
+                notification.IsRead = true;
+            }
+            await _context.SaveChangesAsync();
+        }
+
         public async Task MarkAsReadAsync(Guid id)
         {
             var notification = await _context.Notifications.FindAsync(id);

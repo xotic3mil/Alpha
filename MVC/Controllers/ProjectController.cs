@@ -28,7 +28,7 @@ public class ProjectController(
     private readonly ICustomersService _customerService = customerService;
     private readonly IUserService _userService = userService;
     private readonly UserManager<UserEntity> _userManager = userManager;
-    private readonly IProjectMembershipService _ProjectMembershipService = projectMembershipService;
+    private readonly IProjectMembershipService _projectMembershipService = projectMembershipService;
 
     [HttpGet]
     public async Task<IActionResult> Index(string statusFilter = null)
@@ -38,34 +38,41 @@ public class ProjectController(
             var viewModel = new ProjectViewModel();
             await PopulateViewModelAsync(viewModel);
 
-            var allProjects = viewModel.Projects?.ToList() ?? new List<Project>();
-
-            var statusCounts = allProjects
-                .GroupBy(p => p.Status?.StatusName ?? "Unknown")
-                .ToDictionary(g => g.Key, g => g.Count());
-
-            ViewBag.StatusFilter = statusFilter;
-            ViewBag.TotalCount = allProjects.Count;
-            ViewBag.StatusCounts = statusCounts;
-
-            if (!string.IsNullOrEmpty(statusFilter) && statusFilter.ToLower() != "all")
+            if (!string.IsNullOrEmpty(statusFilter))
             {
-                viewModel.Projects = allProjects
-                    .Where(p => string.Equals(p.Status?.StatusName, statusFilter, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+                viewModel.Projects = viewModel.Projects.Where(p => p.Status?.StatusName == statusFilter);
+            }
+
+            if (!User.IsInRole("Admin") && !User.IsInRole("ProjectManager"))
+            {
+                var userId = _userManager.GetUserId(User);
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var userGuid = Guid.Parse(userId);
+
+                    var userProjectsResult = await _projectMembershipService.GetUserProjectsAsync(userGuid);
+                    if (userProjectsResult.Succeeded)
+                    {
+                        viewModel.UserProjectIds = userProjectsResult.Result
+                            .Select(p => p.Id)
+                            .ToList();
+                    }
+
+                    var pendingRequestsResult = await _projectMembershipService.GetPendingRequestsForUserAsync(userGuid);
+                    if (pendingRequestsResult.Succeeded)
+                    {
+                        viewModel.UserPendingRequestProjectIds = pendingRequestsResult.Result
+                            .Select(r => r.ProjectId)
+                            .ToList();
+                    }
+                }
             }
 
             return View(viewModel);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in Index action: {ex.Message}");
-
-            ViewBag.StatusFilter = null;
-            ViewBag.TotalCount = 0;
-            ViewBag.StatusCounts = new Dictionary<string, int>();
-
-            return View(new ProjectViewModel());
+            return Error(ex.Message);
         }
     }
 
@@ -218,7 +225,7 @@ public class ProjectController(
         if (requestId.HasValue)
         {
 
-            var requestResult = await _ProjectMembershipService.GetRequestByIdAsync(requestId.Value);
+            var requestResult = await _projectMembershipService.GetRequestByIdAsync(requestId.Value);
             if (!requestResult.Succeeded)
             {
                 TempData["ErrorMessage"] = "Failed to load request details";

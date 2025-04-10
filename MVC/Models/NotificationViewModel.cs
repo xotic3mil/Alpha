@@ -1,4 +1,6 @@
-﻿namespace MVC.Models
+﻿using Domain.Models;
+
+namespace MVC.Models
 {
     public class NotificationViewModel
     {
@@ -6,7 +8,11 @@
         public string Title { get; set; } = null!;
         public string? Message { get; set; }
         public string Type { get; set; } = null!;
-        public DateTime CreatedAt { get; set; }
+        public bool IsRead { get; set; }
         public Guid? RelatedEntityId { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public bool ForAdminsOnly { get; set; }
+        public Guid? RecipientId { get; set; }
+        public User? Recipient { get; set; }
     }
 }

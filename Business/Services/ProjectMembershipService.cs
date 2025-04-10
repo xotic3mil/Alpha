@@ -177,7 +177,14 @@ namespace Business.Services
                     return new ProjectManagementResult<IEnumerable<Project>> { Succeeded = false, StatusCode = 404, Error = "User not found" };
 
                 var userProjectIds = user.Projects?.Select(p => p.Id).ToList() ?? new List<Guid>();
-                var availableProjects = await _projectRepository.GetAllExceptAsync(userProjectIds);
+
+                var pendingRequestProjectIds = (await _requestRepository.GetPendingRequestsForUserAsync(userId))
+                    .Select(r => r.ProjectId)
+                    .ToList();
+
+                var excludeProjectIds = userProjectIds.Union(pendingRequestProjectIds).ToList();
+
+                var availableProjects = await _projectRepository.GetAllExceptAsync(excludeProjectIds);
                 var projects = availableProjects.Select(p => p.MapTo<Project>());
 
                 return new ProjectManagementResult<IEnumerable<Project>> { Succeeded = true, StatusCode = 200, Result = projects };

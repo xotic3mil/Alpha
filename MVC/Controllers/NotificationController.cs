@@ -1,6 +1,7 @@
 ﻿using Business.Dtos;
 using Business.Interfaces;
 using Data.Entities;
+using Domain.Extensions;
 using Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -53,41 +54,97 @@ namespace MVC.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Json(new { success = false, message = "User not authenticated" });
 
-            ProjectManagementResult<IEnumerable<NotificationViewModel>> result;
+            try
+            {
+                if (User.IsInRole("Admin"))
+                {
+                    var result = await _notificationService.GetUnreadForAdminsAsync();
+                    if (!result.Succeeded)
+                        return Json(new { success = false, message = result.Error });
 
-            if (User.IsInRole("Admin"))
-            {
-                result = await _notificationService.GetUnreadForAdminsAsAsync<NotificationViewModel>();
-            }
-            else if (User.IsInRole("ProjectManager"))
-            {
-                result = await _notificationService.GetUnreadForProjectManagersAsAsync<NotificationViewModel>();
-            }
-            else
-            {
-                result = await _notificationService.GetUnreadForUserAsAsync<NotificationViewModel>(Guid.Parse(userId));
-            }
+                    var viewModels = result.Result.Select(n => n.MapTo<NotificationViewModel>());
+                    return Json(new { success = true, notifications = viewModels });
+                }
+                else if (User.IsInRole("ProjectManager"))
+                {
+                    var result = await _notificationService.GetUnreadForProjectManagersAsAsync();
+                    if (!result.Succeeded)
+                        return Json(new { success = false, message = result.Error });
 
-            return Json(new
+                    var viewModels = result.Result.Select(n => n.MapTo<NotificationViewModel>());
+                    return Json(new { success = true, notifications = viewModels });
+                }
+                else
+                {
+                    var result = await _notificationService.GetUnreadForUserAsAsync(Guid.Parse(userId));
+                    if (!result.Succeeded)
+                        return Json(new { success = false, message = result.Error });
+
+                    var viewModels = result.Result.Select(n => n.MapTo<NotificationViewModel>());
+                    return Json(new { success = true, notifications = viewModels });
+                }
+            }
+            catch (Exception ex)
             {
-                success = result.Succeeded,
-                message = result.Succeeded ? null : result.Error,
-                notifications = result.Succeeded ? result.Result : null
-            });
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkAllAsRead()
+        {
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+                return Json(new { success = false, message = "User not authenticated" });
+
+            try
+            {
+                bool isAdmin = User.IsInRole("Admin");
+                bool isProjectManager = User.IsInRole("ProjectManager");
+
+                if (isAdmin)
+                {
+                    await _notificationService.MarkAllAdminNotificationsAsReadAsync();
+                }
+                else if (isProjectManager)
+                {
+                    await _notificationService.MarkAllProjectManagerNotificationsAsReadAsync();
+                }
+                else
+                {
+                    await _notificationService.MarkAllUserNotificationsAsReadAsync(Guid.Parse(userId));
+                }
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkAsRead(Guid id)
         {
-            var result = await _notificationService.MarkAsReadAsync(id);
-
-            return Json(new
+            try
             {
-                success = result.Succeeded,
-                message = result.Succeeded ? "Notification marked as read" : result.Error
-            });
+                var result = await _notificationService.MarkNotificationAsReadAsync(id);
+
+                if (result.Succeeded)
+                {
+                    return Json(new { success = true });
+                }
+
+                return Json(new { success = false, message = result.Error });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
+
     }
 }
 

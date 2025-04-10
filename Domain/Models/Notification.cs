@@ -16,6 +16,7 @@ namespace Domain.Models
         public Guid? RelatedEntityId { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool ForAdminsOnly { get; set; }
+        public bool ForProjectManagersOnly { get; set; }
         public Guid? RecipientId { get; set; }
         public User? Recipient { get; set; }
     }

@@ -120,46 +120,46 @@ namespace Business.Services
             }
         }
 
-        public async Task<ProjectManagementResult<IEnumerable<T>>> GetUnreadForAdminsAsAsync<T>() where T : class, new()
+        public async Task<ProjectManagementResult<IEnumerable<Notification>>> GetUnreadForAdminsAsync()
         {
             try
             {
                 var notifications = await _notificationRepository.GetUnreadForAdminsAsync();
-                var result = notifications.Select(n => n.MapTo<T>());
+                var result = notifications.Select(n => n.MapTo<Notification>());
 
-                return new ProjectManagementResult<IEnumerable<T>> { Succeeded = true, StatusCode = 200, Result = result };
+                return new ProjectManagementResult<IEnumerable<Notification>> { Succeeded = true, StatusCode = 200, Result = result };
             }
             catch (Exception ex)
             {
-                return new ProjectManagementResult<IEnumerable<T>> { Succeeded = false, StatusCode = 500, Error = ex.Message };
+                return new ProjectManagementResult<IEnumerable<Notification>> { Succeeded = false, StatusCode = 500, Error = ex.Message };
             }
         }
 
-        public async Task<ProjectManagementResult<IEnumerable<T>>> GetUnreadForProjectManagersAsAsync<T>() where T : class, new() 
+        public async Task<ProjectManagementResult<IEnumerable<Notification>>> GetUnreadForProjectManagersAsAsync()
         {
             try
             {
                 var notifications = await _notificationRepository.GetUnreadForProjectManagersAsync();
-                var result = notifications.Select(n => n.MapTo<T>());
-                return new ProjectManagementResult<IEnumerable<T>> { Succeeded = true, StatusCode = 200, Result = result };
+                var result = notifications.Select(n => n.MapTo<Notification>());
+                return new ProjectManagementResult<IEnumerable<Notification>> { Succeeded = true, StatusCode = 200, Result = result };
             }
             catch (Exception ex)
             {
-                return new ProjectManagementResult<IEnumerable<T>> { Succeeded = false, StatusCode = 500, Error = ex.Message };
+                return new ProjectManagementResult<IEnumerable<Notification>> { Succeeded = false, StatusCode = 500, Error = ex.Message };
             }
         }
 
-        public async Task<ProjectManagementResult<IEnumerable<T>>> GetUnreadForUserAsAsync<T>(Guid userId) where T : class, new()
+        public async Task<ProjectManagementResult<IEnumerable<Notification>>> GetUnreadForUserAsAsync(Guid userId)
         {
             try
             {
                 var notifications = await _notificationRepository.GetUnreadForUserAsync(userId);
-                var result = notifications.Select(n => n.MapTo<T>());
-                return new ProjectManagementResult<IEnumerable<T>> { Succeeded = true, StatusCode = 200, Result = result };
+                var result = notifications.Select(n => n.MapTo<Notification>());
+                return new ProjectManagementResult<IEnumerable<Notification>> { Succeeded = true, StatusCode = 200, Result = result };
             }
             catch (Exception ex)
             {
-                return new ProjectManagementResult<IEnumerable<T>> { Succeeded = false, StatusCode = 500, Error = ex.Message };
+                return new ProjectManagementResult<IEnumerable<Notification>> { Succeeded = false, StatusCode = 500, Error = ex.Message };
             }
         }
 
@@ -233,6 +233,97 @@ namespace Business.Services
                 };
             }
         }
+        public async Task<ProjectManagementResult> MarkAllAdminNotificationsAsReadAsync() 
+        {
+            try
+            {
+                await _notificationRepository.MarkAllAdminNotificationsAsReadAsync();
+                return new ProjectManagementResult
+                {
+                    Succeeded = true,
+                    StatusCode = 200
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ProjectManagementResult
+                {
+                    Succeeded = false,
+                    StatusCode = 500,
+                    Error = ex.Message
+                };
+            }
+        }
+        public async Task<ProjectManagementResult> MarkAllProjectManagerNotificationsAsReadAsync() 
+        {
+            try
+            {
+                await _notificationRepository.MarkAllProjectManagerNotificationsAsReadAsync();
+                return new ProjectManagementResult
+                {
+                    Succeeded = true,
+                    StatusCode = 200
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ProjectManagementResult
+                {
+                    Succeeded = false,
+                    StatusCode = 500,
+                    Error = ex.Message
+                };
+            }
+        }
+        public async Task<ProjectManagementResult> MarkAllUserNotificationsAsReadAsync(Guid userId) 
+        {
+            try
+            {
+                await _notificationRepository.MarkAllUserNotificationsAsReadAsync(userId);
+                return new ProjectManagementResult
+                {
+                    Succeeded = true,
+                    StatusCode = 200
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ProjectManagementResult
+                {
+                    Succeeded = false,
+                    StatusCode = 500,
+                    Error = ex.Message
+                };
+            }
+        }
+
+        public async Task<ProjectManagementResult> MarkNotificationAsReadAsync(Guid notificationId) 
+        {
+            try
+            {
+                await _notificationRepository.MarkAsReadAsync(notificationId);
+                return new ProjectManagementResult { Succeeded = true, StatusCode = 200 };
+            }
+            catch (Exception ex)
+            {
+                return new ProjectManagementResult { Succeeded = false, StatusCode = 500, Error = ex.Message };
+            }
+
+        }
+
+        public async Task<ProjectManagementResult> MarkAllNotificationsAsReadAsync(Guid userId)
+        {
+            try
+            {
+                await _notificationRepository.MarkAllUserNotificationsAsReadAsync(userId); 
+                return new ProjectManagementResult { Succeeded = true, StatusCode = 200 };
+            }
+            catch (Exception ex)
+            {
+                return new ProjectManagementResult { Succeeded = false, StatusCode = 500, Error = ex.Message };
+            }
+        }
+
 
         public async Task<ProjectManagementResult> MarkAsReadAsync(Guid id)
         {

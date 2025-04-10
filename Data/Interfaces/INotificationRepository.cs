@@ -17,6 +17,9 @@ namespace Data.Interfaces
         Task<int> GetUnreadCountForUserAsync(Guid userId);
         Task<NotificationEntity> GetByIdAsync(Guid id);
         Task CreateAsync(NotificationEntity notification);
+        Task MarkAllAdminNotificationsAsReadAsync();
+        Task MarkAllProjectManagerNotificationsAsReadAsync();
+        Task MarkAllUserNotificationsAsReadAsync(Guid userId);
         Task MarkAsReadAsync(Guid id);
         Task DeleteAsync(Guid id);
         Task SaveChangesAsync();
