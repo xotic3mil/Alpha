@@ -9,11 +9,12 @@ namespace Data.Interfaces
 {
     public interface IProjectRequestRepository
     {
-        Task<ProjectRequest> GetByIdAsync(Guid requestId);
-        Task<ProjectRequest> GetPendingRequestAsync(Guid projectId, Guid userId);
-        Task<IEnumerable<ProjectRequest>> GetPendingRequestsForProjectAsync(Guid projectId);
-        Task<IEnumerable<ProjectRequest>> GetPendingRequestsForUserAsync(Guid userId);
-        Task CreateAsync(ProjectRequest request);
-        Task UpdateAsync(ProjectRequest request);
+         Task<ProjectRequest> GetByIdAsync(Guid requestId);
+         Task<ProjectRequest> GetPendingRequestAsync(Guid projectId, Guid userId);
+         Task<IEnumerable<ProjectRequest>> GetPendingRequestsForProjectAsync(Guid projectId);
+         Task<IEnumerable<ProjectRequest>> GetPendingRequestsForUserAsync(Guid userId);
+         Task CreateAsync(ProjectRequest request);
+         Task UpdateAsync(ProjectRequest request);
+         Task<IEnumerable<ProjectRequest>> GetAllPendingRequestsAsync();
     }
 }

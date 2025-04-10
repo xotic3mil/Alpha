@@ -1,6 +1,7 @@
 ﻿using Business.Interfaces;
 using Data.Entities;
 using Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -92,6 +93,7 @@ namespace MVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,ProjectManager")]
         public async Task<IActionResult> ApproveRequest(Guid requestId)
         {
             var result = await projectMembershipService.ApproveProjectRequestAsync(requestId);
@@ -100,6 +102,7 @@ namespace MVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,ProjectManager")]
         public async Task<IActionResult> RejectRequest(Guid requestId)
         {
             var result = await projectMembershipService.RejectProjectRequestAsync(requestId);
@@ -120,7 +123,7 @@ namespace MVC.Controllers
             if (!result.Succeeded)
             {
                 ModelState.AddModelError(string.Empty, result.Error ?? "Failed to load available projects.");
-                return View(Array.Empty<ProjectEntity>());
+                return View(Array.Empty<Project>()); 
             }
 
             return View(result.Result);

@@ -32,6 +32,7 @@ namespace MVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddUserToProject(Guid projectId, Guid userId)
         {
             var result = await _projectMembershipService.AddUserToProjectAsync(projectId, userId);

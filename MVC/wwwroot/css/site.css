@@ -73,6 +73,29 @@ body.dark-mode {
     --navbar-border: #38383B;
 }
 
+.nav-link[data-bs-toggle="collapse"] {
+    cursor: pointer;
+}
+
+    .nav-link[data-bs-toggle="collapse"].active {
+        background-color: var(--bs-primary-bg-subtle);
+        color: var(--bs-primary);
+    }
+
+#projectSubmenu .nav-link {
+    font-size: 0.9rem;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+}
+
+    #projectSubmenu .nav-link.active {
+        background-color: var(--bs-primary-bg-subtle);
+        color: var(--bs-primary);
+    }
+
+#projectSubmenu .badge {
+    font-size: 0.7rem;
+}
 
 
 .nav-link {

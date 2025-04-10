@@ -52,6 +52,7 @@ builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IStatusTypeRepository, StatusTypeRepository>();
 builder.Services.AddScoped<IProjectRequestRepository, ProjectRequestRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 
 builder.Services.AddControllersWithViews();
@@ -63,6 +64,7 @@ builder.Services.AddScoped<IProjectsService, ProjectService>();
 builder.Services.AddScoped<ICustomersService, CustomerService>();
 builder.Services.AddScoped<IServicesService, ServicesService>();
 builder.Services.AddScoped<IProjectMembershipService, ProjectMembershipService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 
 builder.Services.AddControllersWithViews(options =>

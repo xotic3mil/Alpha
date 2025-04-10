@@ -16,6 +16,7 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
     public DbSet<UserEntity> Users { get; set; }
     public DbSet<RoleEntity> Roles { get; set; }
     public DbSet<ProjectRequestEntity> ProjectRequests { get; set; }
+    public DbSet<NotificationEntity> Notifications { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -24,9 +25,11 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
 
         var adminRoleId = new Guid("e57c9438-1b01-4944-a5a5-db46e76fdae8");
         var userRoleId = new Guid("62507571-ab9a-4860-b424-38992e129bd3");
+        var projectManagerRoleId = new Guid("02711297-d556-4867-99a0-281eca550915");
 
         modelBuilder.Entity<RoleEntity>().HasData(
             new RoleEntity { Id = adminRoleId, Name = "Admin", NormalizedName = "ADMIN" },
+            new RoleEntity { Id = projectManagerRoleId, Name = "Project Manager", NormalizedName = "PROJECT MANAGER" },
             new RoleEntity { Id = userRoleId, Name = "User", NormalizedName = "USER" }
         );
 

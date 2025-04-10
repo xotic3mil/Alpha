@@ -12,5 +12,6 @@ namespace MVC.Models
         public IEnumerable<User>? Users { get; set; } = new List<User>();
         public IEnumerable<Project> Projects { get; set; } = new List<Project>();
         public ProjectRegForm Form { get; set; } = new ProjectRegForm();
+        public object ProjectRequest { get; internal set; }
     }
 }

@@ -81,6 +81,20 @@ public class ProjectRequestRepository(DataContext context) : IProjectRequestRepo
         _context.ProjectRequests.Update(existingEntity);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<IEnumerable<ProjectRequest>> GetAllPendingRequestsAsync()
+    {
+        var entities = await _context.ProjectRequests
+            .Include(r => r.Project)
+            .Include(r => r.User)
+            .Where(r => r.Status == "Pending")
+            .OrderByDescending(r => r.RequestDate)
+            .ToListAsync();
+
+        return entities.Select(e => e.MapTo<ProjectRequest>());
+    }
+
+
 }
 
 

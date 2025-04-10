@@ -1,5 +1,6 @@
 ﻿using Business.Dtos;
 using Business.Interfaces;
+using Business.Services;
 using Data.Entities;
 using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -17,7 +18,8 @@ public class ProjectController(
     IServicesService serviceService,
     ICustomersService customerService,
     IUserService userService,
-    UserManager<UserEntity> userManager
+    UserManager<UserEntity> userManager,
+    IProjectMembershipService projectMembershipService
         ) : Controller
 {
     private readonly IProjectsService _projectService = projectService;
@@ -26,6 +28,7 @@ public class ProjectController(
     private readonly ICustomersService _customerService = customerService;
     private readonly IUserService _userService = userService;
     private readonly UserManager<UserEntity> _userManager = userManager;
+    private readonly IProjectMembershipService _ProjectMembershipService = projectMembershipService;
 
     [HttpGet]
     public async Task<IActionResult> Index(string statusFilter = null)
@@ -208,6 +211,37 @@ public class ProjectController(
         return Json(result.Result);
     }
 
+    [HttpGet]
+    [Authorize(Roles = "Admin,ProjectManager")]
+    public async Task<IActionResult> Details(Guid? requestId)
+    {
+        if (requestId.HasValue)
+        {
+
+            var requestResult = await _ProjectMembershipService.GetRequestByIdAsync(requestId.Value);
+            if (!requestResult.Succeeded)
+            {
+                TempData["ErrorMessage"] = "Failed to load request details";
+                return RedirectToAction("Index");
+            }
+            var projectResult = await _projectService.GetProjectWithDetailsAsync(requestResult.Result.ProjectId);
+            if (!projectResult.Succeeded)
+            {
+                TempData["ErrorMessage"] = "Failed to load project details";
+                return RedirectToAction("Index");
+            }
+
+            var viewModel = new ProjectViewModel
+            {
+                Projects = new List<Project> { projectResult.Result },
+                ProjectRequest = requestResult.Result
+            };
+
+            return View("Details", viewModel);
+        }
+
+        return RedirectToAction("Index");
+    }
 
 
 
