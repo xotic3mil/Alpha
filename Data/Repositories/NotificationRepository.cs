@@ -100,13 +100,16 @@ namespace Data.Repositories
 
         public async Task MarkAllUserNotificationsAsReadAsync(Guid userId)
         {
+
             var notifications = await _context.Notifications
-                .Where(n => n.RecipientId == userId && !n.IsRead)
+                .Where(n => (n.RecipientId == userId || (!n.ForAdminsOnly && !n.ForProjectManagersOnly)) && !n.IsRead)
                 .ToListAsync();
+
             foreach (var notification in notifications)
             {
                 notification.IsRead = true;
             }
+
             await _context.SaveChangesAsync();
         }
 

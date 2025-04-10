@@ -220,7 +220,8 @@ namespace Business.Services
                     UserId = userId,
                     RequestDate = DateTime.UtcNow,
                     Message = message,
-                    Status = "Pending"
+                    Status = "Pending",
+                    Id = Guid.NewGuid()
                 };
 
                 await _requestRepository.CreateAsync(request);

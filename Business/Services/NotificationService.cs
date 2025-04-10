@@ -23,13 +23,15 @@ namespace Business.Services
             {
                 var notification = new NotificationEntity
                 {
+                    Id = Guid.NewGuid(),
                     Title = title,
                     Message = message,
                     Type = type,
-                    RelatedEntityId = relatedEntityId,
                     CreatedAt = DateTime.UtcNow,
                     IsRead = false,
-                    ForAdminsOnly = true
+                    RelatedEntityId = relatedEntityId,
+                    ForAdminsOnly = true,             
+                    ForProjectManagersOnly = false
                 };
 
                 await _notificationRepository.CreateAsync(notification);
@@ -57,12 +59,14 @@ namespace Business.Services
             {
                 var notification = new NotificationEntity
                 {
+                    Id = Guid.NewGuid(),
                     Title = title,
                     Message = message,
                     Type = type,
-                    RelatedEntityId = relatedEntityId,
                     CreatedAt = DateTime.UtcNow,
                     IsRead = false,
+                    RelatedEntityId = relatedEntityId,
+                    ForAdminsOnly = false, 
                     ForProjectManagersOnly = true
                 };
 
@@ -275,15 +279,17 @@ namespace Business.Services
                 };
             }
         }
-        public async Task<ProjectManagementResult> MarkAllUserNotificationsAsReadAsync(Guid userId) 
+        public async Task<ProjectManagementResult> MarkAllUserNotificationsAsReadAsync(Guid userId)
         {
             try
             {
                 await _notificationRepository.MarkAllUserNotificationsAsReadAsync(userId);
+
                 return new ProjectManagementResult
                 {
                     Succeeded = true,
-                    StatusCode = 200
+                    StatusCode = 200,
+                    Message = "Marked all notifications as read"
                 };
             }
             catch (Exception ex)

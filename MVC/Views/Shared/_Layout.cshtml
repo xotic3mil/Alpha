@@ -321,14 +321,14 @@
                         var iconClass = getNotificationIcon(notification.type);
 
                         var actionButton = '';
-                        if (notification.type === 'ProjectJoinRequest' && notification.relatedEntityId) {
-                            actionButton = `
-                                <a href="/Project/Details?requestId=${notification.relatedEntityId}"
-                                   class="btn btn-sm btn-primary rounded-3 px-3 mt-2">
-                                    Review Request
-                                </a>
-                            `;
-                        }
+                     if (notification.type === 'ProjectJoinRequest' && notification.relatedEntityId) {
+                         actionButton = `
+                         <a href="/AdminRequests?requestId=${notification.relatedEntityId}"
+                            class="btn btn-sm btn-primary rounded-3 px-3 mt-2">
+                             Review Request
+                         </a>
+                        `;
+                    }
 
                         html += `
                         <div class="notification-item p-3 border-bottom position-relative ${notification.isRead ? 'read' : 'unread'}"
@@ -412,6 +412,29 @@
                 },
                 error: function(error) {
                     console.error('Error marking all notifications as read:', error);
+                }
+            });
+        }
+
+                function markAsRead(notificationId) {
+            $.ajax({
+                url: '/Notification/MarkAsRead',
+                type: 'POST',
+                data: {
+                    id: notificationId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $(`.notification-item[data-notification-id="${notificationId}"]`).removeClass('unread').addClass('read');
+
+                        loadNotificationCount();
+                    } else {
+                        console.error('Error marking notification as read:', response.message);
+                    }
+                },
+                error: function(error) {
+                    console.error('Error marking notification as read:', error);
                 }
             });
         }

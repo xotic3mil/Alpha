@@ -74,7 +74,7 @@ namespace MVC.Controllers
                     var viewModels = result.Result.Select(n => n.MapTo<NotificationViewModel>());
                     return Json(new { success = true, notifications = viewModels });
                 }
-                else
+                else 
                 {
                     var result = await _notificationService.GetUnreadForUserAsAsync(Guid.Parse(userId));
                     if (!result.Succeeded)
@@ -105,15 +105,21 @@ namespace MVC.Controllers
 
                 if (isAdmin)
                 {
-                    await _notificationService.MarkAllAdminNotificationsAsReadAsync();
+                    var result = await _notificationService.MarkAllAdminNotificationsAsReadAsync();
+                    if (!result.Succeeded)
+                        return Json(new { success = false, message = result.Error });
                 }
                 else if (isProjectManager)
                 {
-                    await _notificationService.MarkAllProjectManagerNotificationsAsReadAsync();
+                    var result = await _notificationService.MarkAllProjectManagerNotificationsAsReadAsync();
+                    if (!result.Succeeded)
+                        return Json(new { success = false, message = result.Error });
                 }
                 else
                 {
-                    await _notificationService.MarkAllUserNotificationsAsReadAsync(Guid.Parse(userId));
+                    var result = await _notificationService.MarkAllUserNotificationsAsReadAsync(Guid.Parse(userId));
+                    if (!result.Succeeded)
+                        return Json(new { success = false, message = result.Error });
                 }
 
                 return Json(new { success = true });
