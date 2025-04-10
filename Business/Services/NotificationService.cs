@@ -31,7 +31,8 @@ namespace Business.Services
                     IsRead = false,
                     RelatedEntityId = relatedEntityId,
                     ForAdminsOnly = true,             
-                    ForProjectManagersOnly = false
+                    ForProjectManagersOnly = false,
+                    RecipientId = null
                 };
 
                 await _notificationRepository.CreateAsync(notification);
@@ -67,7 +68,8 @@ namespace Business.Services
                     IsRead = false,
                     RelatedEntityId = relatedEntityId,
                     ForAdminsOnly = false, 
-                    ForProjectManagersOnly = true
+                    ForProjectManagersOnly = true,
+                    RecipientId = null
                 };
 
                 await _notificationRepository.CreateAsync(notification);
@@ -158,7 +160,9 @@ namespace Business.Services
             try
             {
                 var notifications = await _notificationRepository.GetUnreadForUserAsync(userId);
-                var result = notifications.Select(n => n.MapTo<Notification>());
+
+                var filteredNotifications = notifications.Where(n => n.Type != "ExcludedType");
+                var result = filteredNotifications.Select(n => n.MapTo<Notification>());
                 return new ProjectManagementResult<IEnumerable<Notification>> { Succeeded = true, StatusCode = 200, Result = result };
             }
             catch (Exception ex)

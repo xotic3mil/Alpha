@@ -7,9 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MVC.Controllers
 {
-    public class UserProjectsController(IProjectMembershipService projectMembershipService, UserManager<UserEntity> userManager) : Controller
+    public class UserProjectsController(IProjectMembershipService projectMembershipService, UserManager<UserEntity> userManager, INotificationService notificationService) : Controller
     {
         private readonly IProjectMembershipService _projectMembershipService = projectMembershipService;
+        private readonly INotificationService _notificationService = notificationService;
         private readonly UserManager<UserEntity> _userManager = userManager;
 
         [HttpGet]
@@ -160,11 +161,13 @@ namespace MVC.Controllers
                 Guid.Parse(userId),
                 message);
 
-            return Json(new
+            if (result.Succeeded)
             {
-                success = result.Succeeded,
-                message = result.Succeeded ? "Request submitted successfully" : result.Error
-            });
+
+                return Json(new { success = true, message = "Request submitted successfully" });
+            }
+
+            return Json(new { success = false, message = result.Error });
         }
 
         [HttpPost]

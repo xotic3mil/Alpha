@@ -35,7 +35,9 @@ namespace Data.Repositories
         public async Task<IEnumerable<NotificationEntity>> GetUnreadForUserAsync(Guid userId)
         {
             return await _context.Notifications
-                .Where(n => (n.RecipientId == userId || !n.ForAdminsOnly) && !n.IsRead)
+                .Where(n => (n.RecipientId == userId ||
+                          (!n.ForAdminsOnly && !n.ForProjectManagersOnly && n.RecipientId == null)) &&
+                          !n.IsRead)
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
         }
@@ -55,7 +57,9 @@ namespace Data.Repositories
         public async Task<int> GetUnreadCountForUserAsync(Guid userId)
         {
             return await _context.Notifications
-                .CountAsync(n => (n.RecipientId == userId || !n.ForAdminsOnly) && !n.IsRead);
+                .CountAsync(n => (n.RecipientId == userId ||
+                              (!n.ForAdminsOnly && !n.ForProjectManagersOnly && n.RecipientId == null)) &&
+                              !n.IsRead);
         }
 
         public async Task<NotificationEntity> GetByIdAsync(Guid id)
@@ -102,7 +106,9 @@ namespace Data.Repositories
         {
 
             var notifications = await _context.Notifications
-                .Where(n => (n.RecipientId == userId || (!n.ForAdminsOnly && !n.ForProjectManagersOnly)) && !n.IsRead)
+                .Where(n => (n.RecipientId == userId ||
+                          (!n.ForAdminsOnly && !n.ForProjectManagersOnly && n.RecipientId == null)) &&
+                          !n.IsRead)
                 .ToListAsync();
 
             foreach (var notification in notifications)
