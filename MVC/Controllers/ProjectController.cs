@@ -351,6 +351,9 @@ public class ProjectController(
         await PopulateViewModelAsync(model);
         ViewBag.OpenEditModal = true;
         return View("Index", model);
+
     }
+
+
 
 }

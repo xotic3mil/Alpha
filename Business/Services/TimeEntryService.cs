@@ -225,14 +225,30 @@ public class TimeEntryService(ITimeEntryRepository timeEntryRepository) : ITimeE
         if (timeEntry == null)
             return new TimeEntryResult<TimeEntry> { Succeeded = false, StatusCode = 400, Error = "Time entry data cannot be null" };
 
+        // Validate required fields
+        if (timeEntry.ProjectId == Guid.Empty)
+            return new TimeEntryResult<TimeEntry> { Succeeded = false, StatusCode = 400, Error = "Project ID is required" };
+
+        if (timeEntry.UserId == Guid.Empty)
+            return new TimeEntryResult<TimeEntry> { Succeeded = false, StatusCode = 400, Error = "User ID is required" };
+
+        if (timeEntry.Hours <= 0)
+            return new TimeEntryResult<TimeEntry> { Succeeded = false, StatusCode = 400, Error = "Hours must be greater than 0" };
+
+        if (string.IsNullOrWhiteSpace(timeEntry.Description))
+            return new TimeEntryResult<TimeEntry> { Succeeded = false, StatusCode = 400, Error = "Description is required" };
+
         try
         {
+
             timeEntry.Id = Guid.NewGuid();
+            timeEntry.CreatedAt = DateTime.UtcNow;
+            timeEntry.NormalizeTimeProperties();
 
             var timeEntryEntity = new TimeEntryEntity
             {
                 Id = timeEntry.Id,
-                Date = DateTime.SpecifyKind(timeEntry.Date, DateTimeKind.Utc),
+                Date = timeEntry.Date, 
                 Hours = timeEntry.Hours,
                 Description = timeEntry.Description ?? string.Empty,
                 IsBillable = timeEntry.IsBillable,
@@ -240,7 +256,7 @@ public class TimeEntryService(ITimeEntryRepository timeEntryRepository) : ITimeE
                 ProjectId = timeEntry.ProjectId,
                 UserId = timeEntry.UserId,
                 TaskId = timeEntry.TaskId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = timeEntry.CreatedAt 
             };
 
             var result = await _timeEntryRepository.CreateAsync(timeEntryEntity);
@@ -265,6 +281,8 @@ public class TimeEntryService(ITimeEntryRepository timeEntryRepository) : ITimeE
 
         try
         {
+            timeEntry.NormalizeTimeProperties();
+
             var timeEntryEntity = timeEntry.MapTo<TimeEntryEntity>();
             var result = await _timeEntryRepository.UpdateAsync(timeEntryEntity);
 

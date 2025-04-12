@@ -98,35 +98,66 @@ public class TimeEntryController(
     {
         if (!ModelState.IsValid)
         {
+            var errors = new List<string>();
+            foreach (var state in ModelState)
+            {
+                foreach (var error in state.Value.Errors)
+                {
+                    var fieldName = string.IsNullOrEmpty(state.Key) ? "" : state.Key;
+                    var errorMessage = string.IsNullOrEmpty(error.ErrorMessage) ?
+                        "Invalid value for " + fieldName :
+                        fieldName + ": " + error.ErrorMessage;
+
+                    errors.Add(errorMessage);
+                }
+            }
+
             return Json(new
             {
                 succeeded = false,
                 error = "Invalid form data",
-                details = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList()
+                details = errors
             });
         }
-
-
-        timeEntry.UserId = GetCurrentUserId();
 
         if (timeEntry.ProjectId == Guid.Empty)
         {
             return Json(new
             {
                 succeeded = false,
-                error = "Invalid project ID"
+                error = "Project ID is required"
             });
         }
 
+        if (timeEntry.Hours <= 0)
+        {
+            return Json(new
+            {
+                succeeded = false,
+                error = "Hours must be greater than zero"
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(timeEntry.Description))
+        {
+            return Json(new
+            {
+                succeeded = false,
+                error = "Description is required"
+            });
+        }
+
+        timeEntry.UserId = GetCurrentUserId();
         timeEntry.Date = DateTime.SpecifyKind(timeEntry.Date, DateTimeKind.Utc);
         timeEntry.CreatedAt = DateTime.UtcNow;
 
-        Debug.WriteLine($"Creating time entry: ProjectId={timeEntry.ProjectId}, UserId={timeEntry.UserId}, TaskId={timeEntry.TaskId}, Hours={timeEntry.Hours}, Date={timeEntry.Date}");
+        if (!timeEntry.IsBillable)
+        {
+            timeEntry.HourlyRate = 0;
+        }
 
         var result = await _timeEntryService.CreateTimeEntryAsync(timeEntry);
+
         if (!result.Succeeded)
         {
             return Json(new { succeeded = false, error = result.Error });

@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Domain.Models;
 
 
-public class TimeEntry
+public class TimeEntry : BaseUtc
 {
     public Guid Id { get; set; }
     [Required]

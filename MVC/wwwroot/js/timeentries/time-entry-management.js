@@ -249,7 +249,8 @@ function editTimeEntry(timeEntryId) {
     });
 }
 
-function saveTimeEntry() {
+function createTimeEntry() {
+    // Prevent double submission
     if (isSubmitting) {
         console.log("Form submission already in progress");
         return;
@@ -270,23 +271,59 @@ function saveTimeEntry() {
         return;
     }
 
+    // Make sure hours is valid
+    const hours = $('#timeEntryHours').val();
+    if (!hours || parseFloat(hours) <= 0) {
+        snackbar.error("Error: Hours must be greater than 0");
+        $('#timeEntryHours').focus();
+        return;
+    }
+
+    // Make sure description is provided
+    const description = $('#timeEntryDescription').val().trim();
+    if (!description) {
+        snackbar.error("Error: Description is required");
+        $('#timeEntryDescription').focus();
+        return;
+    }
+
+    // Make sure date is valid
+    const date = $('#timeEntryDate').val();
+    if (!date) {
+        snackbar.error("Error: Date is required");
+        $('#timeEntryDate').focus();
+        return;
+    }
+
+    // Make sure all required fields have values
+    const taskId = $('#timeEntryTask').val() || null; // This can be optional
+
     isSubmitting = true;
 
     // Create form data from the form
     const formData = new FormData(form[0]);
 
-    // Handle the boolean value properly
+    formData.delete('Id');
+
+    // Handle the boolean value explicitly
     formData.delete('IsBillable');
-    formData.append('IsBillable', $('#timeEntryIsBillable').prop('checked'));
+    formData.append('IsBillable', $('#timeEntryIsBillable').prop('checked').toString());
 
-    // Check if we're creating or editing
-    const timeEntryId = $('#timeEntryId').val();
-    const isEdit = timeEntryId && timeEntryId !== '';
 
-    // Choose endpoint based on operation
-    const url = isEdit ? '/TimeEntry/UpdateAjax' : '/TimeEntry/CreateAjax';
+    // Set hourly rate based on billable status
+    if ($('#timeEntryIsBillable').prop('checked')) {
+        const rate = $('#timeEntryRate').val() || "0";
+        formData.set('HourlyRate', rate);
+    } else {
+        formData.set('HourlyRate', "0");
+    }
 
-    console.log(`${isEdit ? 'Updating' : 'Creating'} time entry:`, isEdit ? `ID: ${timeEntryId}` : 'New entry');
+    // If TaskId is empty string, set it to null
+    if (formData.get('TaskId') === '') {
+        formData.delete('TaskId');
+    }
+
+    console.log("Creating new time entry");
 
     // Log form data for debugging
     console.log("Form data being submitted:");
@@ -295,7 +332,7 @@ function saveTimeEntry() {
     }
 
     $.ajax({
-        url: url,
+        url: '/TimeEntry/CreateAjax',
         type: 'POST',
         data: formData,
         processData: false,
@@ -305,14 +342,113 @@ function saveTimeEntry() {
         },
         success: function (response) {
             isSubmitting = false;
-            console.log("Time entry response:", response);
+            console.log("Time entry creation response:", response);
 
             if (!response.succeeded) {
                 let errorMessage = response.error || 'Unknown error';
                 if (response.details && response.details.length > 0) {
                     errorMessage += ': ' + response.details.join(', ');
                 }
-                snackbar.error(`Failed to save time entry: ${errorMessage}`);
+                snackbar.error(`Failed to create time entry: ${errorMessage}`);
+                return;
+            }
+
+            // Hide the modal
+            $('#createTimeEntryModal').modal('hide');
+
+            // Reset the form for next use
+            $('#createTimeEntryForm')[0].reset();
+
+            // Refresh the data
+            loadProjectTimeEntries(projectId);
+            loadTimeEntrySummary(projectId);
+
+            // Show success message
+            snackbar.success('Time entry created successfully');
+        },
+        error: function (xhr, status, error) {
+            isSubmitting = false;
+            console.error('Error creating time entry:');
+            console.error('Status:', status);
+            console.error('Error:', error);
+            console.error('Response:', xhr.responseText);
+
+            try {
+                const response = JSON.parse(xhr.responseText);
+                const errorMessages = response.details ? response.details.join(', ') : response.error;
+                snackbar.error('Failed to create time entry: ' + errorMessages);
+            } catch (e) {
+                snackbar.error('Failed to create time entry. Please try again.');
+            }
+        }
+    });
+}
+
+function updateTimeEntry() {
+    // Prevent double submission
+    if (isSubmitting) {
+        console.log("Form submission already in progress");
+        return;
+    }
+
+    const form = $('#createTimeEntryForm');
+
+    // Validate the form
+    if (!form[0].checkValidity()) {
+        form[0].reportValidity();
+        return;
+    }
+
+    // Check if we have an ID to update
+    const timeEntryId = $('#timeEntryId').val();
+    if (!timeEntryId) {
+        snackbar.error("Error: Time entry ID is missing");
+        return;
+    }
+
+    // Make sure we have a project ID
+    const projectId = $('#timeEntryProjectId').val();
+    if (!projectId) {
+        snackbar.error("Error: Project ID is missing");
+        return;
+    }
+
+    isSubmitting = true;
+
+    // Create form data from the form
+    const formData = new FormData(form[0]);
+
+    // Handle the boolean value properly
+    formData.delete('IsBillable');
+    formData.append('IsBillable', $('#timeEntryIsBillable').prop('checked'));
+
+    console.log("Updating time entry:", timeEntryId);
+
+    // Log form data for debugging
+    console.log("Form data being submitted:");
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+
+    $.ajax({
+        url: '/TimeEntry/UpdateAjax',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function (response) {
+            isSubmitting = false;
+            console.log("Time entry update response:", response);
+
+            if (!response.succeeded) {
+                let errorMessage = response.error || 'Unknown error';
+                if (response.details && response.details.length > 0) {
+                    errorMessage += ': ' + response.details.join(', ');
+                }
+                snackbar.error(`Failed to update time entry: ${errorMessage}`);
                 return;
             }
 
@@ -325,20 +461,18 @@ function saveTimeEntry() {
             $('#saveTimeEntryBtn').text('Save Time Entry');
 
             // Clear ID field for next creation
-            if ($('#timeEntryId').length) {
-                $('#timeEntryId').val('');
-            }
+            $('#timeEntryId').val('');
 
             // Refresh the data
             loadProjectTimeEntries(projectId);
             loadTimeEntrySummary(projectId);
 
             // Show success message
-            snackbar.success(isEdit ? 'Time entry updated successfully' : 'Time entry created successfully');
+            snackbar.success('Time entry updated successfully');
         },
         error: function (xhr, status, error) {
             isSubmitting = false;
-            console.error('Error saving time entry:');
+            console.error('Error updating time entry:');
             console.error('Status:', status);
             console.error('Error:', error);
             console.error('Response:', xhr.responseText);
@@ -346,9 +480,9 @@ function saveTimeEntry() {
             try {
                 const response = JSON.parse(xhr.responseText);
                 const errorMessages = response.details ? response.details.join(', ') : response.error;
-                snackbar.error('Failed to save time entry: ' + errorMessages);
+                snackbar.error('Failed to update time entry: ' + errorMessages);
             } catch (e) {
-                snackbar.error('Failed to save time entry. Please try again.');
+                snackbar.error('Failed to update time entry. Please try again.');
             }
         }
     });
@@ -408,11 +542,18 @@ $(document).ready(function () {
         }
     });
 
-    // Save time entry button
+    // Save time entry button with conditional function call
     $(document).on('click', '#saveTimeEntryBtn', function (e) {
         e.preventDefault();
-        console.log("Save time entry button clicked");
-        saveTimeEntry();
+        const timeEntryId = $('#timeEntryId').val();
+        const isEdit = timeEntryId && timeEntryId !== '';
+
+        console.log("Save time entry button clicked, isEdit:", isEdit);
+        if (isEdit) {
+            updateTimeEntry();
+        } else {
+            createTimeEntry();
+        }
     });
 
     // Load time entries when tab is shown
