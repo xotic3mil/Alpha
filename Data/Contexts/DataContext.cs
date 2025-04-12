@@ -13,6 +13,8 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
     public DbSet<CustomerEntity> Customers { get; set; }
     public DbSet<ServiceEntity> Services { get; set; }
     public DbSet<CommentEntity> Comments { get; set; }
+    public DbSet<ProjectTaskEntity> ProjectTasks { get; set; }
+    public DbSet<TimeEntryEntity> TimeEntries { get; set; }
     public DbSet<UserEntity> Users { get; set; }
     public DbSet<RoleEntity> Roles { get; set; }
     public DbSet<ProjectRequestEntity> ProjectRequests { get; set; }
@@ -39,6 +41,25 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
                   .HasColumnType("varchar(2083)")
                   .IsRequired(false);
         });
+
+        modelBuilder.Entity<ProjectTaskEntity>()
+            .HasOne(t => t.Project)
+            .WithMany(p => p.Tasks)
+            .HasForeignKey(t => t.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TimeEntryEntity>()
+            .HasOne(t => t.Project)
+            .WithMany(p => p.TimeEntries)
+            .HasForeignKey(t => t.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TimeEntryEntity>()
+            .HasOne(t => t.Task)
+            .WithMany(pt => pt.TimeEntries)
+            .HasForeignKey(t => t.TaskId)
+            .OnDelete(DeleteBehavior.SetNull);
+
 
         modelBuilder.Entity<CommentEntity>()
             .HasOne(c => c.Project)

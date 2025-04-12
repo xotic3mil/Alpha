@@ -42,6 +42,8 @@ public class ProjectEntity
     [Column(TypeName = "varchar(2083)")]
     public string? ImageUrl { get; set; }
 
+    public virtual ICollection<ProjectTaskEntity> Tasks { get; set; }
+    public virtual ICollection<TimeEntryEntity> TimeEntries { get; set; }
     public virtual ICollection<UserEntity>? Users { get; set; } = new List<UserEntity>();
 
 }

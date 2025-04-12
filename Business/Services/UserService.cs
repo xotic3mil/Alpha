@@ -83,7 +83,6 @@ public class UserService(IUserRepository userRepository, UserManager<UserEntity>
             : new UserResult { Succeeded = false, StatusCode = 500, Error = $"Failed to create user" };
     }
 
-
     public async Task<UserResult> UpdateUser(User user)
     {
         var userEntity = await _userManager.FindByIdAsync(user.Id.ToString());

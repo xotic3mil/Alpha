@@ -1,11 +1,6 @@
 ﻿using Data.Contexts;
 using Data.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Data.Interfaces;
 
 namespace Data.Repositories
@@ -13,9 +8,6 @@ namespace Data.Repositories
     public class NotificationRepository(DataContext context) : INotificationRepository
     {
         private readonly DataContext _context = context;
-
-
-
         public async Task<IEnumerable<NotificationEntity>> GetUnreadForAdminsAsync()
         {
             return await _context.Notifications
