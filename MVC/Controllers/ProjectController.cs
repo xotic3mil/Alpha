@@ -354,6 +354,25 @@ public class ProjectController(
 
     }
 
+    [HttpGet]
+    [Route("Project/Details/{id}")]
+    public async Task<IActionResult> ViewProjectDetails(Guid id)
+    {
+        var projectResult = await _projectService.GetProjectWithDetailsAsync(id);
+        if (!projectResult.Succeeded)
+        {
+            TempData["ErrorMessage"] = "Project not found";
+            return RedirectToAction("Index");
+        }
+
+        ViewBag.OpenProjectDetails = true;
+        ViewBag.ProjectIdToOpen = id;
+
+        return View("Index", new ProjectViewModel { Projects = new List<Project> { projectResult.Result } });
+    }
+
+
+
 
 
 }

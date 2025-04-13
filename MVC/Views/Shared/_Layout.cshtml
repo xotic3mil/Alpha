@@ -43,6 +43,8 @@
                             Dashboard
                         </a>
                     </li>
+                   
+
                     <li class="nav-item">
                         <a class="nav-link py-2 px-3 rounded-4 d-flex align-items-center justify-content-between @(ViewContext.RouteData.Values["controller"]?.ToString() == "Project" ? "active" : "")"
                            href="/project/index"
@@ -62,6 +64,8 @@
                                         <i class="bi bi-grid-1x2 me-2"></i> All Projects
                                     </a>
                                 </li>
+
+                                @await Component.InvokeAsync("AssignedProjects")
 
                                 @if (User.IsInRole("Admin") || User.IsInRole("ProjectManager"))
                                 {
@@ -153,7 +157,6 @@
                             <div class="dropdown-menu dropdown-menu-end shadow notification-dropdown p-0"
                                  aria-labelledby="notificationsDropdown"
                                  style="width: 350px; max-height: 480px; overflow-y: auto;">
-                                <!-- Notification dropdown content remains the same -->
                                 <div class="notification-header p-3 border-bottom">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0">Notifications</h6>
@@ -231,6 +234,8 @@
         </div>
     </div>
 
+    @await Html.PartialAsync("~/Views/Project/_ProjectDetailsPartial.cshtml", new ProjectViewModel())
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
@@ -239,6 +244,9 @@
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/js/shared/snackbar.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/project/project-management.js" asp-append-version="true"></script>
+    <script src="~/js/tasks/task-management.js" asp-append-version="true"></script>
+    <script src="~/js/timeentries/time-entry-management.js" asp-append-version="true"></script>
     <script src="~/js/darkmode-toggle.js" asp-append-version="true"></script>
 
     <script>

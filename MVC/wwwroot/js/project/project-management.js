@@ -135,7 +135,7 @@ function loadProjectMembers(projectId) {
         url: `/ProjectMembership/GetProjectMembers?projectId=${projectId}`,
         type: 'GET',
         success: function (response) {
-            console.log("Team members response:", response); 
+            console.log("Team members response:", response);
             $('#projectDetailTeamMembers').empty();
 
             if (!response.success) {
@@ -159,11 +159,10 @@ function loadProjectMembers(projectId) {
                                     <div class="small text-muted">${roleName}</div>
                                 </div>
                             </div>
-                            ${response.canManageMembers ? `
-                                <button class="btn btn-sm btn-outline-danger" onclick="removeTeamMember('${projectId}', '${userId}')">
-                                    <i class="bi bi-person-x"></i>
-                                </button>
-                            ` : ''}
+                            <button class="btn btn-sm btn-outline-danger" 
+                                   onclick="removeTeamMember('${projectId}', '${userId}')">
+                                <i class="bi bi-person-x"></i>
+                            </button>
                         </div>
                     `;
                     $('#projectDetailTeamMembers').append(memberHtml);
@@ -247,26 +246,48 @@ function openAddTeamMemberModal() {
             $('#userSelect').empty();
 
             if (!response.success) {
-                $('#userSelect').html('<option value="" selected disabled>Failed to load users</option>');
+                console.error("Error from API:", response.message || "Unknown error");
+
+                // Check if the error is specifically about no available users
+                if (response.message && (
+                    response.message.includes("No available users found") ||
+                    response.message.includes("All users have been assigned")
+                )) {
+                    // Show user-friendly message
+                    $('#userSelect').html('<option value="" selected disabled>All users have been assigned to projects</option>');
+
+                    // Disable the add button since there's no one to add
+                    $('#addTeamMemberButton').prop('disabled', true);
+                } else {
+                    // For other errors, show generic error message
+                    $('#userSelect').html('<option value="" selected disabled>Error loading users. Please try again.</option>');
+                }
                 return;
             }
 
             if (response.users && response.users.length > 0) {
+                $('#userSelect').append('<option value="" selected disabled>Select a user to add</option>');
                 response.users.forEach(user => {
                     $('#userSelect').append(`<option value="${user.id}">${user.name}</option>`);
                 });
+                // Enable the add button
+                $('#addTeamMemberButton').prop('disabled', false);
             } else {
-                $('#userSelect').html('<option value="" selected disabled>No available users found</option>');
+                // No users available (but success=true case)
+                $('#userSelect').html('<option value="" selected disabled>All users have been assigned to projects</option>');
+                $('#addTeamMemberButton').prop('disabled', true);
             }
         },
         error: function (xhr, status, error) {
             console.error("Error loading users:", error);
             console.error("Response:", xhr.responseText);
-            $('#userSelect').html('<option value="" selected disabled>Error loading users</option>');
+            $('#userSelect').html('<option value="" selected disabled>Error loading users. Please try again.</option>');
+        },
+        complete: function () {
+            // Ensure the modal shows regardless of success or error
+            $('#addTeamMemberModal').modal('show');
         }
     });
-
-    $('#addTeamMemberModal').modal('show');
 }
 
 function addMemberToProject() {
