@@ -2,6 +2,86 @@
  * Project management functionality
  */
 
+if (typeof commentConnection === 'undefined') {
+    var commentConnection = null;
+}
+
+function initializeCommentSignalR(projectId) {
+    if (typeof signalR === 'undefined') {
+        console.log("SignalR not found, attempting to load it dynamically");
+
+        const script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/dist/browser/signalr.min.js";
+
+        script.onload = function () {
+            console.log("SignalR loaded successfully");
+            initializeSignalRConnection(projectId);
+        };
+
+        script.onerror = function () {
+            console.error("Failed to load SignalR");
+        };
+        document.head.appendChild(script);
+        return;
+    }
+
+    initializeSignalRConnection(projectId);
+}
+
+function initializeSignalRConnection(projectId) {
+    if (commentConnection) {
+        commentConnection.stop();
+    }
+
+    console.log("Initializing SignalR connection for project:", projectId);
+
+    commentConnection = new signalR.HubConnectionBuilder()
+        .withUrl("/commentHub")
+        .withAutomaticReconnect()
+        .build();
+
+    commentConnection.on("ReceiveComment", function (comment) {
+        console.log("Received comment:", comment);
+        appendComment(comment);
+    });
+
+    commentConnection.on("CommentDeleted", function (commentId) {
+        console.log("Comment deleted via SignalR:", commentId);
+
+        let commentElement = $(`#comment-${commentId}`);
+        if (commentElement.length === 0) {
+            commentElement = $(`#${commentId}`);
+        }
+
+        if (commentElement.length === 0) {
+            console.warn("Could not find comment with ID:", commentId);
+            loadComments(projectId);
+            return;
+        }
+
+        commentElement.css('background-color', '#ffcccb');
+        commentElement.fadeOut(800, function () {
+            $(this).remove();
+
+            if ($('#commentsContainer .comment-item').length === 0) {
+                $('#commentsContainer').html('<p class="text-center text-muted">No status updates yet. Add the first comment.</p>');
+            }
+        });
+    });
+
+    commentConnection.start()
+        .then(function () {
+            console.log("SignalR Connected!");
+            return commentConnection.invoke("JoinProjectGroup", projectId);
+        })
+        .then(function () {
+            console.log("Joined project group:", projectId);
+        })
+        .catch(function (err) {
+            console.error("SignalR Error:", err);
+        });
+}
+
 function formatDateString(dateString) {
     if (!dateString) return null;
     const date = new Date(dateString);
@@ -112,11 +192,33 @@ function openProjectDetails(id) {
 
             $('#projectDetailsModal').modal('show');
 
+            $('#projectDetailsModal').on('shown.bs.modal', function (e) {
+                setTimeout(() => {
+                    initializeCommentSignalR(id);
+                }, 500);
+            });
+
         },
         error: function (error) {
             console.error('Error fetching project details:', error);
             alert('Failed to load project details. Please try again.');
         }
+
+    });
+}
+
+function ensureSignalRLoaded() {
+    return new Promise((resolve) => {
+        if (typeof signalR !== 'undefined') {
+            resolve();
+            return;
+        }
+
+        console.log("Loading SignalR dynamically...");
+        const script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/dist/browser/signalr.min.js";
+        script.onload = resolve;
+        document.head.appendChild(script);
     });
 }
 
@@ -518,32 +620,53 @@ function loadComments(projectId) {
 }
 
 function appendComment(comment) {
-    const commentDate = new Date(comment.createdAt);
-    const formattedDate = commentDate.toLocaleString();
+
+    if ($('#commentsContainer .text-center.text-muted').length > 0) {
+        $('#commentsContainer').empty();
+    }
+
+    let displayDate = comment.dateFormatted || 'Just now';
+
+    if (comment.createdAt && !comment.dateFormatted) {
+        try {
+            const date = new Date(comment.createdAt);
+            if (!isNaN(date.getTime())) {
+                displayDate = date.toLocaleString();
+            }
+        } catch (e) {
+            console.error("Error formatting date:", e);
+        }
+    }
 
     const commentHtml = `
-        <div class="comment ${comment.isCurrentUser ? 'current-user' : ''}" data-comment-id="${comment.id}">
-            <div class="comment-header">
-                <div class="comment-user">
-                    <img src="${comment.authorAvatarUrl || '/images/member-template-1.svg'}" alt="${comment.authorName}" class="comment-avatar">
+        <div class="comment-item mb-3" id="comment-${comment.id}">
+            <div class="d-flex justify-content-between">
+                <div class="d-flex">
+                    <img src="${comment.userImage || '/images/default-avatar.svg'}" 
+                         alt="User" class="rounded-circle me-2" width="32" height="32">
                     <div>
-                        <p class="comment-username">${comment.userName}</p>
-                        <p class="comment-time">${formattedDate}</p>
+                        <p class="mb-0 fw-medium">${comment.userName}</p>
+                        <p class="mb-0 text-muted small">${displayDate}</p>
                     </div>
                 </div>
-                ${comment.isCurrentUser ? `
-                <div class="comment-actions">
-                    <button class="btn btn-sm" onclick="deleteComment('${comment.id}', '${comment.projectId}')">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-                ` : ''}
+                ${comment.canDelete ? `
+                <button class="btn btn-sm text-danger delete-comment" data-id="${comment.id}" data-project-id="${comment.projectId || $('#commentProjectId').val()}">
+                   <i class="bi bi-trash"></i>
+                </button>` : ''}
             </div>
-            <div class="comment-content">${comment.content}</div>
+            <p class="mt-2 mb-0">${comment.content}</p>
         </div>
     `;
 
     $('#commentsContainer').prepend(commentHtml);
+
+    if (comment.canDelete) {
+        $(`#comment-${comment.id} .delete-comment`).click(function () {
+            const commentId = $(this).data('id');
+            const projectId = $(this).data('project-id');
+            deleteComment(commentId, projectId);
+        });
+    }
 }
 
 function deleteComment(commentId, projectId) {
@@ -613,12 +736,10 @@ $(document).off('submit', '#commentForm').on('submit', '#commentForm', function 
             console.log("Comment created:", response);
             $('#commentContent').val('');
 
-            // Clear "No comments" message if it exists
             if ($('#commentsContainer .text-center.text-muted').length > 0) {
                 $('#commentsContainer').empty();
             }
 
-            // If response contains the new comment data, add it to the DOM
             if (response.comment) {
                 const comment = response.comment;
                 const newCommentHtml = `
@@ -641,14 +762,12 @@ $(document).off('submit', '#commentForm').on('submit', '#commentForm', function 
                 `;
                 $('#commentsContainer').prepend(newCommentHtml);
 
-                // Add event handler for delete button
                 $(`#comment-${comment.id} .delete-comment`).click(function () {
                     const commentId = $(this).data('id');
                     const projectId = $(this).data('project-id');
                     deleteComment(commentId, projectId);
                 });
             } else {
-                // If response doesn't contain the comment data, reload all comments
                 loadComments(projectId);
             }
         },
@@ -657,4 +776,15 @@ $(document).off('submit', '#commentForm').on('submit', '#commentForm', function 
             alert("Failed to add comment. Please try again.");
         }
     });
+
+});
+
+$('#projectDetailsModal').on('hidden.bs.modal', function () {
+    if (commentConnection) {
+        const projectId = $('#commentProjectId').val();
+        if (projectId) {
+            commentConnection.invoke("LeaveProjectGroup", projectId)
+        }
+        commentConnection.stop();
+    }
 });

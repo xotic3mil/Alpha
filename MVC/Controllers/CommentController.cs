@@ -3,18 +3,16 @@ using Microsoft.AspNetCore.Authorization;
 using Business.Interfaces;
 using Business.Dtos;
 using System.Security.Claims;
+using Microsoft.AspNetCore.SignalR;
+using MVC.Hubs;
 
 namespace MVC.Controllers
 {
     [Authorize]
-    public class CommentController : Controller
+    public class CommentController(ICommentService commentService, IHubContext<CommentHub> commentHubContext) : Controller
     {
-        private readonly ICommentService _commentService;
-
-        public CommentController(ICommentService commentService)
-        {
-            _commentService = commentService;
-        }
+        private readonly ICommentService _commentService = commentService;
+        private readonly IHubContext<CommentHub> _commentHubContext = commentHubContext;
 
         [HttpGet]
         public async Task<IActionResult> GetProjectComments(Guid projectId)
@@ -24,7 +22,6 @@ namespace MVC.Controllers
 
             if (result.Succeeded)
             {
-                // Ensure each comment has a canDelete property
                 var comments = result.Result.Select(c => new
                 {
                     id = c.Id,
@@ -63,9 +60,24 @@ namespace MVC.Controllers
 
             if (result.Succeeded)
             {
+                var commentObj = new
+                {
+                    id = result.Result.Id,
+                    content = result.Result.Content,
+                    dateFormatted = result.Result.CreatedAt.ToString("MMM d, yyyy h:mm tt"),
+                    userId = result.Result.UserId,
+                    userName = result.Result.UserName ?? "Unknown User",
+                    userImage = result.Result.UserAvatar ?? "/images/default-avatar.svg",
+                    projectId = comment.ProjectId,
+                    canDelete = result.Result.UserId == userId || User.IsInRole("Admin")
+                };
+
+                await _commentHubContext.Clients.Group($"project-{comment.ProjectId}")
+                    .SendAsync("ReceiveComment", commentObj);
+
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    return Json(result.Result);
+                    return Json(commentObj);  
                 }
                 return RedirectToAction("Index", "Project");
             }
@@ -92,6 +104,8 @@ namespace MVC.Controllers
             {
                 if (result.Succeeded)
                 {
+                    await _commentHubContext.Clients.Group($"project-{projectId}")
+                          .SendAsync("CommentDeleted", id.ToString());
                     return Json(new { success = true });
                 }
                 return StatusCode(result.StatusCode, result.Error);

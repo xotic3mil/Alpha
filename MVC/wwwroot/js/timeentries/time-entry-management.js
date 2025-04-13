@@ -4,7 +4,9 @@
  */
 
 
-let isSubmitting = false;
+if (typeof isSubmitting === 'undefined') {
+    var isSubmitting = false;
+}
 
 function loadProjectTimeEntries(projectId) {
     if (!projectId) {

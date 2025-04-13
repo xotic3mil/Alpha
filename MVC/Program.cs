@@ -9,6 +9,7 @@ using Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Domain.Models;
+using MVC.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +70,7 @@ builder.Services.AddScoped<IProjectMembershipService, ProjectMembershipService>(
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IProjectTaskService, ProjectTaskService>();
 builder.Services.AddScoped<ITimeEntryService, TimeEntryService>();
+builder.Services.AddSignalR();
 
 
 builder.Services.AddControllersWithViews(options =>
@@ -112,6 +114,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.MapHub<CommentHub>("/commentHub");
 app.UseAuthentication();
 app.UseAuthorization();
 
