@@ -453,9 +453,8 @@ function rejectRequest(requestId) {
 }
 
 function loadComments(projectId) {
-    console.log("Loading comments for project:", projectId);
-
-    $('#commentsContainer').html(`
+    const commentsContainer = $('#commentsContainer');
+    commentsContainer.html(`
         <div class="text-center py-3">
             <div class="spinner-border spinner-border-sm text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -466,23 +465,54 @@ function loadComments(projectId) {
 
     $.ajax({
         url: `/Comment/GetProjectComments?projectId=${projectId}`,
-        type: 'GET',
+        method: 'GET',
         success: function (comments) {
-            console.log("Comments loaded:", comments);
-            $('#commentsContainer').empty();
+            commentsContainer.empty();
 
-            if (!comments || comments.length === 0) {
-                $('#commentsContainer').html('<p class="text-muted text-center">No status updates yet. Add the first comment.</p>');
+            if (comments.length === 0) {
+                commentsContainer.html('<p class="text-center text-muted">No comments yet</p>');
                 return;
             }
 
-            comments.forEach(comment => {
-                appendComment(comment);
+            comments.forEach(function (comment) {
+                const canDelete = comment.canDelete === true;
+                console.log(`Comment ${comment.id} canDelete:`, canDelete);
+
+                const deleteButton = canDelete ?
+                    `<button class="btn btn-sm text-danger delete-comment" data-id="${comment.id}" data-project-id="${projectId}">
+                       <i class="bi bi-trash"></i>
+                     </button>` : '';
+
+                commentsContainer.append(`
+                    <div class="comment-item mb-3" id="comment-${comment.id}">
+                        <div class="d-flex justify-content-between">
+                            <div class="d-flex">
+                                <img src="${comment.userImage}" alt="User" class="rounded-circle me-2" width="32" height="32">
+                                <div>
+                                    <p class="mb-0 fw-medium">${comment.userName}</p>
+                                    <p class="mb-0 text-muted small">${comment.dateFormatted}</p>
+                                </div>
+                            </div>
+                            ${deleteButton}
+                        </div>
+                        <p class="mt-2 mb-0">${comment.content}</p>
+                    </div>
+                `);
+            });
+
+            $('.delete-comment').click(function () {
+                const commentId = $(this).data('id');
+                const projectId = $(this).data('project-id');
+                deleteComment(commentId, projectId);
             });
         },
-        error: function (error) {
-            console.error("Error loading comments:", error);
-            $('#commentsContainer').html('<p class="text-danger text-center">Failed to load status comments</p>');
+        error: function (xhr) {
+            console.error('Failed to load comments', xhr);
+            commentsContainer.html(`
+                <div class="alert alert-danger">
+                    Failed to load comments. <a href="#" onclick="loadProjectComments('${projectId}'); return false;">Try again</a>
+                </div>
+            `);
         }
     });
 }
@@ -524,15 +554,14 @@ function deleteComment(commentId, projectId) {
     const token = $('input[name="__RequestVerificationToken"]').first().val();
 
     $.ajax({
-        url: '/Comment/Delete',
+        url: `/Comment/Delete?id=${commentId}&projectId=${projectId}`,
         type: 'POST',
         data: {
-            id: commentId,
-            projectId: projectId,
             __RequestVerificationToken: token
         },
         success: function (response) {
-            $(`.comment[data-comment-id="${commentId}"]`).slideUp(200, function () {
+            // Updated selector to match the HTML structure
+            $(`#comment-${commentId}`).slideUp(200, function () {
                 $(this).remove();
 
                 if ($('#commentsContainer').children().length === 0) {
@@ -556,47 +585,76 @@ function deleteComment(commentId, projectId) {
 }
 
 
-$(document).ready(function () {
-    $(document).off('submit', '#commentForm').on('submit', '#commentForm', function (e) {
-        e.preventDefault();
+$(document).off('submit', '#commentForm').on('submit', '#commentForm', function (e) {
+    e.preventDefault();
 
-        const projectId = $('#commentProjectId').val();
-        const content = $('#commentContent').val().trim();
+    const projectId = $('#commentProjectId').val();
+    const content = $('#commentContent').val().trim();
 
-        console.log("Submitting comment for project:", projectId);
-        console.log("Comment content:", content);
+    console.log("Submitting comment for project:", projectId);
+    console.log("Comment content:", content);
 
-        if (!content) {
-            console.log("Empty comment, not submitting");
-            return;
-        }
+    if (!content) {
+        console.log("Empty comment, not submitting");
+        return;
+    }
 
-        if (!projectId) {
-            console.log("Missing project ID, cannot submit");
-            alert("Error: Cannot add comment without project ID. Please try again.");
-            return;
-        }
+    if (!projectId) {
+        console.log("Missing project ID, cannot submit");
+        alert("Error: Cannot add comment without project ID. Please try again.");
+        return;
+    }
 
-        $.ajax({
-            url: '/Comment/Create',
-            type: 'POST',
-            data: $(this).serialize(),
-            success: function (newComment) {
-                $('#commentContent').val('');
-                appendComment(newComment);
-            },
-            error: function (error) {
-                console.error("Error submitting comment:", error);
-                alert("Failed to add comment. Please try again.");
+    $.ajax({
+        url: '/Comment/Create',
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function (response) {
+            console.log("Comment created:", response);
+            $('#commentContent').val('');
+
+            // Clear "No comments" message if it exists
+            if ($('#commentsContainer .text-center.text-muted').length > 0) {
+                $('#commentsContainer').empty();
             }
-        });
+
+            // If response contains the new comment data, add it to the DOM
+            if (response.comment) {
+                const comment = response.comment;
+                const newCommentHtml = `
+                    <div class="comment-item mb-3" id="comment-${comment.id}">
+                        <div class="d-flex justify-content-between">
+                            <div class="d-flex">
+                                <img src="${comment.userImage || '/images/default-avatar.svg'}" 
+                                     alt="User" class="rounded-circle me-2" width="32" height="32">
+                                <div>
+                                    <p class="mb-0 fw-medium">${comment.userName}</p>
+                                    <p class="mb-0 text-muted small">${comment.dateFormatted || 'Just now'}</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm text-danger delete-comment" data-id="${comment.id}" data-project-id="${projectId}">
+                               <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                        <p class="mt-2 mb-0">${comment.content}</p>
+                    </div>
+                `;
+                $('#commentsContainer').prepend(newCommentHtml);
+
+                // Add event handler for delete button
+                $(`#comment-${comment.id} .delete-comment`).click(function () {
+                    const commentId = $(this).data('id');
+                    const projectId = $(this).data('project-id');
+                    deleteComment(commentId, projectId);
+                });
+            } else {
+                // If response doesn't contain the comment data, reload all comments
+                loadComments(projectId);
+            }
+        },
+        error: function (error) {
+            console.error("Error submitting comment:", error);
+            alert("Failed to add comment. Please try again.");
+        }
     });
-
-    if ($('#projectDetailId').length === 0) {
-        $('body').append('<input type="hidden" id="projectDetailId" value="" />');
-    }
-
-    if ($('#projectDetailDeleteId').length === 0) {
-        $('body').append('<input type="hidden" id="projectDetailDeleteId" value="" />');
-    }
 });

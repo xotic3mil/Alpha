@@ -24,7 +24,19 @@ namespace MVC.Controllers
 
             if (result.Succeeded)
             {
-                return Json(result.Result);
+                // Ensure each comment has a canDelete property
+                var comments = result.Result.Select(c => new
+                {
+                    id = c.Id,
+                    content = c.Content,
+                    dateFormatted = c.CreatedAt.ToString("MMM d, yyyy h:mm tt"),
+                    userId = c.UserId,
+                    userName = c.UserName ?? "Unknown User",
+                    userImage = c.UserAvatar ?? "/images/default-avatar.svg", 
+                    canDelete = c.UserId == userId || User.IsInRole("Admin")  
+                });
+
+                return Json(comments);
             }
 
             return StatusCode(result.StatusCode, result.Error);

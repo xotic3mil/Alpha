@@ -158,10 +158,14 @@
         });
 
         $('#createUserForm').on('submit', function(e) {
-            if (!validateUserForm()) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
+        console.log('Form submission attempted');
+        if (!validateUserForm()) {
+            console.log('Validation failed');
+            e.preventDefault();
+            e.stopPropagation();
+        } else {
+            console.log('Validation passed, submitting form');
+        }
         });
     });
 

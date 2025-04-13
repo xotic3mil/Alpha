@@ -181,16 +181,14 @@
                             </div>
                         </div>
                         <div class="dropdown">
-                            <a href="#"
-                               class="d-flex align-items-center text-decoration-none p-1"
-                               id="userDropdown"
-                               data-bs-toggle="dropdown"
-                               aria-expanded="false">
-                                <img src="~/images/Avatar.svg"
-                                     alt="User"
-                                     width="42"
-                                     height="42"
-                                     class="rounded-circle border" />
+                            @inject UserManager<UserEntity> UserManager
+                            @{
+                                var user = await UserManager.GetUserAsync(User);
+                                var avatarUrl = user?.AvatarUrl ?? "/images/default-avatar.png";
+                            }
+                            <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="@avatarUrl" alt="User Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;" />
+                                <span class="ms-2">@User.Identity?.Name</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm"
                                 aria-labelledby="userDropdown">
