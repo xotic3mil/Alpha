@@ -111,8 +111,7 @@ function openProjectDetails(id) {
             }
 
             $('#projectDetailsModal').modal('show');
-            loadProjectTasks(project.id);
-            loadTaskSummary(project.id);
+
         },
         error: function (error) {
             console.error('Error fetching project details:', error);
@@ -558,14 +557,7 @@ function deleteComment(commentId, projectId) {
 
 
 $(document).ready(function () {
-
-    const buttons = document.querySelectorAll(".btnAuth, .btnAdd, .btnGoogle, .btn-editor, .btn");
-    buttons.forEach((button) => {
-        button.classList.add("ripple-button");
-        button.addEventListener("mousedown", createRipple);
-    });
-
-    $(document).on('submit', '#commentForm', function (e) {
+    $(document).off('submit', '#commentForm').on('submit', '#commentForm', function (e) {
         e.preventDefault();
 
         const projectId = $('#commentProjectId').val();

@@ -318,6 +318,83 @@ function deleteTask(taskId) {
     });
 }
 
+function saveTask() {
+    const form = $('#createTaskForm');
+    console.log("Save task clicked");
+
+    if (form.data('submitting')) {
+        console.log("Form already submitting, ignoring duplicate request");
+        return;
+    }
+
+    if (!form[0].checkValidity()) {
+        form[0].reportValidity();
+        return;
+    }
+
+    if (!$('#taskProjectId').val()) {
+        console.error("ProjectId is missing");
+        alert("Error: Project ID is missing");
+        return;
+    }
+
+    form.data('submitting', true);
+
+    const token = $('input[name="__RequestVerificationToken"]').first().val();
+    const formData = new FormData(form[0]);
+
+    console.log("Form data being submitted:");
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+
+    $.ajax({
+        url: '/ProjectTask/Create',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function (response) {
+            // Clear submitting flag
+            form.data('submitting', false);
+
+            console.log("Task creation response:", response);
+
+            if (!response.succeeded) {
+                console.error("Error creating task:", response.error);
+                alert('Failed to create task: ' + (response.error || 'Unknown error'));
+                return;
+            }
+
+            const projectId = $('#projectDetailId').val();
+            $('#createTaskModal').modal('hide');
+
+            loadProjectTasks(projectId);
+            loadTaskSummary(projectId);
+
+            if (typeof toastr !== 'undefined') {
+                toastr.success('Task created successfully');
+            } else {
+                alert('Task created successfully');
+            }
+        },
+        error: function (xhr, status, error) {
+            form.data('submitting', false);
+
+            console.error('Error creating task:', xhr.responseText);
+            try {
+                const response = JSON.parse(xhr.responseText);
+                alert('Failed to create task: ' + (response.error || error));
+            } catch (e) {
+                alert('Failed to create task. Please try again.');
+            }
+        }
+    });
+}
+
 $(document).ready(function () {
     console.log("Task management initialized");
 
@@ -338,54 +415,7 @@ $(document).ready(function () {
 
     $('#saveTaskBtn').on('click', function () {
         console.log("Save task button clicked");
-        const form = $('#createTaskForm');
-        if (!form[0].checkValidity()) {
-            form[0].reportValidity();
-            return;
-        }
-
-        if (!$('#taskProjectId').val()) {
-            console.error("ProjectId is missing");
-            alert("Error: Project ID is missing");
-            return;
-        }
-
-        const formData = new FormData(form[0]);
-        formData.append('CreatedAt', new Date().toISOString());
-
-        console.log("Form data being submitted:");
-        for (let pair of formData.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
-        }
-
-        $.ajax({
-            url: '/ProjectTask/Create',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            success: function (response) {
-                if (!response.succeeded) {
-                    alert('Failed to create task: ' + response.error);
-                    return;
-                }
-
-                const projectId = $('#projectDetailId').val();
-                $('#createTaskModal').modal('hide');
-                loadProjectTasks(projectId);
-                loadTaskSummary(projectId);
-            },
-            error: function (xhr, status, error) {
-                console.error("Error creating task:");
-                console.error("Status:", status);
-                console.error("Error:", error);
-                console.error("Response:", xhr.responseText);
-                alert('Failed to create task. Check the console for details.');
-            }
-        });
+        saveTask(); 
     });
 
     $('#updateTaskBtn').on('click', function () {
@@ -410,8 +440,7 @@ $(document).ready(function () {
                 console.log("Update task response:", response);
 
                 if (!response.succeeded) {
-                    alert('Failed to update task: ' + (response.error || 'Unknown error'));
-                    return;
+
                 }
 
                 const projectId = $('#projectDetailId').val();
@@ -431,119 +460,5 @@ $(document).ready(function () {
             }
         });
     });
-
-
-    function saveTask() {
-        const form = $('#createTaskForm');
-        console.log("Save task clicked");
-
-        if (!form[0].checkValidity()) {
-            form[0].reportValidity();
-            return;
-        }
-
-        if (!$('#taskProjectId').val()) {
-            console.error("ProjectId is missing");
-            alert("Error: Project ID is missing");
-            return;
-        }
-        const token = $('input[name="__RequestVerificationToken"]').first().val();
-
-        const formData = new FormData(form[0]);
-
-        console.log("Form data being submitted:");
-        for (let pair of formData.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
-        }
-
-        $.ajax({
-            url: '/ProjectTask/Create',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            success: function (response) {
-                console.log("Task creation response:", response);
-
-                if (!response.succeeded) {
-                    console.error("Error creating task:", response.error);
-                    alert('Failed to create task: ' + (response.error || 'Unknown error'));
-                    return;
-                }
-
-                const projectId = $('#projectDetailId').val();
-                $('#createTaskModal').modal('hide');
-
-                loadProjectTasks(projectId);
-                loadTaskSummary(projectId);
-                alert('Task created successfully');
-            },
-            error: function (xhr, status, error) {
-                console.error('Error creating task:', xhr.responseText);
-                try {
-                    const response = JSON.parse(xhr.responseText);
-                    alert('Failed to create task: ' + (response.error || error));
-                } catch (e) {
-                    alert('Failed to create task. Please try again.');
-                }
-            }
-        });
-    }
-
-    function updateTask() {
-        const form = $('#editTaskForm');
-
-        if (!form[0].checkValidity()) {
-            form[0].reportValidity();
-            return;
-        }
-
-        const formData = new FormData(form[0]);
-
-        const dueDate = $('#editTaskDueDate').val();
-        if (dueDate) {
-            formData.delete('DueDate');
-            formData.append('DueDate', new Date(dueDate + 'T00:00:00Z').toISOString());
-        }
-
-        if ($('#editTaskIsCompleted').prop('checked')) {
-            formData.append('CompletedAt', new Date().toISOString());
-        }
-
-        $.ajax({
-            url: '/ProjectTask/Edit',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            success: function (response) {
-                console.log("Task update response:", response);
-
-                if (!response.succeeded) {
-                    alert('Failed to update task: ' + (response.error || 'Unknown error'));
-                    return;
-                }
-
-                const projectId = $('#projectDetailId').val();
-                $('#editTaskModal').modal('hide');
-                loadProjectTasks(projectId);
-                loadTaskSummary(projectId);
-
-                alert('Task updated successfully');
-            },
-            error: function (error) {
-                console.error('Error updating task:', error);
-                alert('Failed to update task. Please try again.');
-            }
-        });
-    }
-
-
 
 });

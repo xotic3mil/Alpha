@@ -3,7 +3,7 @@
  * Handles all time entry related operations for projects
  */
 
-// Prevent multiple form submissions
+
 let isSubmitting = false;
 
 function loadProjectTimeEntries(projectId) {
@@ -127,7 +127,6 @@ function openCreateTimeEntryModal() {
         return;
     }
 
-    // Reset form and clear any previous ID
     $('#createTimeEntryForm')[0].reset();
 
     if ($('#timeEntryId').length) {
@@ -136,20 +135,16 @@ function openCreateTimeEntryModal() {
 
     $('#timeEntryProjectId').val(projectId);
 
-    // Set default values
     $('#timeEntryDate').val(new Date().toISOString().split('T')[0]);
     $('#timeEntryHours').val(1);
     $('#timeEntryIsBillable').prop('checked', true);
     $('#timeEntryRate').prop('disabled', false);
 
-    // Reset modal UI
     $('#createTimeEntryModalLabel').text('Log Time');
     $('#saveTimeEntryBtn').text('Save Time Entry');
 
-    // Load tasks for this project
     loadProjectTasksForSelect(projectId, 'timeEntryTask');
 
-    // Show the modal
     $('#createTimeEntryModal').modal('show');
 }
 
@@ -185,7 +180,6 @@ function loadProjectTasksForSelect(projectId, selectId) {
 function editTimeEntry(timeEntryId) {
     console.log("Editing time entry:", timeEntryId);
 
-    // Reset form first
     $('#createTimeEntryForm')[0].reset();
 
     $.ajax({
@@ -201,7 +195,6 @@ function editTimeEntry(timeEntryId) {
 
             const timeEntry = response.result;
 
-            // Add or set the ID field
             if (!$('#timeEntryId').length) {
                 $('#createTimeEntryForm').prepend('<input type="hidden" id="timeEntryId" name="Id">');
             }
@@ -209,7 +202,6 @@ function editTimeEntry(timeEntryId) {
             $('#timeEntryId').val(timeEntryId);
             $('#timeEntryProjectId').val(timeEntry.projectId);
 
-            // Format the date for the form
             const entryDate = new Date(timeEntry.date);
             const formattedDate = entryDate.toISOString().split('T')[0];
             $('#timeEntryDate').val(formattedDate);
@@ -218,18 +210,13 @@ function editTimeEntry(timeEntryId) {
             $('#timeEntryDescription').val(timeEntry.description);
             $('#timeEntryIsBillable').prop('checked', timeEntry.isBillable);
             $('#timeEntryRate').val(timeEntry.hourlyRate);
-
-            // Enable/disable rate field based on billable status
             $('#timeEntryRate').prop('disabled', !timeEntry.isBillable);
 
-            // Load tasks for this project
             loadProjectTasksForSelect(timeEntry.projectId, 'timeEntryTask');
 
-            // Update the modal UI to show we're editing
             $('#createTimeEntryModalLabel').text('Edit Time Entry');
             $('#saveTimeEntryBtn').text('Update Time Entry');
 
-            // Wait for tasks to load before setting selected task
             setTimeout(() => {
                 if (timeEntry.taskId) {
                     $('#timeEntryTask').val(timeEntry.taskId);
@@ -237,7 +224,6 @@ function editTimeEntry(timeEntryId) {
                     $('#timeEntryTask').val('');
                 }
 
-                // Show the modal
                 $('#createTimeEntryModal').modal('show');
             }, 500);
         },
@@ -250,7 +236,6 @@ function editTimeEntry(timeEntryId) {
 }
 
 function createTimeEntry() {
-    // Prevent double submission
     if (isSubmitting) {
         console.log("Form submission already in progress");
         return;
@@ -258,20 +243,17 @@ function createTimeEntry() {
 
     const form = $('#createTimeEntryForm');
 
-    // Validate the form
     if (!form[0].checkValidity()) {
         form[0].reportValidity();
         return;
     }
 
-    // Make sure we have a project ID
     const projectId = $('#timeEntryProjectId').val();
     if (!projectId) {
         snackbar.error("Error: Project ID is missing");
         return;
     }
 
-    // Make sure hours is valid
     const hours = $('#timeEntryHours').val();
     if (!hours || parseFloat(hours) <= 0) {
         snackbar.error("Error: Hours must be greater than 0");
@@ -279,7 +261,6 @@ function createTimeEntry() {
         return;
     }
 
-    // Make sure description is provided
     const description = $('#timeEntryDescription').val().trim();
     if (!description) {
         snackbar.error("Error: Description is required");
@@ -287,7 +268,6 @@ function createTimeEntry() {
         return;
     }
 
-    // Make sure date is valid
     const date = $('#timeEntryDate').val();
     if (!date) {
         snackbar.error("Error: Date is required");
@@ -295,22 +275,20 @@ function createTimeEntry() {
         return;
     }
 
-    // Make sure all required fields have values
-    const taskId = $('#timeEntryTask').val() || null; // This can be optional
+    const taskId = $('#timeEntryTask').val() || null; 
 
     isSubmitting = true;
 
-    // Create form data from the form
+
     const formData = new FormData(form[0]);
 
     formData.delete('Id');
 
-    // Handle the boolean value explicitly
+
     formData.delete('IsBillable');
     formData.append('IsBillable', $('#timeEntryIsBillable').prop('checked').toString());
 
 
-    // Set hourly rate based on billable status
     if ($('#timeEntryIsBillable').prop('checked')) {
         const rate = $('#timeEntryRate').val() || "0";
         formData.set('HourlyRate', rate);
@@ -318,17 +296,8 @@ function createTimeEntry() {
         formData.set('HourlyRate', "0");
     }
 
-    // If TaskId is empty string, set it to null
     if (formData.get('TaskId') === '') {
         formData.delete('TaskId');
-    }
-
-    console.log("Creating new time entry");
-
-    // Log form data for debugging
-    console.log("Form data being submitted:");
-    for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
     }
 
     $.ajax({
@@ -353,17 +322,14 @@ function createTimeEntry() {
                 return;
             }
 
-            // Hide the modal
             $('#createTimeEntryModal').modal('hide');
 
-            // Reset the form for next use
             $('#createTimeEntryForm')[0].reset();
 
-            // Refresh the data
             loadProjectTimeEntries(projectId);
             loadTimeEntrySummary(projectId);
 
-            // Show success message
+
             snackbar.success('Time entry created successfully');
         },
         error: function (xhr, status, error) {
@@ -385,7 +351,6 @@ function createTimeEntry() {
 }
 
 function updateTimeEntry() {
-    // Prevent double submission
     if (isSubmitting) {
         console.log("Form submission already in progress");
         return;
@@ -393,20 +358,17 @@ function updateTimeEntry() {
 
     const form = $('#createTimeEntryForm');
 
-    // Validate the form
     if (!form[0].checkValidity()) {
         form[0].reportValidity();
         return;
     }
 
-    // Check if we have an ID to update
     const timeEntryId = $('#timeEntryId').val();
     if (!timeEntryId) {
         snackbar.error("Error: Time entry ID is missing");
         return;
     }
 
-    // Make sure we have a project ID
     const projectId = $('#timeEntryProjectId').val();
     if (!projectId) {
         snackbar.error("Error: Project ID is missing");
@@ -415,20 +377,10 @@ function updateTimeEntry() {
 
     isSubmitting = true;
 
-    // Create form data from the form
     const formData = new FormData(form[0]);
 
-    // Handle the boolean value properly
     formData.delete('IsBillable');
     formData.append('IsBillable', $('#timeEntryIsBillable').prop('checked'));
-
-    console.log("Updating time entry:", timeEntryId);
-
-    // Log form data for debugging
-    console.log("Form data being submitted:");
-    for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-    }
 
     $.ajax({
         url: '/TimeEntry/UpdateAjax',
@@ -452,22 +404,17 @@ function updateTimeEntry() {
                 return;
             }
 
-            // Hide the modal
             $('#createTimeEntryModal').modal('hide');
 
-            // Reset the form for next use
             $('#createTimeEntryForm')[0].reset();
             $('#createTimeEntryModalLabel').text('Log Time');
             $('#saveTimeEntryBtn').text('Save Time Entry');
-
-            // Clear ID field for next creation
             $('#timeEntryId').val('');
 
-            // Refresh the data
+
             loadProjectTimeEntries(projectId);
             loadTimeEntrySummary(projectId);
 
-            // Show success message
             snackbar.success('Time entry updated successfully');
         },
         error: function (xhr, status, error) {
