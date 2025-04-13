@@ -43,8 +43,19 @@ namespace MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveUserFromProject(Guid projectId, Guid userId)
         {
+            if (!User.IsInRole("Admin") && !User.IsInRole("ProjectManager"))
+            {
+                return Json(new { success = false, error = "You do not have permission to remove team members" });
+            }
+
             var result = await _projectMembershipService.RemoveUserFromProjectAsync(projectId, userId);
-            return Json(new { success = result.Succeeded, message = result.Succeeded ? "User removed successfully" : result.Error });
+
+            if (!result.Succeeded)
+            {
+                return Json(new { success = false, error = result.Error });
+            }
+
+            return Json(new { success = true });
         }
 
         [HttpGet]
@@ -71,21 +82,30 @@ namespace MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> GetProjectMembers(Guid projectId)
         {
+            if (projectId == Guid.Empty)
+            {
+                return Json(new { success = false, message = "Invalid project ID" });
+            }
 
             var result = await _projectMembershipService.GetProjectMembersAsync(projectId);
-
             if (!result.Succeeded)
+            {
                 return Json(new { success = false, message = result.Error });
+            }
+
+            bool canManageMembers = User.IsInRole("Admin") || User.IsInRole("ProjectManager");
 
             return Json(new
             {
                 success = true,
-                members = result.Result.Select(m => new {
+                canManageMembers = canManageMembers,
+                members = result.Result.Select(m => new
+                {
                     id = m.Id,
                     name = $"{m.FirstName} {m.LastName}",
                     email = m.Email,
                     avatarUrl = m.AvatarUrl ?? "/images/avatar-template-1.svg"
-                }).ToList() // 
+                })
             });
         }
     }

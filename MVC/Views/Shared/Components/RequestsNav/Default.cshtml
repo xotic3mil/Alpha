@@ -1,0 +1,41 @@
+﻿@{
+    int pendingCount = ViewBag.PendingRequestsCount ?? 0;
+}
+
+<li class="nav-item">
+    <a class="nav-link py-2 px-3 rounded-3 d-flex align-items-center justify-content-between @(ViewContext.RouteData.Values["controller"]?.ToString() == "UserProjects" ? "active" : "")"
+       href="#"
+       data-bs-toggle="collapse"
+       data-bs-target="#requestsSubmenu"
+       aria-expanded="@(ViewContext.RouteData.Values["controller"]?.ToString() == "UserProjects" ? "true" : "false")">
+        <div>
+            <i class="bi bi-clipboard-check me-2"></i>
+            Requests
+            @if (pendingCount > 0)
+            {
+                <span class="badge bg-danger rounded-pill ms-1">@pendingCount</span>
+            }
+        </div>
+        <i class="bi bi-chevron-down small"></i>
+    </a>
+    <div class="collapse @(ViewContext.RouteData.Values["controller"]?.ToString() == "UserProjects" ? "show" : "")" id="requestsSubmenu">
+        <ul class="nav flex-column ms-3">
+            <li class="nav-item">
+                <a class="nav-link py-1 px-3 rounded-3 @(ViewContext.RouteData.Values["action"]?.ToString() == "AvailableProjects" ? "active" : "")" href="/userprojects/availableprojects">
+                    <i class="bi bi-search me-2"></i>
+                    Join Projects
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-1 px-3 rounded-3 d-flex align-items-center @(ViewContext.RouteData.Values["action"]?.ToString() == "MyRequests" ? "active" : "")" href="/userprojects/myrequests">
+                    <i class="bi bi-person-lines-fill me-2"></i>
+                    <span>My Requests</span>
+                    @if (pendingCount > 0)
+                    {
+                        <span class="badge bg-danger rounded-pill ms-auto">@pendingCount</span>
+                    }
+                </a>
+            </li>
+        </ul>
+    </div>
+</li>

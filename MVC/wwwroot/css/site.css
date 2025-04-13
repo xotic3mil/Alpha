@@ -408,7 +408,6 @@ h4,
 h5,
 h6,
 .text-muted,
-span,
 ul {
     color: var(--text-color) !important;
 }

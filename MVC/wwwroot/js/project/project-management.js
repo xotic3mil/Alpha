@@ -159,10 +159,12 @@ function loadProjectMembers(projectId) {
                                     <div class="small text-muted">${roleName}</div>
                                 </div>
                             </div>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                   onclick="removeTeamMember('${projectId}', '${userId}')">
-                                <i class="bi bi-person-x"></i>
-                            </button>
+                            ${response.canManageMembers ? `
+                                <button class="btn btn-sm btn-outline-danger" 
+                                       onclick="removeTeamMember('${projectId}', '${userId}')">
+                                    <i class="bi bi-person-x"></i>
+                                </button>
+                            ` : ''}
                         </div>
                     `;
                     $('#projectDetailTeamMembers').append(memberHtml);
@@ -496,7 +498,7 @@ function appendComment(comment) {
                 <div class="comment-user">
                     <img src="${comment.authorAvatarUrl || '/images/member-template-1.svg'}" alt="${comment.authorName}" class="comment-avatar">
                     <div>
-                        <p class="comment-username">${comment.authorName}</p>
+                        <p class="comment-username">${comment.userName}</p>
                         <p class="comment-time">${formattedDate}</p>
                     </div>
                 </div>

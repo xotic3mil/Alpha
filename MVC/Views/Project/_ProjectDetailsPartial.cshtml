@@ -28,19 +28,19 @@
                         <ul class="nav nav-tabs mb-4" id="projectDetailTabs" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview-content"
-                                        type="button" role="tab" aria-controls="overview-content" aria-selected="true">
+                                type="button" role="tab" aria-controls="overview-content" aria-selected="true">
                                     <i class="bi bi-info-circle me-1"></i> Overview
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks-content"
-                                        type="button" role="tab" aria-controls="tasks-content" aria-selected="false">
+                                type="button" role="tab" aria-controls="tasks-content" aria-selected="false">
                                     <i class="bi bi-list-check me-1"></i> Tasks
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="time-tab" data-bs-toggle="tab" data-bs-target="#time-content"
-                                        type="button" role="tab" aria-controls="time-content" aria-selected="false">
+                                type="button" role="tab" aria-controls="time-content" aria-selected="false">
                                     <i class="bi bi-clock-history me-2"></i>Time
                                 </button>
                             </li>
@@ -65,11 +65,11 @@
                                                         <input type="hidden" id="commentProjectId" name="ProjectId" value="" />
                                                         <div class="input-group">
                                                             <input type="text"
-                                                                   id="commentContent"
-                                                                   name="Content"
-                                                                   class="form-control formBorder"
-                                                                   placeholder="Add a status update comment..."
-                                                                   required />
+                                                            id="commentContent"
+                                                            name="Content"
+                                                            class="form-control formBorder"
+                                                            placeholder="Add a status update comment..."
+                                                            required />
                                                             <button type="submit" class="btn btn-primary">Post</button>
                                                         </div>
                                                     </form>
@@ -177,12 +177,17 @@
                                             <div class="card-body">
                                                 <h5 class="card-title d-flex justify-content-between align-items-center mb-3">
                                                     Team Members
-                                                    <button class="btn btn-sm btn-outline-primary rounded-pill"
-                                                            id="addTeamMemberBtn"
-                                                            onclick="openAddTeamMemberModal()"
-                                                            type="button">
-                                                        <i class="bi bi-person-plus me-1"></i> Add
-                                                    </button>
+                                                    @if (User.IsInRole("Admin") || User.IsInRole("ProjectManager"))
+                                                    {
+
+                                                        <button class="btn btn-sm btn-outline-primary rounded-pill"
+                                                        id="addTeamMemberBtn"
+                                                        onclick="openAddTeamMemberModal()"
+                                                        type="button">
+                                                            <i class="bi bi-person-plus me-1"></i> Add
+                                                        </button>
+                                                    }
+
                                                 </h5>
                                                 <div id="projectDetailTeamMembers" class="d-flex flex-column gap-2">
                                                     <div class="text-center py-3">
@@ -509,7 +514,7 @@
         <div class="modal-content rounded-4 border-0">
             <div class="modal-header border-0">
                 <h5 class="modal-title" id="addTeamMemberModalLabel">Add Team Member</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>      
             </div>
             <div class="modal-body">
                 <input type="hidden" id="addTeamMemberProjectId" value="">
