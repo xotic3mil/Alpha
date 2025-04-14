@@ -65,7 +65,7 @@
                         </div>
                         <div class="mb-3">
                             @Html.LabelFor(m => m.Form.Description, new { @class = "form-label" })
-                            <textarea id="editProjectDescription" name="Form.Description" class="form-control formBorder" placeholder="Brief description of the project" required="required"></textarea>
+                            @Html.TextAreaFor(m => m.Form.Description, new { @id = "editProjectDescription", @class = "form-control formBorder", @placeholder = "Brief description of the project", @required = "required", data_quill_editor = "" })
                             <span class="text-danger field-validation-error" id="editDescriptionError"></span>
                         </div>
                         <div class="mb-3">

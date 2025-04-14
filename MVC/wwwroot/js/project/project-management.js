@@ -124,7 +124,7 @@ function openProjectDetails(id) {
 
             $('#projectDetailImage').attr('src', project.imageUrl || '/images/project-template-1.svg');
             $('#projectDetailName').text(project.name || 'Unnamed Project');
-            $('#projectDetailDescription').text(project.description || 'No description available');
+            $('#projectDetailDescription').html(project.description || 'No description available');
 
             $('#projectDetailServiceName').text(project.service?.serviceName || 'No Service');
             $('#projectDetailServiceDescription').text(project.service?.serviceDescription || 'No description available');
