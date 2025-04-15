@@ -94,8 +94,111 @@
 
 @Html.AntiForgeryToken()
 
+<input type="hidden" id="currentUserId" value="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value" />
+
 @section Scripts {
     <script>
+
+                let notificationConnection = null;
+
+        function initializeNotificationConnection() {
+            const userId = $('#currentUserId').val();
+            console.log("Setting up notification connection for user:", userId);
+
+            if (typeof signalR === 'undefined') {
+                console.error("SignalR library not loaded!");
+                return;
+            }
+
+            // Close existing connection if any
+            if (notificationConnection) {
+                notificationConnection.stop();
+                console.log("Stopped existing connection");
+            }
+
+            notificationConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .withAutomaticReconnect()
+                .build();
+
+            console.log("Notification connection created");
+
+            // Debug when notifications are received
+            notificationConnection.on("ReceiveNotification", function(notification) {
+                console.log("Notification received:", notification);
+
+                // Handle request approved notification
+                if (notification.type === "RequestApproved" && notification.relatedEntityId) {
+                    console.log("Processing request approval for:", notification.relatedEntityId);
+                    const requestRow = $(`tr[data-request-id="${notification.relatedEntityId}"]`);
+
+                    if (requestRow.length) {
+                        console.log("Found request row, updating UI");
+                        // Update status badge
+                        requestRow.find('td:nth-child(3) .badge')
+                            .removeClass('bg-warning text-dark')
+                            .addClass('bg-success')
+                            .text('Approved');
+
+                        // Show toast notification
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success(notification.message || 'Your request has been approved!');
+                        }
+
+                        // Reload page after delay
+                        setTimeout(function() {
+                            location.reload();
+                        }, 3000);
+                    } else {
+                        console.warn("Request row not found in DOM");
+                    }
+                }
+                // Handle request rejected notification
+                else if (notification.type === "RequestRejected" && notification.relatedEntityId) {
+                    console.log("Processing request rejection for:", notification.relatedEntityId);
+                    const requestRow = $(`tr[data-request-id="${notification.relatedEntityId}"]`);
+
+                    if (requestRow.length) {
+                        console.log("Found request row, updating UI");
+                        // Update status badge
+                        requestRow.find('td:nth-child(3) .badge')
+                            .removeClass('bg-warning text-dark')
+                            .addClass('bg-danger')
+                            .text('Rejected');
+
+                        // Show toast notification
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(notification.message || 'Your request has been rejected.');
+                        }
+
+                        // Reload page after delay
+                        setTimeout(function() {
+                            location.reload();
+                        }, 3000);
+                    } else {
+                        console.warn("Request row not found in DOM");
+                    }
+                }
+            });
+
+            console.log("Starting notification connection...");
+            notificationConnection.start()
+                .then(function() {
+                    console.log("NotificationHub Connected! Now joining user group");
+
+                    if (userId) {
+                        notificationConnection.invoke("JoinUserGroup", userId)
+                            .then(() => console.log("Successfully joined user group:", userId))
+                            .catch(err => console.error("Error joining user group:", err));
+                    } else {
+                        console.error("No user ID available for group membership");
+                    }
+                })
+                .catch(function(err) {
+                    console.error("Error starting notification connection:", err);
+                });
+        }
+
         function cancelRequest(requestId) {
             if (!confirm('Are you sure you want to cancel this request?')) {
                 return;

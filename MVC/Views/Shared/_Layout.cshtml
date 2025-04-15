@@ -186,8 +186,14 @@
                             @inject UserManager<UserEntity> UserManager
                             @{
                                 var user = await UserManager.GetUserAsync(User);
+                                var userId = user?.Id.ToString();
+                                var isAdmin = User.IsInRole("Admin") ? "true" : "false";
+                                var isProjectManager = User.IsInRole("ProjectManager") ? "true" : "false";
                                 var avatarUrl = user?.AvatarUrl ?? "/images/default-avatar.png";
                             }
+                            <input type="hidden" id="currentUserId" value="@userId" />
+                            <input type="hidden" id="isAdmin" value="@isAdmin" />
+                            <input type="hidden" id="isProjectManager" value="@isProjectManager" />
                             <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <img src="@avatarUrl" alt="User Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;" />
                                 <span class="ms-2">@User.Identity?.Name</span>
@@ -247,6 +253,7 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.min.js"></script>
     <script src="~/js/shared/quill-editor.js" asp-append-version="true"></script>
     <script src="~/js/shared/snackbar.js" asp-append-version="true"></script>
+    <script src="~/js/shared/initializeNotificationConnection.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/project/project-management.js" asp-append-version="true"></script>
     <script src="~/js/tasks/task-management.js" asp-append-version="true"></script>
@@ -270,10 +277,6 @@
                     overlay.classList.add('d-none');
                 });
             }
-            console.log("Initializing notification system...");
-            loadNotificationCount();
-
-            setInterval(loadNotificationCount, 20000);
 
             $('#notificationsDropdown').on('click', function() {
                 loadNotifications();
@@ -281,19 +284,14 @@
         });
 
         function loadNotificationCount() {
-            console.log("Checking for notifications...");
-
             $.ajax({
                 url: '/Notification/GetUnreadCount',
                 type: 'GET',
                 success: function(response) {
-                    console.log("Notification count response:", response);
                     if (response.success && response.count > 0) {
                         $('#notificationBadge').text(response.count).show();
-                        console.log("Showing notification badge with count:", response.count);
                     } else {
                         $('#notificationBadge').hide();
-                        console.log("Hiding notification badge, no notifications");
                     }
                 },
                 error: function(error) {
@@ -307,7 +305,6 @@
                 url: '/Notification/GetUnreadNotifications',
                 type: 'GET',
                 success: function(response) {
-                    console.log("Notifications response:", response);
 
                     if (!response.success) {
                         $('#notificationsContainer').html('<div class="empty-state p-4 text-center"><p class="text-muted">Failed to load notifications</p></div>');

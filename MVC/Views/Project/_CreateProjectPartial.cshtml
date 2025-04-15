@@ -121,8 +121,6 @@
 
 
 <script>
-    console.log('CreateProjectPartial script loaded');
-
     function validateProjectForm(event) {
         clearValidationErrors();
         let isValid = true;
@@ -203,11 +201,9 @@
     }
 
     function handleImageFile(file) {
-        console.log('handleImageFile called with file:', file ? file.name : 'no file');
         if (file) {
             const reader = new FileReader();
             reader.onload = function(event) {
-                console.log('File read complete, updating image preview');
                 const defaultImg = document.getElementById('defaultProjectImage');
                 const imagePreview = document.getElementById('imagePreview');
 
@@ -221,8 +217,6 @@
 
                 const cameraOverlay = document.getElementById('cameraOverlay');
                 if (cameraOverlay) cameraOverlay.style.opacity = '0';
-
-                console.log('Image preview updated successfully');
             };
             reader.readAsDataURL(file);
         }
@@ -241,8 +235,6 @@
             previewImg.classList.add('d-none');
             previewImg.src = '#';
         }
-
-        console.log('Form reset complete');
     }
 
     function preventDefaults(e) {
@@ -275,8 +267,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM fully loaded, setting up event handlers');
-
         const formInputs = document.querySelectorAll('#createProjectForm input:not(#projectImage), #createProjectForm select, #createProjectForm textarea');
         formInputs.forEach(input => {
             input.addEventListener('input', function() {
@@ -299,7 +289,6 @@
             projectModal.addEventListener('hidden.bs.modal', function() {
                 try {
                     resetModalForm();
-                    console.log('Modal form reset successfully');
                 } catch (error) {
                     console.error('Error resetting modal form:', error);
                 }
@@ -327,7 +316,6 @@
 
             dropArea.addEventListener('click', function() {
                 if (projectImageInput) {
-                    console.log('Drop area clicked, triggering file input');
                     projectImageInput.click();
                 }
             });

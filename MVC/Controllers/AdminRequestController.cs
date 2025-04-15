@@ -46,7 +46,8 @@ public class AdminRequestsController(
                     request.Result.UserId,
                     "Request Approved",
                     $"Your request to join project \"{request.Result.Project?.Name}\" has been approved.",
-                    "ProjectRequestApproved");
+                    "RequestApproved", 
+                    request.Result.Id);
             }
         }
 
@@ -72,7 +73,8 @@ public class AdminRequestsController(
                     request.Result.UserId,
                     "Request Rejected",
                     $"Your request to join project \"{request.Result.Project?.Name}\" has been rejected.",
-                    "ProjectRequestRejected");
+                    "RequestRejected",
+                    request.Result.Id); 
             }
         }
 

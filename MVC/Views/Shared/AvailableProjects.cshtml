@@ -62,7 +62,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <p class="card-text text-muted mb-3">@project.Description</p>
+                            <p class="card-text text-muted mb-3">@Html.Raw(project.Description)</p>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="badge bg-light text-dark">
                                     @{
@@ -96,7 +96,6 @@
     </div>
 </div>
 
-<!-- Request Join Modal -->
 <div class="modal fade" id="requestJoinModal" tabindex="-1" aria-labelledby="requestJoinModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0">

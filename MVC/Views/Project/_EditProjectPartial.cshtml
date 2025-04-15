@@ -214,11 +214,9 @@
     }
 
     function handleEditImageFile(file) {
-        console.log('handleEditImageFile called with file:', file ? file.name : 'no file');
         if (file) {
             const reader = new FileReader();
             reader.onload = function(event) {
-                console.log('File read complete, updating edit image preview');
                 const defaultImg = document.getElementById('editDefaultProjectImage');
                 const imagePreview = document.getElementById('editImagePreview');
 
@@ -324,7 +322,6 @@
 
             editDropArea.addEventListener('click', function() {
                 if (editProjectImageInput) {
-                    console.log('Edit drop area clicked, triggering file input');
                     editProjectImageInput.click();
                 }
             });
@@ -345,9 +342,7 @@
         }
 
         if (editProjectImageInput) {
-            console.log('Setting up edit file input change event');
             editProjectImageInput.addEventListener('change', function(e) {
-                console.log('Edit file input changed, files:', e.target.files);
                 if (e.target.files && e.target.files[0]) {
                     handleEditImageFile(e.target.files[0]);
                 }

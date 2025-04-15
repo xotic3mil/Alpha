@@ -23,8 +23,7 @@ function loadProjectTasks(projectId) {
         url: `/ProjectTask/GetTasksByProject?projectId=${projectId}`,
         type: 'GET',
         success: function (response) {
-            console.log("Tasks response:", response);
-
+    
             if (!response.success || !response.tasks || response.tasks.length === 0) {
                 $('#projectTasksTable').html(`
                     <tr>
@@ -106,8 +105,7 @@ function loadTaskSummary(projectId) {
         url: `/ProjectTask/GetTaskSummary?projectId=${projectId}`,
         type: 'GET',
         success: function (response) {
-            console.log("Task summary:", response);
-
+ 
             if (!response.success) {
                 console.error("Error loading task summary:", response.message);
                 return;
@@ -139,11 +137,9 @@ function getPriorityClass(priority) {
 
 function openCreateTaskModal() {
     const projectId = $('#projectDetailId').val();
-    console.log("Opening create task modal for project:", projectId);
 
     if (!projectId) {
-        console.error("Missing project ID when opening task modal");
-        alert("Error: Project ID is missing. Please try again.");
+        snackbar.error("Error: Project ID is missing. Please try again.");
         return;
     }
 
@@ -191,7 +187,6 @@ function loadTaskAssignees(projectId, dropdownId) {
 }
 
 function toggleTaskCompletion(taskId) {
-
     event.preventDefault();
 
     console.log("Toggling task completion for task:", taskId);
@@ -211,7 +206,7 @@ function toggleTaskCompletion(taskId) {
 
             if (!response.succeeded) {
                 console.error("Failed to update task status:", response.error);
-                alert('Failed to update task status: ' + (response.error || 'Unknown error'));
+                snackbar.error('Failed to update task status: ' + (response.error || 'Unknown error'));
                 return;
             }
 
@@ -226,7 +221,7 @@ function toggleTaskCompletion(taskId) {
         error: function (xhr, status, error) {
             console.error('Error updating task completion status:', error);
             console.error('Response text:', xhr.responseText);
-            alert('Failed to update task status. Please try again.');
+            snackbar.error('Failed to update task status. Please try again.');
         }
     });
 }
@@ -244,7 +239,7 @@ function editTask(taskId) {
         type: 'GET',
         success: function (response) {
             if (!response.succeeded) {
-                alert('Failed to load task details.');
+                snackbar.error('Failed to load task details.');
                 return;
             }
 
@@ -277,7 +272,7 @@ function editTask(taskId) {
         },
         error: function (error) {
             console.error('Error loading task details:', error);
-            alert('Failed to load task details. Please try again.');
+            snackbar.error('Failed to load task details. Please try again.');
         }
     });
 }
@@ -297,7 +292,7 @@ function deleteTask(taskId) {
         },
         success: function (response) {
             if (!response.succeeded) {
-                alert('Failed to delete task: ' + (response.error || 'Unknown error'));
+                snackbar.error('Failed to delete task: ' + (response.error || 'Unknown error'));
                 return;
             }
 
@@ -308,12 +303,12 @@ function deleteTask(taskId) {
             if (typeof toastr !== 'undefined') {
                 toastr.success('Task deleted successfully');
             } else {
-                alert('Task deleted successfully');
+                snackbar.success('Task deleted successfully');
             }
         },
         error: function (error) {
             console.error('Error deleting task:', error);
-            alert('Failed to delete task. Please try again.');
+            snackbar.error('Failed to delete task. Please try again.');
         }
     });
 }
@@ -334,7 +329,7 @@ function saveTask() {
 
     if (!$('#taskProjectId').val()) {
         console.error("ProjectId is missing");
-        alert("Error: Project ID is missing");
+        snackbar.error("Error: Project ID is missing");
         return;
     }
 
@@ -365,7 +360,7 @@ function saveTask() {
 
             if (!response.succeeded) {
                 console.error("Error creating task:", response.error);
-                alert('Failed to create task: ' + (response.error || 'Unknown error'));
+                snackbar.error('Failed to create task: ' + (response.error || 'Unknown error'));
                 return;
             }
 
@@ -378,7 +373,7 @@ function saveTask() {
             if (typeof toastr !== 'undefined') {
                 toastr.success('Task created successfully');
             } else {
-                alert('Task created successfully');
+                snackbar.success('Task created successfully');
             }
         },
         error: function (xhr, status, error) {
@@ -387,26 +382,23 @@ function saveTask() {
             console.error('Error creating task:', xhr.responseText);
             try {
                 const response = JSON.parse(xhr.responseText);
-                alert('Failed to create task: ' + (response.error || error));
+                snackbar.error('Failed to create task: ' + (response.error || error));
             } catch (e) {
-                alert('Failed to create task. Please try again.');
+                snackbar.error('Failed to create task. Please try again.');
             }
         }
     });
 }
 
 $(document).ready(function () {
-    console.log("Task management initialized");
 
-    $(document).on('click', '#addTaskBtn', function (e) {
+    $(document).off('click', '#addTaskBtn').on('click', '#addTaskBtn', function (e) {
         e.preventDefault();
-        console.log("Add task button clicked");
         openCreateTaskModal();
     });
 
     $('#tasks-tab').on('shown.bs.tab', function (e) {
         const projectId = $('#projectDetailId').val();
-        console.log("Tasks tab shown, loading tasks for project:", projectId);
         if (projectId) {
             loadProjectTasks(projectId);
             loadTaskSummary(projectId);
@@ -414,8 +406,7 @@ $(document).ready(function () {
     });
 
     $('#saveTaskBtn').on('click', function () {
-        console.log("Save task button clicked");
-        saveTask(); 
+        saveTask();
     });
 
     $('#updateTaskBtn').on('click', function () {
@@ -437,10 +428,10 @@ $(document).ready(function () {
                 'X-Requested-With': 'XMLHttpRequest'
             },
             success: function (response) {
-                console.log("Update task response:", response);
-
+               
                 if (!response.succeeded) {
-
+                    snackbar.error('Failed to update task: ' + (response.error || 'Unknown error'));
+                    return;
                 }
 
                 const projectId = $('#projectDetailId').val();
@@ -448,17 +439,12 @@ $(document).ready(function () {
                 loadProjectTasks(projectId);
                 loadTaskSummary(projectId);
 
-                if (typeof toastr !== 'undefined') {
-                    toastr.success('Task updated successfully');
-                } else {
-                    alert('Task updated successfully');
-                }
+                snackbar.success('Task updated successfully');
             },
             error: function (error) {
                 console.error('Error updating task:', error);
-                alert('Failed to update task. Please try again.');
+                snackbar.error('Failed to update task. Please try again.');
             }
         });
     });
-
 });

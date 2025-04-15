@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Domain.Models;
 using MVC.Hubs;
+using Domain.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +71,8 @@ builder.Services.AddScoped<IProjectMembershipService, ProjectMembershipService>(
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IProjectTaskService, ProjectTaskService>();
 builder.Services.AddScoped<ITimeEntryService, TimeEntryService>();
+
+builder.Services.AddScoped<INotificationHubClient, SignalRNotificationHubClient>();
 builder.Services.AddSignalR();
 
 
@@ -115,6 +118,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 app.MapHub<CommentHub>("/commentHub");
+app.MapHub<NotificationHub>("/notificationHub");
 app.UseAuthentication();
 app.UseAuthorization();
 

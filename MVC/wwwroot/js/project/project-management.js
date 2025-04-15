@@ -8,18 +8,17 @@ if (typeof commentConnection === 'undefined') {
 
 function initializeCommentSignalR(projectId) {
     if (typeof signalR === 'undefined') {
-        console.log("SignalR not found, attempting to load it dynamically");
+
 
         const script = document.createElement('script');
         script.src = "https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/dist/browser/signalr.min.js";
 
         script.onload = function () {
-            console.log("SignalR loaded successfully");
             initializeSignalRConnection(projectId);
         };
 
         script.onerror = function () {
-            console.error("Failed to load SignalR");
+            snackbar.error("Failed to load SignalR. Real-time comments may not work properly.");
         };
         document.head.appendChild(script);
         return;
@@ -33,20 +32,16 @@ function initializeSignalRConnection(projectId) {
         commentConnection.stop();
     }
 
-    console.log("Initializing SignalR connection for project:", projectId);
-
     commentConnection = new signalR.HubConnectionBuilder()
         .withUrl("/commentHub")
         .withAutomaticReconnect()
         .build();
 
     commentConnection.on("ReceiveComment", function (comment) {
-        console.log("Received comment:", comment);
         appendComment(comment);
     });
 
     commentConnection.on("CommentDeleted", function (commentId) {
-        console.log("Comment deleted via SignalR:", commentId);
 
         let commentElement = $(`#comment-${commentId}`);
         if (commentElement.length === 0) {
@@ -54,7 +49,6 @@ function initializeSignalRConnection(projectId) {
         }
 
         if (commentElement.length === 0) {
-            console.warn("Could not find comment with ID:", commentId);
             loadComments(projectId);
             return;
         }
@@ -71,14 +65,11 @@ function initializeSignalRConnection(projectId) {
 
     commentConnection.start()
         .then(function () {
-            console.log("SignalR Connected!");
             return commentConnection.invoke("JoinProjectGroup", projectId);
         })
         .then(function () {
-            console.log("Joined project group:", projectId);
         })
         .catch(function (err) {
-            console.error("SignalR Error:", err);
         });
 }
 
@@ -110,15 +101,12 @@ function createRipple(event) {
 }
 
 function openProjectDetails(id) {
-    console.log("Opening project details for ID:", id);
 
     $.ajax({
         url: `/Project/GetProjectByIdWithDetails?id=${id}`,
         type: 'GET',
         dataType: 'json',
         success: function (project) {
-            console.log("Project data:", project);
-
             $('#projectDetailDeleteId').val(project.id);
             $('#projectDetailId').val(project.id);
 
@@ -200,8 +188,7 @@ function openProjectDetails(id) {
 
         },
         error: function (error) {
-            console.error('Error fetching project details:', error);
-            alert('Failed to load project details. Please try again.');
+            snackbar.error('Failed to load project details. Please try again.');
         }
 
     });
@@ -214,7 +201,6 @@ function ensureSignalRLoaded() {
             return;
         }
 
-        console.log("Loading SignalR dynamically...");
         const script = document.createElement('script');
         script.src = "https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/dist/browser/signalr.min.js";
         script.onload = resolve;
@@ -236,7 +222,6 @@ function loadProjectMembers(projectId) {
         url: `/ProjectMembership/GetProjectMembers?projectId=${projectId}`,
         type: 'GET',
         success: function (response) {
-            console.log("Team members response:", response);
             $('#projectDetailTeamMembers').empty();
 
             if (!response.success) {
@@ -339,30 +324,24 @@ function openAddTeamMemberModal() {
     $('#addTeamMemberProjectId').val(projectId);
     $('#userSelect').html('<option value="" selected disabled>Loading users...</option>');
 
-    console.log("Opening team member modal for project:", projectId);
 
     $.ajax({
         url: `/ProjectMembership/GetAvailableUsers?projectId=${projectId}`,
         type: 'GET',
         success: function (response) {
-            console.log("API response:", response);
             $('#userSelect').empty();
 
             if (!response.success) {
                 console.error("Error from API:", response.message || "Unknown error");
 
-                // Check if the error is specifically about no available users
                 if (response.message && (
                     response.message.includes("No available users found") ||
                     response.message.includes("All users have been assigned")
                 )) {
-                    // Show user-friendly message
                     $('#userSelect').html('<option value="" selected disabled>All users have been assigned to projects</option>');
 
-                    // Disable the add button since there's no one to add
                     $('#addTeamMemberButton').prop('disabled', true);
                 } else {
-                    // For other errors, show generic error message
                     $('#userSelect').html('<option value="" selected disabled>Error loading users. Please try again.</option>');
                 }
                 return;
@@ -373,10 +352,8 @@ function openAddTeamMemberModal() {
                 response.users.forEach(user => {
                     $('#userSelect').append(`<option value="${user.id}">${user.name}</option>`);
                 });
-                // Enable the add button
                 $('#addTeamMemberButton').prop('disabled', false);
             } else {
-                // No users available (but success=true case)
                 $('#userSelect').html('<option value="" selected disabled>All users have been assigned to projects</option>');
                 $('#addTeamMemberButton').prop('disabled', true);
             }
@@ -387,7 +364,6 @@ function openAddTeamMemberModal() {
             $('#userSelect').html('<option value="" selected disabled>Error loading users. Please try again.</option>');
         },
         complete: function () {
-            // Ensure the modal shows regardless of success or error
             $('#addTeamMemberModal').modal('show');
         }
     });
@@ -398,11 +374,9 @@ function addMemberToProject() {
     const userId = $('#userSelect').val();
 
     if (!userId) {
-        alert('Please select a user');
+        snackbar.warning('Please select a user');
         return;
     }
-
-    console.log("Adding user", userId, "to project", projectId);
 
     $.ajax({
         url: '/ProjectMembership/AddUserToProject',
@@ -416,141 +390,120 @@ function addMemberToProject() {
             if (response.success) {
                 $('#addTeamMemberModal').modal('hide');
                 loadProjectMembers(projectId);
-                if (typeof toastr !== 'undefined') {
-                    toastr.success('Team member added successfully');
-                } else {
-                    alert('Team member added successfully');
-                }
+                snackbar.success('Team member added successfully');
             } else {
-                if (typeof toastr !== 'undefined') {
-                    toastr.error(response.error || 'Failed to add team member');
-                } else {
-                    alert(response.error || 'Failed to add team member');
-                }
+                snackbar.error(response.error || 'Failed to add team member');
             }
         },
         error: function (xhr, status, error) {
             console.error("Error adding team member:", error);
             console.error("Response:", xhr.responseText);
-            if (typeof toastr !== 'undefined') {
-                toastr.error('Error adding team member');
-            } else {
-                alert('Error adding team member');
-            }
+            snackbar.error('Error adding team member');
         }
     });
 }
 
-function removeTeamMember(projectId, userId) {
-    if (!confirm('Are you sure you want to remove this team member from the project?')) {
-        return;
-    }
+function confirmAction(message, callback) {
+    $('#confirmationModalBody').text(message);
 
-    $.ajax({
-        url: '/ProjectMembership/RemoveUserFromProject',
-        type: 'POST',
-        data: {
-            projectId: projectId,
-            userId: userId,
-            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
-        },
-        success: function (response) {
-            if (response.success) {
-                loadProjectMembers(projectId);
-                if (typeof toastr !== 'undefined') {
-                    toastr.success('Team member removed successfully');
+    $('#confirmActionBtn').off('click');
+    $('#cancelActionBtn').off('click');
+
+    $('#confirmActionBtn').on('click', function () {
+        $('#confirmationModal').modal('hide');
+        callback(true);
+    });
+
+    $('#cancelActionBtn').on('click', function () {
+        $('#confirmationModal').modal('hide');
+        callback(false);
+    });
+
+    $('#confirmationModal').modal('show');
+}
+
+function removeTeamMember(projectId, userId) {
+    confirmAction('Are you sure you want to remove this team member from the project?', function (confirmed) {
+        if (!confirmed) return;
+
+        $.ajax({
+            url: '/ProjectMembership/RemoveUserFromProject',
+            type: 'POST',
+            data: {
+                projectId: projectId,
+                userId: userId,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
+            },
+            success: function (response) {
+                if (response.success) {
+                    loadProjectMembers(projectId);
+                    snackbar.success('Team member removed successfully');
                 } else {
-                    alert('Team member removed successfully');
+                    snackbar.error(response.error || 'Failed to remove team member');
                 }
-            } else {
-                if (typeof toastr !== 'undefined') {
-                    toastr.error(response.error || 'Failed to remove team member');
-                } else {
-                    alert(response.error || 'Failed to remove team member');
-                }
+            },
+            error: function (error) {
+                console.error("Error removing user from project:", error);
+                snackbar.error('An error occurred while removing the user');
             }
-        },
-        error: function (error) {
-            console.error("Error removing user from project:", error);
-            if (typeof toastr !== 'undefined') {
-                toastr.error('An error occurred while removing the user');
-            } else {
-                alert('An error occurred while removing the user');
-            }
-        }
+        });
     });
 }
 
 function approveRequest(requestId) {
-    if (!confirm('Are you sure you want to approve this request?')) {
-        return;
-    }
+    confirmAction('Are you sure you want to approve this request?', function (confirmed) {
+        if (!confirmed) return;
 
-    $.ajax({
-        url: '/ProjectMembership/ApproveProjectRequest',
-        type: 'POST',
-        data: {
-            requestId: requestId,
-            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
-        },
-        success: function (response) {
-            if (response.success) {
-                const projectId = $('#projectDetailId').val();
-                loadPendingRequests(projectId);
-                loadProjectMembers(projectId);
-                if (typeof toastr !== 'undefined') {
-                    toastr.success('Request approved successfully');
+        $.ajax({
+            url: '/ProjectMembership/ApproveProjectRequest',
+            type: 'POST',
+            data: {
+                requestId: requestId,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
+            },
+            success: function (response) {
+                if (response.success) {
+                    const projectId = $('#projectDetailId').val();
+                    loadPendingRequests(projectId);
+                    loadProjectMembers(projectId);
+                    snackbar.success('Request approved successfully');
                 } else {
-                    alert('Request approved successfully');
+                    snackbar.error(response.error || 'Failed to approve request');
                 }
-            } else {
-                if (typeof toastr !== 'undefined') {
-                    toastr.error(response.error || 'Failed to approve request');
-                } else {
-                    alert(response.error || 'Failed to approve request');
-                }
+            },
+            error: function (error) {
+                console.error("Error approving request:", error);
+                snackbar.error('An error occurred while approving the request');
             }
-        },
-        error: function (error) {
-            console.error("Error approving request:", error);
-            alert('An error occurred while approving the request');
-        }
+        });
     });
 }
 
 function rejectRequest(requestId) {
-    if (!confirm('Are you sure you want to reject this request?')) {
-        return;
-    }
+    confirmAction('Are you sure you want to reject this request?', function (confirmed) {
+        if (!confirmed) return;
 
-    $.ajax({
-        url: '/ProjectMembership/RejectProjectRequest',
-        type: 'POST',
-        data: {
-            requestId: requestId,
-            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
-        },
-        success: function (response) {
-            if (response.success) {
-                const projectId = $('#projectDetailId').val();
-                loadPendingRequests(projectId);
-                if (typeof toastr !== 'undefined') {
-                    toastr.success('Request rejected');
+        $.ajax({
+            url: '/ProjectMembership/RejectProjectRequest',
+            type: 'POST',
+            data: {
+                requestId: requestId,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
+            },
+            success: function (response) {
+                if (response.success) {
+                    const projectId = $('#projectDetailId').val();
+                    loadPendingRequests(projectId);
+                    snackbar.success('Request rejected');
                 } else {
-                    alert('Request rejected');
+                    snackbar.error(response.error || 'Failed to reject request');
                 }
-            } else {
-                if (typeof toastr !== 'undefined') {
-                    toastr.error(response.error || 'Failed to reject request');
-                } else {
-                    alert(response.error || 'Failed to reject request');
-                }
+            },
+            error: function (error) {
+                console.error("Error rejecting request:", error);
+                snackbar.error('An error occurred while rejecting the request');
             }
-        },
-        error: function (error) {
-            console.error("Error rejecting request:", error);
-            alert('An error occurred while rejecting the request');
-        }
+        });
     });
 }
 
@@ -578,7 +531,6 @@ function loadComments(projectId) {
 
             comments.forEach(function (comment) {
                 const canDelete = comment.canDelete === true;
-                console.log(`Comment ${comment.id} canDelete:`, canDelete);
 
                 const deleteButton = canDelete ?
                     `<button class="btn btn-sm text-danger delete-comment" data-id="${comment.id}" data-project-id="${projectId}">
@@ -609,7 +561,6 @@ function loadComments(projectId) {
             });
         },
         error: function (xhr) {
-            console.error('Failed to load comments', xhr);
             commentsContainer.html(`
                 <div class="alert alert-danger">
                     Failed to load comments. <a href="#" onclick="loadProjectComments('${projectId}'); return false;">Try again</a>
@@ -670,43 +621,43 @@ function appendComment(comment) {
 }
 
 function deleteComment(commentId, projectId) {
-    if (!confirm("Delete this status comment?")) {
-        return;
-    }
+    confirmAction("Delete this status comment?", function (confirmed) {
+        if (!confirmed) return;
 
-    const token = $('input[name="__RequestVerificationToken"]').first().val();
+        const token = $('input[name="__RequestVerificationToken"]').first().val();
 
-    $.ajax({
-        url: `/Comment/Delete?id=${commentId}&projectId=${projectId}`,
-        type: 'POST',
-        data: {
-            __RequestVerificationToken: token
-        },
-        success: function (response) {
-            // Updated selector to match the HTML structure
-            $(`#comment-${commentId}`).slideUp(200, function () {
-                $(this).remove();
+        $.ajax({
+            url: `/Comment/Delete?id=${commentId}&projectId=${projectId}`,
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: token
+            },
+            success: function (response) {
+                $(`#comment-${commentId}`).slideUp(200, function () {
+                    $(this).remove();
 
-                if ($('#commentsContainer').children().length === 0) {
-                    $('#commentsContainer').html('<p class="text-muted text-center">No status updates yet. Add the first comment.</p>');
+                    if ($('#commentsContainer').children().length === 0) {
+                        $('#commentsContainer').html('<p class="text-muted text-center">No status updates yet. Add the first comment.</p>');
+                    }
+                });
+            },
+            error: function (error) {
+                console.error("Error deleting comment:", error);
+
+                if (error.status === 403) {
+                    snackbar.error("You don't have permission to delete this comment.");
+                } else if (error.status === 401) {
+                    snackbar.error("Your session has expired. Please log in again.");
+                    setTimeout(() => {
+                        window.location.href = "/Auth/Login";
+                    }, 2000);
+                } else {
+                    snackbar.error("Failed to delete comment. Please try again.");
                 }
-            });
-        },
-        error: function (error) {
-            console.error("Error deleting comment:", error);
-
-            if (error.status === 403) {
-                alert("You don't have permission to delete this comment.");
-            } else if (error.status === 401) {
-                alert("Your session has expired. Please log in again.");
-                window.location.href = "/Auth/Login";
-            } else {
-                alert("Failed to delete comment. Please try again.");
             }
-        }
+        });
     });
 }
-
 
 $(document).off('submit', '#commentForm').on('submit', '#commentForm', function (e) {
     e.preventDefault();
@@ -714,17 +665,12 @@ $(document).off('submit', '#commentForm').on('submit', '#commentForm', function 
     const projectId = $('#commentProjectId').val();
     const content = $('#commentContent').val().trim();
 
-    console.log("Submitting comment for project:", projectId);
-    console.log("Comment content:", content);
-
     if (!content) {
-        console.log("Empty comment, not submitting");
         return;
     }
 
     if (!projectId) {
-        console.log("Missing project ID, cannot submit");
-        alert("Error: Cannot add comment without project ID. Please try again.");
+        snackbar.error("Error: Cannot add comment without project ID. Please try again.");
         return;
     }
 
@@ -733,7 +679,6 @@ $(document).off('submit', '#commentForm').on('submit', '#commentForm', function 
         type: 'POST',
         data: $(this).serialize(),
         success: function (response) {
-            console.log("Comment created:", response);
             $('#commentContent').val('');
 
             if ($('#commentsContainer .text-center.text-muted').length > 0) {
@@ -772,11 +717,9 @@ $(document).off('submit', '#commentForm').on('submit', '#commentForm', function 
             }
         },
         error: function (error) {
-            console.error("Error submitting comment:", error);
-            alert("Failed to add comment. Please try again.");
+            snackbar.error("Failed to add comment. Please try again.");
         }
     });
-
 });
 
 $('#projectDetailsModal').on('hidden.bs.modal', function () {
@@ -786,5 +729,30 @@ $('#projectDetailsModal').on('hidden.bs.modal', function () {
             commentConnection.invoke("LeaveProjectGroup", projectId)
         }
         commentConnection.stop();
+    }
+});
+
+
+$(document).ready(function () {
+    if ($('#confirmationModal').length === 0) {
+        $('body').append(`
+            <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="confirmationModalBody">
+                            Are you sure you want to proceed?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelActionBtn">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `);
     }
 });

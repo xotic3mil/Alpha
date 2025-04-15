@@ -1,33 +1,24 @@
-﻿/**
- * Tasks page functionality
- * Handling task management in a dedicated view
- */
-
+﻿
 let currentProjectId = null;
 let isSubmitting = false;
 let taskModalMode = 'create';
 
-// Document ready
-$(document).ready(function () {
-    console.log("Tasks page initialized");
 
-    // Get project ID from URL or ViewBag
+$(document).ready(function () {
     const urlParams = new URLSearchParams(window.location.search);
     currentProjectId = urlParams.get('projectId') || $('#tasksTable').data('project-id');
 
-    // Initialize page
+
     loadTasks();
     loadUserProjects();
     setupEventListeners();
 });
 
 function setupEventListeners() {
-    // Create task button
     $('#createTaskBtn').on('click', function () {
         openTaskModal('create');
     });
 
-    // Save task button
     $('#saveTaskBtn').on('click', function () {
         if (taskModalMode === 'create') {
             createTask();
@@ -36,19 +27,16 @@ function setupEventListeners() {
         }
     });
 
-    // Filter buttons
     $('.btn-group button[data-filter]').on('click', function () {
         $('.btn-group button').removeClass('active');
         $(this).addClass('active');
         applyTaskFilters();
     });
 
-    // Task search
     $('#taskSearch').on('keyup', function () {
         applyTaskFilters();
     });
 
-    // Handle project selection in task modal
     $('#taskProject').on('change', function () {
         const projectId = $(this).val();
         if (projectId) {
@@ -77,7 +65,6 @@ function loadTasks() {
         url: url,
         type: 'GET',
         success: function (response) {
-            console.log("Tasks response:", response);
 
             if (!response.success || !response.tasks || response.tasks.length === 0) {
                 $('#tasksTable').html(`
@@ -96,7 +83,6 @@ function loadTasks() {
             });
 
             $('#tasksTable').html(html);
-            // Set initial filter to "all" tasks
             $('.btn-group button[data-filter="all"]').addClass('active');
         },
         error: function (error) {
@@ -117,18 +103,14 @@ function loadUserProjects() {
         url: '/ProjectTask/GetUserProjects',
         type: 'GET',
         success: function (response) {
-            console.log("Projects response:", response);
 
             if (!response.success || !response.projects || response.projects.length === 0) {
                 $('#projectFilterList').html('<li><span class="dropdown-item">No projects found</span></li>');
                 $('#taskProject').html('<option value="" disabled selected>No projects available</option>');
                 return;
             }
-
-            // For the dropdown filter list
             let filterHtml = '<li><a class="dropdown-item" href="/ProjectTask/Tasks">All Projects</a></li>';
 
-            // For the task creation project dropdown
             let selectHtml = '<option value="" disabled selected>Select project...</option>';
 
             response.projects.forEach(project => {
@@ -139,7 +121,6 @@ function loadUserProjects() {
             $('#projectFilterList').html(filterHtml);
             $('#taskProject').html(selectHtml);
 
-            // Pre-select current project if set
             if (currentProjectId) {
                 $('#taskProject').val(currentProjectId);
             }
@@ -158,8 +139,6 @@ function loadTaskAssignees(projectId) {
         url: `/ProjectMembership/GetProjectMembers?projectId=${projectId}`,
         type: 'GET',
         success: function (response) {
-            console.log("Assignee data:", response);
-
             if (!response.success || !response.members || response.members.length === 0) {
                 $('#taskAssignee').html('<option value="">No team members available</option>');
                 return;
@@ -187,7 +166,6 @@ function loadTaskAssignees(projectId) {
 function openTaskModal(mode, taskId = null) {
     taskModalMode = mode;
 
-    // Reset form
     $('#taskForm')[0].reset();
 
     if (mode === 'create') {
@@ -196,7 +174,6 @@ function openTaskModal(mode, taskId = null) {
         $('#taskId').val('');
         $('#taskIsCompleted').prop('disabled', false);
 
-        // Set default values
         if (currentProjectId) {
             $('#taskProject').val(currentProjectId);
             loadTaskAssignees(currentProjectId);
@@ -207,7 +184,6 @@ function openTaskModal(mode, taskId = null) {
         $('#taskModalLabel').text('Edit Task');
         $('#saveTaskBtn').text('Update Task');
 
-        // Load task data
         loadTaskDetails(taskId);
     }
 }
@@ -238,11 +214,9 @@ function loadTaskDetails(taskId) {
                 $('#taskDueDate').val('');
             }
 
-            // Set project and load assignees
             $('#taskProject').val(task.projectId);
             loadTaskAssignees(task.projectId);
 
-            // Wait for assignees to load, then set assigned user
             setTimeout(() => {
                 if (task.assignedToId) {
                     $('#taskAssignee').val(task.assignedToId);

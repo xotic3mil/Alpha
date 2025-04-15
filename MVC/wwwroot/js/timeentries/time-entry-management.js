@@ -29,8 +29,6 @@ function loadProjectTimeEntries(projectId) {
         url: `/TimeEntry/GetTimeEntriesByProject?projectId=${projectId}`,
         type: 'GET',
         success: function (response) {
-            console.log("Time entries response:", response);
-
             if (!response.success || !response.timeEntries || response.timeEntries.length === 0) {
                 $('#projectTimeEntriesTable').html(`
                     <tr>
@@ -96,7 +94,6 @@ function loadTimeEntrySummary(projectId) {
         url: `/TimeEntry/GetTimeEntrySummary?projectId=${projectId}`,
         type: 'GET',
         success: function (response) {
-            console.log("Time entry summary:", response);
 
             if (!response.success) {
                 snackbar.error("Error loading time entry summary");
@@ -121,10 +118,8 @@ function loadTimeEntrySummary(projectId) {
 
 function openCreateTimeEntryModal() {
     const projectId = $('#projectDetailId').val();
-    console.log("Opening time entry modal for project:", projectId);
 
     if (!projectId) {
-        console.error("Missing project ID");
         snackbar.error("Error: Project ID is missing");
         return;
     }
@@ -157,8 +152,6 @@ function loadProjectTasksForSelect(projectId, selectId) {
         url: `/ProjectTask/GetTasksByProject?projectId=${projectId}`,
         type: 'GET',
         success: function (response) {
-            console.log("Tasks for select:", response);
-
             if (!response.success || !response.tasks || response.tasks.length === 0) {
                 $(`#${selectId}`).html('<option value="">No tasks available</option>');
                 return;
@@ -180,15 +173,12 @@ function loadProjectTasksForSelect(projectId, selectId) {
 }
 
 function editTimeEntry(timeEntryId) {
-    console.log("Editing time entry:", timeEntryId);
-
     $('#createTimeEntryForm')[0].reset();
 
     $.ajax({
         url: `/TimeEntry/GetTimeEntryById?id=${timeEntryId}`,
         type: 'GET',
         success: function (response) {
-            console.log("Time entry data:", response);
 
             if (!response.succeeded) {
                 snackbar.error('Failed to load time entry: ' + (response.error || 'Unknown error'));
@@ -239,7 +229,6 @@ function editTimeEntry(timeEntryId) {
 
 function createTimeEntry() {
     if (isSubmitting) {
-        console.log("Form submission already in progress");
         return;
     }
 
@@ -313,7 +302,6 @@ function createTimeEntry() {
         },
         success: function (response) {
             isSubmitting = false;
-            console.log("Time entry creation response:", response);
 
             if (!response.succeeded) {
                 let errorMessage = response.error || 'Unknown error';
@@ -354,7 +342,6 @@ function createTimeEntry() {
 
 function updateTimeEntry() {
     if (isSubmitting) {
-        console.log("Form submission already in progress");
         return;
     }
 
@@ -395,7 +382,6 @@ function updateTimeEntry() {
         },
         success: function (response) {
             isSubmitting = false;
-            console.log("Time entry update response:", response);
 
             if (!response.succeeded) {
                 let errorMessage = response.error || 'Unknown error';
@@ -473,16 +459,11 @@ function deleteTimeEntry(timeEntryId) {
 }
 
 $(document).ready(function () {
-    console.log("Time entry management script loaded");
-
-    // Add time entry button
     $(document).on('click', '#addTimeEntryBtn', function (e) {
         e.preventDefault();
-        console.log("Add time entry button clicked");
         openCreateTimeEntryModal();
     });
 
-    // Handle billable checkbox
     $(document).on('change', '#timeEntryIsBillable', function () {
         if ($(this).prop('checked')) {
             $('#timeEntryRate').prop('disabled', false);
@@ -491,13 +472,11 @@ $(document).ready(function () {
         }
     });
 
-    // Save time entry button with conditional function call
     $(document).on('click', '#saveTimeEntryBtn', function (e) {
         e.preventDefault();
         const timeEntryId = $('#timeEntryId').val();
         const isEdit = timeEntryId && timeEntryId !== '';
 
-        console.log("Save time entry button clicked, isEdit:", isEdit);
         if (isEdit) {
             updateTimeEntry();
         } else {
@@ -505,10 +484,9 @@ $(document).ready(function () {
         }
     });
 
-    // Load time entries when tab is shown
+
     $('#time-tab').on('shown.bs.tab', function (e) {
         const projectId = $('#projectDetailId').val();
-        console.log("Time tab shown, loading time entries for project:", projectId);
         if (projectId) {
             loadProjectTimeEntries(projectId);
             loadTimeEntrySummary(projectId);
