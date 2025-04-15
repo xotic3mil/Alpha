@@ -248,6 +248,8 @@ function toggleTaskCompletion(taskId, taskProjectId) {
             setTimeout(() => {
                 loadProjectTasks(projectId);
                 loadTaskSummary(projectId);
+
+         
             }, 300);
 
             console.log("Task status updated successfully");
@@ -352,6 +354,8 @@ function deleteTask(taskId, entryProjectId) {
             setTimeout(() => {
                 loadProjectTasks(projectId);
                 loadTaskSummary(projectId);
+
+           
             }, 300);
 
             snackbar.success('Task deleted successfully');
@@ -525,6 +529,7 @@ $(document).ready(function () {
             setTimeout(() => {
                 loadProjectTasks(projectId);
                 loadTaskSummary(projectId);
+                
             }, 300);
         }
     });

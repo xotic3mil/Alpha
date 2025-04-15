@@ -108,10 +108,7 @@ function openProjectDetails(id) {
 
     console.log("Opening project details for ID:", id);
 
-    // Set the ID immediately, don't wait for the AJAX call
     $('#projectDetailId').val(id);
-
-    // Also store in sessionStorage as backup
     sessionStorage.setItem('currentProjectId', id);
 
     $.ajax({
@@ -672,6 +669,23 @@ function deleteComment(commentId, projectId) {
                 }
             }
         });
+    });
+}
+
+function refreshSingleProjectCard(projectId) {
+    $.ajax({
+        url: `/Project/GetSingleProjectCardPartial?projectId=${projectId}`,
+        type: 'GET',
+        success: function (response) {
+            const cardElement = $(`div.card[onclick*="${projectId}"]`).closest('.col-12');
+            if (cardElement.length) {
+                cardElement.replaceWith(response);
+                console.log('Project card refreshed successfully');
+            }
+        },
+        error: function (error) {
+            console.error('Error refreshing project card:', error);
+        }
     });
 }
 

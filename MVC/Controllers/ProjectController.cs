@@ -20,7 +20,9 @@ public class ProjectController(
     IUserService userService,
     UserManager<UserEntity> userManager,
     IProjectMembershipService projectMembershipService,
-    INotificationService notificationService
+    INotificationService notificationService,
+    IProjectTaskService taskService,
+    ITimeEntryService timeEntryService
         ) : Controller
 {
     private readonly IProjectsService _projectService = projectService;
@@ -31,14 +33,34 @@ public class ProjectController(
     private readonly INotificationService _notificationService = notificationService;
     private readonly UserManager<UserEntity> _userManager = userManager;
     private readonly IProjectMembershipService _projectMembershipService = projectMembershipService;
+    private readonly IProjectTaskService _taskService = taskService;       
+    private readonly ITimeEntryService _timeEntryService = timeEntryService;   
 
     [HttpGet]
     public async Task<IActionResult> Index(string statusFilter = null)
     {
+
+        Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+        Response.Headers["Pragma"] = "no-cache";
+        Response.Headers["Expires"] = "0";
         try
         {
             var viewModel = new ProjectViewModel();
             await PopulateViewModelAsync(viewModel);
+
+            var tasksResult = await _taskService.GetAllTasksAsync();
+            if (tasksResult.Succeeded)
+            {
+                viewModel.ProjectTasks = tasksResult.Result;
+                ViewData["ProjectTasks"] = tasksResult.Result;
+            }
+
+            var timeEntriesResult = await _timeEntryService.GetAllTimeEntriesAsync();
+            if (timeEntriesResult.Succeeded)
+            {
+                viewModel.TimeEntries = timeEntriesResult.Result;
+                ViewData["TimeEntries"] = timeEntriesResult.Result;
+            }
 
             ViewBag.StatusFilter = statusFilter;
             var allProjects = viewModel.Projects.ToList();
@@ -382,10 +404,52 @@ public class ProjectController(
             return RedirectToAction("Index");
         }
 
+
+        var tasksResult = await _taskService.GetTasksByProjectAsync(id);
+        if (tasksResult.Succeeded)
+        {
+            ViewData["ProjectTasks"] = tasksResult.Result;
+        }
+
+        var timeEntriesResult = await _timeEntryService.GetTimeEntriesByProjectAsync(id);
+        if (timeEntriesResult.Succeeded)
+        {
+            ViewData["TimeEntries"] = timeEntriesResult.Result;
+        }
+
         ViewBag.OpenProjectDetails = true;
         ViewBag.ProjectIdToOpen = id;
 
-        return View("Index", new ProjectViewModel { Projects = new List<Project> { projectResult.Result } });
+        return View("Index", new ProjectViewModel
+        {
+            Projects = new List<Project> { projectResult.Result },
+            ProjectTasks = tasksResult.Succeeded ? tasksResult.Result : new List<ProjectTask>(),
+            TimeEntries = timeEntriesResult.Succeeded ? timeEntriesResult.Result : new List<TimeEntry>()
+        });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetSingleProjectCardPartial(Guid projectId)
+    {
+        var projectResult = await _projectService.GetProjectWithDetailsAsync(projectId);
+        if (!projectResult.Succeeded)
+        {
+            return NotFound("Project not found");
+        }
+
+        var tasksResult = await _taskService.GetTasksByProjectAsync(projectId);
+        if (tasksResult.Succeeded)
+        {
+            ViewData["ProjectTasks"] = tasksResult.Result;
+        }
+
+        var timeEntriesResult = await _timeEntryService.GetTimeEntriesByProjectAsync(projectId);
+        if (timeEntriesResult.Succeeded)
+        {
+            ViewData["TimeEntries"] = timeEntriesResult.Result;
+        }
+
+        return PartialView("_ProjectCardPartial", projectResult.Result);
     }
 
 
