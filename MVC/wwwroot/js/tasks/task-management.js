@@ -71,7 +71,7 @@ function formatTaskListItem(task) {
                     <div class="form-check me-2">
                         <input class="form-check-input" type="checkbox" 
                             ${task.isCompleted ? 'checked' : ''} 
-                            onclick="toggleTaskCompletion('${task.id}'); return false;" 
+                            onclick="toggleTaskCompletion('${task.id}', '${task.projectId}'); return false;" 
                             id="taskComplete_${task.id}">
                     </div>
                     <div>
@@ -86,10 +86,10 @@ function formatTaskListItem(task) {
             <td><span class="badge ${status.class}">${status.text}</span></td>
             <td>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-primary" onclick="editTask('${task.id}')">
+                    <button class="btn btn-sm btn-outline-primary" onclick="editTask('${task.id}')" data-project-id="${task.projectId}">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTask('${task.id}')">
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTask('${task.id}', '${task.projectId}')" data-project-id="${task.projectId}">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
@@ -97,6 +97,7 @@ function formatTaskListItem(task) {
         </tr>
     `;
 }
+
 
 function loadTaskSummary(projectId) {
     if (!projectId) return;
@@ -135,21 +136,43 @@ function getPriorityClass(priority) {
     }
 }
 
-function openCreateTaskModal() {
-    const projectId = $('#projectDetailId').val();
+function getProjectId() {
+    let projectId = $('#projectDetailId').val();
 
-    if (!projectId) {
+    if (!projectId || projectId === '') {
+        projectId = $('#taskProjectId').val();
+    }
+
+    if (!projectId || projectId === '') {
+        projectId = $('#editTaskProjectId').val();
+    }
+
+    if (!projectId || projectId === '') {
+        projectId = sessionStorage.getItem('currentProjectId');
+    }
+    return projectId;
+}
+
+function openCreateTaskModal() {
+    const projectId = getProjectId();
+
+    if (!projectId || projectId === '') {
+        console.error("Missing project ID:", projectId);
         snackbar.error("Error: Project ID is missing. Please try again.");
         return;
     }
 
+    console.log("Creating task for project:", projectId);
+
     $('#taskProjectId').val(projectId);
 
     $('#createTaskForm')[0].reset();
-    $('#taskDueDate').val('');
+
+    if ($('#taskDueDate').length) {
+        $('#taskDueDate').val('');
+    }
 
     loadTaskAssignees(projectId, 'taskAssignee');
-
     $('#createTaskModal').modal('show');
 }
 
@@ -186,10 +209,20 @@ function loadTaskAssignees(projectId, dropdownId) {
     });
 }
 
-function toggleTaskCompletion(taskId) {
+function toggleTaskCompletion(taskId, taskProjectId) {
     event.preventDefault();
 
     console.log("Toggling task completion for task:", taskId);
+
+    const projectId = taskProjectId || getProjectId();
+
+    if (!projectId) {
+        console.error("Missing project ID when toggling task completion");
+        snackbar.error("Error: Project ID is missing");
+        return;
+    }
+
+    sessionStorage.setItem('currentProjectId', projectId);
 
     $.ajax({
         url: '/ProjectTask/Complete',
@@ -210,11 +243,12 @@ function toggleTaskCompletion(taskId) {
                 return;
             }
 
-            const projectId = $('#projectDetailId').val();
+            console.log("Refreshing tasks after status change with project ID:", projectId);
 
-            // Reload the tasks and summary
-            loadProjectTasks(projectId);
-            loadTaskSummary(projectId);
+            setTimeout(() => {
+                loadProjectTasks(projectId);
+                loadTaskSummary(projectId);
+            }, 300);
 
             console.log("Task status updated successfully");
         },
@@ -244,6 +278,9 @@ function editTask(taskId) {
             }
 
             const task = response.result;
+
+            sessionStorage.setItem('currentProjectId', task.projectId);
+
             $('#editTaskId').val(task.id);
             $('#editTaskProjectId').val(task.projectId);
             $('#editTaskTitle').val(task.title);
@@ -277,8 +314,22 @@ function editTask(taskId) {
     });
 }
 
-function deleteTask(taskId) {
+function deleteTask(taskId, entryProjectId) {
     if (!confirm('Are you sure you want to delete this task?')) return;
+
+    let projectId = entryProjectId;
+
+    if (!projectId) {
+        projectId = getProjectId();
+    }
+
+    if (!projectId) {
+        console.error("Cannot delete: Missing project ID");
+        snackbar.error("Error: Project ID is missing");
+        return;
+    }
+
+    sessionStorage.setItem('currentProjectId', projectId);
 
     $.ajax({
         url: '/ProjectTask/Delete',
@@ -296,18 +347,18 @@ function deleteTask(taskId) {
                 return;
             }
 
-            const projectId = $('#projectDetailId').val();
-            loadProjectTasks(projectId);
-            loadTaskSummary(projectId);
+            console.log("Task deleted successfully, refreshing with project ID:", projectId);
 
-            if (typeof toastr !== 'undefined') {
-                toastr.success('Task deleted successfully');
-            } else {
-                snackbar.success('Task deleted successfully');
-            }
+            setTimeout(() => {
+                loadProjectTasks(projectId);
+                loadTaskSummary(projectId);
+            }, 300);
+
+            snackbar.success('Task deleted successfully');
         },
-        error: function (error) {
+        error: function (xhr, status, error) {
             console.error('Error deleting task:', error);
+            console.error('Response text:', xhr.responseText);
             snackbar.error('Failed to delete task. Please try again.');
         }
     });
@@ -315,7 +366,6 @@ function deleteTask(taskId) {
 
 function saveTask() {
     const form = $('#createTaskForm');
-    console.log("Save task clicked");
 
     if (form.data('submitting')) {
         console.log("Form already submitting, ignoring duplicate request");
@@ -327,11 +377,19 @@ function saveTask() {
         return;
     }
 
-    if (!$('#taskProjectId').val()) {
+    let projectId = $('#taskProjectId').val();
+    if (!projectId || projectId === '') {
+        projectId = getProjectId();
+        $('#taskProjectId').val(projectId);
+    }
+
+    if (!projectId || projectId === '') {
         console.error("ProjectId is missing");
         snackbar.error("Error: Project ID is missing");
         return;
     }
+
+    sessionStorage.setItem('currentProjectId', projectId);
 
     form.data('submitting', true);
 
@@ -353,7 +411,6 @@ function saveTask() {
             'X-Requested-With': 'XMLHttpRequest'
         },
         success: function (response) {
-            // Clear submitting flag
             form.data('submitting', false);
 
             console.log("Task creation response:", response);
@@ -364,17 +421,17 @@ function saveTask() {
                 return;
             }
 
-            const projectId = $('#projectDetailId').val();
             $('#createTaskModal').modal('hide');
+            form[0].reset();
 
-            loadProjectTasks(projectId);
-            loadTaskSummary(projectId);
+            console.log("Task created successfully, refreshing with project ID:", projectId);
 
-            if (typeof toastr !== 'undefined') {
-                toastr.success('Task created successfully');
-            } else {
-                snackbar.success('Task created successfully');
-            }
+            setTimeout(() => {
+                loadProjectTasks(projectId);
+                loadTaskSummary(projectId);
+            }, 300);
+
+            snackbar.success('Task created successfully');
         },
         error: function (xhr, status, error) {
             form.data('submitting', false);
@@ -416,6 +473,16 @@ $(document).ready(function () {
             return;
         }
 
+        const projectId = $('#editTaskProjectId').val() || getProjectId();
+
+        if (!projectId) {
+            console.error("Missing project ID when updating task");
+            snackbar.error("Error: Project ID is missing");
+            return;
+        }
+
+        sessionStorage.setItem('currentProjectId', projectId);
+
         const formData = new FormData(form[0]);
 
         $.ajax({
@@ -436,8 +503,10 @@ $(document).ready(function () {
 
                 const projectId = $('#projectDetailId').val();
                 $('#editTaskModal').modal('hide');
+                setTimeout(() => {
                 loadProjectTasks(projectId);
-                loadTaskSummary(projectId);
+                    loadTaskSummary(projectId);
+                }, 300);
 
                 snackbar.success('Task updated successfully');
             },
@@ -446,5 +515,17 @@ $(document).ready(function () {
                 snackbar.error('Failed to update task. Please try again.');
             }
         });
+    });
+
+    $('#createTaskModal, #editTaskModal').on('hidden.bs.modal', function () {
+        const projectId = getProjectId();
+        console.log("Task modal closed, checking if refresh needed with project ID:", projectId);
+
+        if (projectId) {
+            setTimeout(() => {
+                loadProjectTasks(projectId);
+                loadTaskSummary(projectId);
+            }, 300);
+        }
     });
 });

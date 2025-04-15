@@ -116,21 +116,45 @@ function loadTimeEntrySummary(projectId) {
     });
 }
 
-function openCreateTimeEntryModal() {
-    const projectId = $('#projectDetailId').val();
+function getProjectId() {
+    let projectId = $('#projectDetailId').val();
 
-    if (!projectId) {
-        snackbar.error("Error: Project ID is missing");
+    if (!projectId || projectId === '') {
+        projectId = $('#timeEntryProjectId').val();
+    }
+
+    if (!projectId || projectId === '') {
+        projectId = $('#taskProjectId').val();
+    }
+
+    if (!projectId || projectId === '') {
+        projectId = sessionStorage.getItem('currentProjectId');
+    }
+
+    console.log("Retrieved project ID:", projectId);
+    return projectId;
+}
+
+function openCreateTimeEntryModal() {
+    const projectId = getProjectId();
+
+    if (!projectId || projectId === '') {
+        console.error("Missing project ID when opening time entry modal");
+        snackbar.error("Error: Project ID is missing. Please try again.");
         return;
     }
+
+    console.log("Opening time entry modal for project:", projectId);
+
+    $('#timeEntryProjectId').val(projectId);
+
+    sessionStorage.setItem('currentProjectId', projectId);
 
     $('#createTimeEntryForm')[0].reset();
 
     if ($('#timeEntryId').length) {
         $('#timeEntryId').val('');
     }
-
-    $('#timeEntryProjectId').val(projectId);
 
     $('#timeEntryDate').val(new Date().toISOString().split('T')[0]);
     $('#timeEntryHours').val(1);
@@ -313,12 +337,12 @@ function createTimeEntry() {
             }
 
             $('#createTimeEntryModal').modal('hide');
-
             $('#createTimeEntryForm')[0].reset();
 
-            loadProjectTimeEntries(projectId);
-            loadTimeEntrySummary(projectId);
-
+            setTimeout(() => {
+                loadProjectTimeEntries(projectId);
+                loadTimeEntrySummary(projectId);
+            }, 300);
 
             snackbar.success('Time entry created successfully');
         },
@@ -399,9 +423,10 @@ function updateTimeEntry() {
             $('#saveTimeEntryBtn').text('Save Time Entry');
             $('#timeEntryId').val('');
 
-
-            loadProjectTimeEntries(projectId);
-            loadTimeEntrySummary(projectId);
+            setTimeout(() => {
+                loadProjectTimeEntries(projectId);
+                loadTimeEntrySummary(projectId);
+            }, 300);
 
             snackbar.success('Time entry updated successfully');
         },
@@ -444,9 +469,11 @@ function deleteTimeEntry(timeEntryId) {
                 return;
             }
 
-            const projectId = $('#projectDetailId').val();
-            loadProjectTimeEntries(projectId);
-            loadTimeEntrySummary(projectId);
+            const projectId = getProjectId();
+            setTimeout(() => {
+                loadProjectTimeEntries(projectId);
+                loadTimeEntrySummary(projectId);
+            }, 300);
 
             snackbar.success('Time entry deleted successfully');
         },
@@ -459,21 +486,33 @@ function deleteTimeEntry(timeEntryId) {
 }
 
 $(document).ready(function () {
-    $(document).on('click', '#addTimeEntryBtn', function (e) {
-        e.preventDefault();
+    $('#addTimeEntryBtn').off('click').on('click', function () {
+        const projectId = getProjectId();
+
+        if (!projectId || projectId === '') {
+            console.error("Missing project ID on button click:", projectId);
+            snackbar.error("Error: Project ID is missing. Please try again.");
+            return;
+        }
+
+        console.log("Add Time Entry button clicked, project ID:", projectId);
+
+        $('#timeEntryProjectId').val(projectId);
+
         openCreateTimeEntryModal();
     });
 
-    $(document).on('change', '#timeEntryIsBillable', function () {
-        if ($(this).prop('checked')) {
-            $('#timeEntryRate').prop('disabled', false);
-        } else {
-            $('#timeEntryRate').prop('disabled', true);
-        }
-    });
-
-    $(document).on('click', '#saveTimeEntryBtn', function (e) {
+    $('#saveTimeEntryBtn').off('click').on('click', function (e) {
         e.preventDefault();
+
+        const projectId = $('#timeEntryProjectId').val() || getProjectId();
+        if (!projectId) {
+            snackbar.error("Error: Project ID is missing");
+            return;
+        }
+
+        $('#timeEntryProjectId').val(projectId);
+
         const timeEntryId = $('#timeEntryId').val();
         const isEdit = timeEntryId && timeEntryId !== '';
 
@@ -484,12 +523,22 @@ $(document).ready(function () {
         }
     });
 
-
     $('#time-tab').on('shown.bs.tab', function (e) {
-        const projectId = $('#projectDetailId').val();
+        const projectId = getProjectId();
+
+        $('#timeEntryProjectId').val(projectId);
+
         if (projectId) {
             loadProjectTimeEntries(projectId);
             loadTimeEntrySummary(projectId);
+        } else {
+            console.error("Missing project ID when showing time tab");
         }
+    });
+
+    $('#createTimeEntryModal').on('shown.bs.modal', function () {
+        const projectId = getProjectId();
+        $('#timeEntryProjectId').val(projectId);
+        console.log("Time entry modal shown, project ID set to:", projectId);
     });
 });

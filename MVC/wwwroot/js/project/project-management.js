@@ -101,6 +101,18 @@ function createRipple(event) {
 }
 
 function openProjectDetails(id) {
+    if (!id) {
+        console.error("Missing project ID");
+        return;
+    }
+
+    console.log("Opening project details for ID:", id);
+
+    // Set the ID immediately, don't wait for the AJAX call
+    $('#projectDetailId').val(id);
+
+    // Also store in sessionStorage as backup
+    sessionStorage.setItem('currentProjectId', id);
 
     $.ajax({
         url: `/Project/GetProjectByIdWithDetails?id=${id}`,
@@ -109,6 +121,10 @@ function openProjectDetails(id) {
         success: function (project) {
             $('#projectDetailDeleteId').val(project.id);
             $('#projectDetailId').val(project.id);
+
+
+            $('#taskProjectId').val(project.id);
+            $('#timeEntryProjectId').val(project.id);
 
             $('#projectDetailImage').attr('src', project.imageUrl || '/images/project-template-1.svg');
             $('#projectDetailName').text(project.name || 'Unnamed Project');
