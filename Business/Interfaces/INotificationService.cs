@@ -21,5 +21,6 @@ namespace Business.Interfaces
         Task<ProjectManagementResult> MarkNotificationAsReadAsync(Guid notificationId);
         Task<ProjectManagementResult> MarkAllNotificationsAsReadAsync(Guid userId);
         Task<ProjectManagementResult> MarkAsReadAsync(Guid id);
+        Task<ProjectManagementResult> CreateUserBroadcastNotificationAsync(string title, string message, string type, Guid? relatedEntityId = null);
     }
 }

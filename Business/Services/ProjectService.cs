@@ -14,10 +14,11 @@ public class ProjectService(IProjectRespository projectRespository, IStatusTypeS
     private readonly IProjectRespository _projectRespository = projectRespository;
     private readonly IStatusTypeService _statusTypeService = statusTypeService;
 
-    public async Task<ProjectResult> CreateProjectAsync(ProjectRegForm form)
+    public async Task<ProjectResult<Project>> CreateProjectAsync(ProjectRegForm form)
     {
         if (form == null)
-            return new ProjectResult { Succeeded = false, StatusCode = 400, Error = "Not all required fields are supplied." };
+            return new ProjectResult<Project> { Succeeded = false, StatusCode = 400, Error = "Not all required fields are supplied." };
+
         var projectEntity = form.MapTo<ProjectEntity>();
 
         var statusResult = await _statusTypeService.GetStatusByIdAsync(form.StatusId);
@@ -25,14 +26,30 @@ public class ProjectService(IProjectRespository projectRespository, IStatusTypeS
 
         if (status == null)
         {
-            return new ProjectResult { Succeeded = false, StatusCode = 404, Error = "Status not found." };
+            return new ProjectResult<Project> { Succeeded = false, StatusCode = 404, Error = "Status not found." };
         }
 
         var result = await _projectRespository.CreateAsync(projectEntity);
 
-        return result.Succeeded
-            ? new ProjectResult { Succeeded = true, StatusCode = 201 }
-            : new ProjectResult { Succeeded = false, StatusCode = 500, Error = result.Error };
+        if (result.Succeeded)
+        {
+            var createdProject = await _projectRespository.GetAsync(p => p.Id == projectEntity.Id);
+            return new ProjectResult<Project>
+            {
+                Succeeded = true,
+                StatusCode = 201,
+                Result = createdProject.Result
+            };
+        }
+        else
+        {
+            return new ProjectResult<Project>
+            {
+                Succeeded = false,
+                StatusCode = 500,
+                Error = result.Error
+            };
+        }
     }
 
     public async Task<ProjectResult<IEnumerable<Project>>> GetProjectsAsync()

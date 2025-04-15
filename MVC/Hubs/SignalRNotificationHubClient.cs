@@ -26,5 +26,10 @@ namespace MVC.Hubs
         {
             await _hubContext.Clients.Group(group).SendAsync("AllNotificationsRead");
         }
+
+        public async Task SendBroadcastNotificationAsync(string method, object arg)
+        {
+            await _hubContext.Clients.All.SendAsync(method, arg);
+        }
     }
 }

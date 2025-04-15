@@ -19,7 +19,8 @@ public class ProjectController(
     ICustomersService customerService,
     IUserService userService,
     UserManager<UserEntity> userManager,
-    IProjectMembershipService projectMembershipService
+    IProjectMembershipService projectMembershipService,
+    INotificationService notificationService
         ) : Controller
 {
     private readonly IProjectsService _projectService = projectService;
@@ -27,6 +28,7 @@ public class ProjectController(
     private readonly IServicesService _serviceService = serviceService;
     private readonly ICustomersService _customerService = customerService;
     private readonly IUserService _userService = userService;
+    private readonly INotificationService _notificationService = notificationService;
     private readonly UserManager<UserEntity> _userManager = userManager;
     private readonly IProjectMembershipService _projectMembershipService = projectMembershipService;
 
@@ -166,6 +168,8 @@ public class ProjectController(
 
         if (creationResult.Succeeded)
         {
+            await SendNewProjectNotificationAsync(creationResult.Result);
+
             model.Form = new ProjectRegForm();
             ViewBag.SuccessMessage = "Project created successfully.";
             return RedirectToAction(nameof(Index));
@@ -174,6 +178,19 @@ public class ProjectController(
         ModelState.AddModelError(string.Empty, creationResult.Error);
         await PopulateViewModelAsync(model);
         return View("Index", model);
+    }
+
+    private async Task SendNewProjectNotificationAsync(Project project)
+    {
+        string creatorName = User.Identity?.Name ?? "An administrator";
+        string title = "New Project Created";
+        string message = $"{creatorName} created a new project: {project.Name}";
+
+        await _notificationService.CreateUserBroadcastNotificationAsync(
+            title: title,
+            message: message,
+            type: "ProjectCreated",
+            relatedEntityId: project.Id);
     }
 
     private async Task PopulateViewModelAsync(ProjectViewModel model)

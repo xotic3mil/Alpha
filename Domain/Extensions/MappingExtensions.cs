@@ -220,7 +220,6 @@ public static class MappingExtensions
     /// </summary>
     private static object? CreateCollectionInstance(Type collectionType)
     {
-        // For interfaces, create a concrete implementation
         if (collectionType.IsInterface)
         {
             if (collectionType.IsGenericType)

@@ -134,7 +134,6 @@ namespace Business.Services
             }
         }
 
-
         public async Task<ProjectManagementResult> MarkAllAdminNotificationsAsReadAsync()
         {
             try
@@ -439,6 +438,47 @@ namespace Business.Services
                     Error = ex.Message
                 };
             }
+        }
+
+        public async Task<ProjectManagementResult> CreateUserBroadcastNotificationAsync(string title, string message, string type, Guid? relatedEntityId = null)
+        {
+
+            try
+            {
+                var notification = new NotificationEntity
+                {
+                    Id = Guid.NewGuid(),
+                    Title = title,
+                    Message = message,
+                    Type = type,
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false,
+                    RelatedEntityId = relatedEntityId,
+                    ForAdminsOnly = false,
+                    ForProjectManagersOnly = false,
+                    RecipientId = null 
+                };
+
+                await _notificationRepository.CreateAsync(notification);
+                var notificationModel = notification.MapTo<Notification>();
+                await _notificationHubClient.SendBroadcastNotificationAsync("ReceiveNotification", notificationModel);
+
+                return new ProjectManagementResult
+                {
+                    Succeeded = true,
+                    StatusCode = 201
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ProjectManagementResult
+                {
+                    Succeeded = false,
+                    StatusCode = 500,
+                    Error = ex.Message
+                };
+            }
+
         }
     }
 }

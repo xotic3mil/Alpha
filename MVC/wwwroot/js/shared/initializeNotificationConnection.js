@@ -107,6 +107,18 @@ function handleSpecificNotification(notification) {
     const isProjectManager = $('#isProjectManager').val() === 'True';
 
     switch (notification.type) {
+
+        case "ProjectCreated":
+            if (typeof snackbar !== 'undefined') {
+                snackbar.info(`${notification.title}: ${notification.message}`);
+            }
+
+            if (window.location.pathname.toLowerCase() === '/project' ||
+                window.location.pathname.toLowerCase() === '/project/index') {
+                setTimeout(() => location.reload(), 1500);
+            }
+            break;
+
         case "ProjectJoinRequest":
             if (isAdmin) {
                 if (typeof toastr !== 'undefined') {
