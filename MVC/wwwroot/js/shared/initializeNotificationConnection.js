@@ -73,9 +73,12 @@ function setupNotificationConnection() {
             const userId = $('#currentUserId').val();
             const isAdmin = $('#isAdmin').val() === 'true';
             const isProjectManager = $('#isProjectManager').val() === 'true';
+            console.log("User roles - Admin:", isAdmin, "Raw value:", $('#isAdmin').val());
 
             if (isAdmin) {
+                console.log("Admin detected, joining admin group");
                 notificationConnection.invoke("JoinAdminGroup")
+                    .then(() => console.log("Successfully joined admin group"))
                     .catch(err => console.error("Error joining admin group:", err));
             }
 
@@ -292,5 +295,11 @@ function prependNewNotification(notification) {
 }
 
 $(document).ready(function () {
+    const userId = $('#currentUserId').val();
+    const isAdminRaw = $('#isAdmin').val();
+    console.log("Init - User ID:", userId);
+    console.log("Init - Is Admin (raw):", isAdminRaw);
+    console.log("Init - Is Admin (check):", isAdminRaw === 'true');
+    console.log("Init - isAdmin element exists:", $('#isAdmin').length > 0);
     initializeNotificationConnection();
 });

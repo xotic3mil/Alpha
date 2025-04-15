@@ -7,16 +7,16 @@
 
 <div class="col-12 col-md-9 col-lg-4 col-xl-4 col-xxl-3">
     <div class="card shadow-sm h-100 rounded-4"
-         onclick="openProjectDetails('@project.Id')"
-         style="cursor: pointer;">
+    onclick="openProjectDetails('@project.Id')"
+    style="cursor: pointer;">
         <div class="card-body">
             <div class="mb-3">
                 <div class="d-flex flex-wrap align-items-center">
                     <div class="d-flex align-items-center flex-grow-1 me-2 mb-2 mb-sm-0">
                         <img src="@(string.IsNullOrEmpty(project.ImageUrl) ? "/images/project-template-1.svg" : project.ImageUrl)"
-                             class="img-fluid rounded-2"
-                             alt="@project.Name"
-                             style="width: 56px; height: 56px;" />
+                        class="img-fluid rounded-2"
+                        alt="@project.Name"
+                        style="width: 56px; height: 56px;" />
                         <div class="mx-3">
                             <h6>@project.Name</h6>
                             <p class="text-muted">@(project.Customer?.CompanyName)</p>
@@ -24,16 +24,16 @@
                     </div>
                     <div class="dropdown">
                         <button class="btn btn-sm btn-link text-muted p-0"
-                                type="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false"
-                                onclick="event.stopPropagation()">
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        onclick="event.stopPropagation()">
                             <svg xmlns="http://www.w3.org/2000/svg"
-                                 width="20"
-                                 height="20"
-                                 fill="currentColor"
-                                 class="bi bi-three-dots-vertical"
-                                 viewBox="0 0 16 16">
+                            width="20"
+                            height="20"
+                            fill="currentColor"
+                            class="bi bi-three-dots-vertical"
+                            viewBox="0 0 16 16">
                                 <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
                             </svg>
                         </button>
@@ -44,9 +44,12 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="#" onclick="event.stopPropagation(); openAddTeamMemberModal('@project.Id')">
-                                    <i class="bi bi-person-plus me-2"></i>Add Member
-                                </a>
+                                @if (User.IsInRole("Admin") || User.IsInRole("ProjectManager"))
+                                {
+                                    <a class="dropdown-item" href="#" onclick="event.stopPropagation(); openAddTeamMemberModal('@project.Id')">
+                                        <i class="bi bi-person-plus me-2"></i>Add Member
+                                    </a>
+                                }
                             </li>
                             <li><hr class="dropdown-divider" /></li>
                             <li>

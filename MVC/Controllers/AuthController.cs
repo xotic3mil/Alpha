@@ -209,4 +209,21 @@ public class AuthController(
 
         return View("Admin", model);
     }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUserRoles()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        var roles = await _userManager.GetRolesAsync(user);
+
+        return Json(new
+        {
+            userId = user.Id,
+            userName = user.UserName,
+            roles = roles,
+            isInAdminRole = User.IsInRole("Admin"),
+            isInPMRole = User.IsInRole("ProjectManager")
+        });
+    }
 }

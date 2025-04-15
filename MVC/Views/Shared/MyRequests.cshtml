@@ -65,8 +65,7 @@
                                     </td>
                                     <td>@(string.IsNullOrEmpty(request.Message) ? "No message" : request.Message)</td>
                                     <td class="text-end pe-4">
-                                        <button type="button" class="btn btn-sm btn-outline-danger"
-                                                onclick="cancelRequest('@request.Id')">
+                                        <button class="btn btn-sm btn-outline-danger cancel-request-btn" data-request-id="@request.Id">
                                             Cancel
                                         </button>
                                     </td>
@@ -98,54 +97,117 @@
 
 @section Scripts {
     <script>
+        function cancelRequest(requestId) {
+            confirmAction('Are you sure you want to cancel this request?', function(confirmed) {
+                if (!confirmed) return;
 
-                let notificationConnection = null;
+                $.ajax({
+                    url: '/UserProjects/CancelRequest',
+                    type: 'POST',
+                    data: {
+                        requestId: requestId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            snackbar.success('Request canceled successfully');
 
-        function initializeNotificationConnection() {
+                            $(`tr[data-request-id="${requestId}"]`).fadeOut(300, function() {
+                                $(this).remove();
+                                if ($('tbody tr').length === 0) {
+                                    location.reload();
+                                }
+                            });
+                        } else {
+                            snackbar.error(response.message || 'Failed to cancel request');
+                        }
+                    },
+                    error: function(error) {
+                        console.error("Error canceling request:", error);
+                        snackbar.error('Failed to cancel request');
+                    }
+                });
+            });
+        }
+
+        function confirmAction(message, callback) {
+            if ($('#confirmationModal').length === 0) {
+                $('body').append(`
+                    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirm Action</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body" id="confirmationModalBody"></div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" id="cancelActionBtn" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            }
+
+            $('#confirmationModalBody').text(message);
+
+
+            $('#confirmActionBtn').off('click');
+            $('#cancelActionBtn').off('click');
+
+
+            $('#confirmActionBtn').on('click', function() {
+                $('#confirmationModal').modal('hide');
+                callback(true);
+            });
+
+            $('#cancelActionBtn').on('click', function() {
+                $('#confirmationModal').modal('hide');
+                callback(false);
+            });
+
+            new bootstrap.Modal(document.getElementById('confirmationModal')).show();
+        }
+
+        $(document).ready(function() {
+            console.log("MyRequests page initialized");
+
+
             const userId = $('#currentUserId').val();
-            console.log("Setting up notification connection for user:", userId);
-
-            if (typeof signalR === 'undefined') {
-                console.error("SignalR library not loaded!");
-                return;
+            if (typeof signalR !== 'undefined' && userId) {
+                setupNotificationForRequests(userId);
             }
 
-            // Close existing connection if any
-            if (notificationConnection) {
-                notificationConnection.stop();
-                console.log("Stopped existing connection");
-            }
+            $(document).on('click', '.cancel-request-btn', function() {
+                const requestId = $(this).data('request-id');
+                cancelRequest(requestId);
+            });
+        });
 
-            notificationConnection = new signalR.HubConnectionBuilder()
+        function setupNotificationForRequests(userId) {
+            const notificationConnection = new signalR.HubConnectionBuilder()
                 .withUrl("/notificationHub")
                 .withAutomaticReconnect()
                 .build();
 
-            console.log("Notification connection created");
-
-            // Debug when notifications are received
             notificationConnection.on("ReceiveNotification", function(notification) {
                 console.log("Notification received:", notification);
 
-                // Handle request approved notification
                 if (notification.type === "RequestApproved" && notification.relatedEntityId) {
                     console.log("Processing request approval for:", notification.relatedEntityId);
                     const requestRow = $(`tr[data-request-id="${notification.relatedEntityId}"]`);
 
                     if (requestRow.length) {
                         console.log("Found request row, updating UI");
-                        // Update status badge
                         requestRow.find('td:nth-child(3) .badge')
                             .removeClass('bg-warning text-dark')
                             .addClass('bg-success')
                             .text('Approved');
 
-                        // Show toast notification
-                        if (typeof toastr !== 'undefined') {
-                            toastr.success(notification.message || 'Your request has been approved!');
-                        }
+                        snackbar.success(notification.message || 'Your request has been approved!');
 
-                        // Reload page after delay
                         setTimeout(function() {
                             location.reload();
                         }, 3000);
@@ -153,25 +215,19 @@
                         console.warn("Request row not found in DOM");
                     }
                 }
-                // Handle request rejected notification
                 else if (notification.type === "RequestRejected" && notification.relatedEntityId) {
                     console.log("Processing request rejection for:", notification.relatedEntityId);
                     const requestRow = $(`tr[data-request-id="${notification.relatedEntityId}"]`);
 
                     if (requestRow.length) {
                         console.log("Found request row, updating UI");
-                        // Update status badge
                         requestRow.find('td:nth-child(3) .badge')
                             .removeClass('bg-warning text-dark')
                             .addClass('bg-danger')
                             .text('Rejected');
 
-                        // Show toast notification
-                        if (typeof toastr !== 'undefined') {
-                            toastr.error(notification.message || 'Your request has been rejected.');
-                        }
+                        snackbar.error(notification.message || 'Your request has been rejected.');
 
-                        // Reload page after delay
                         setTimeout(function() {
                             location.reload();
                         }, 3000);
@@ -197,50 +253,6 @@
                 .catch(function(err) {
                     console.error("Error starting notification connection:", err);
                 });
-        }
-
-        function cancelRequest(requestId) {
-            if (!confirm('Are you sure you want to cancel this request?')) {
-                return;
-            }
-
-            $.ajax({
-                url: '/UserProjects/CancelRequest',
-                type: 'POST',
-                data: {
-                    requestId: requestId,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
-                },
-                success: function(response) {
-                    if (response.success) {
-                        if (typeof toastr !== 'undefined') {
-                            toastr.success('Request canceled successfully');
-                        } else {
-                            alert('Request canceled successfully');
-                        }
-                        $(`tr[data-request-id="${requestId}"]`).fadeOut(300, function() {
-                            $(this).remove();
-                            if ($('tbody tr').length === 0) {
-                                location.reload();
-                            }
-                        });
-                    } else {
-                        if (typeof toastr !== 'undefined') {
-                            toastr.error(response.message || 'Failed to cancel request');
-                        } else {
-                            alert(response.message || 'Failed to cancel request');
-                        }
-                    }
-                },
-                error: function(error) {
-                    console.error("Error canceling request:", error);
-                    if (typeof toastr !== 'undefined') {
-                        toastr.error('Failed to cancel request');
-                    } else {
-                        alert('Failed to cancel request');
-                    }
-                }
-            });
         }
     </script>
 }

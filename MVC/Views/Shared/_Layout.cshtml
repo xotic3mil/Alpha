@@ -453,7 +453,9 @@
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
-
+    <input type="hidden" id="currentUserId" value="@userId" />
+    <input type="hidden" id="isAdmin" value="@isAdmin" />
+    <input type="hidden" id="isProjectManager" value="@isProjectManager" />
 </body>
 </html>
 
