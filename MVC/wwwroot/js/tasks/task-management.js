@@ -245,11 +245,11 @@ function toggleTaskCompletion(taskId, taskProjectId) {
 
             console.log("Refreshing tasks after status change with project ID:", projectId);
 
+            refreshSingleProjectCard(projectId);
+
             setTimeout(() => {
                 loadProjectTasks(projectId);
                 loadTaskSummary(projectId);
-
-         
             }, 300);
 
             console.log("Task status updated successfully");
@@ -299,6 +299,7 @@ function editTask(taskId) {
             }
 
             loadTaskAssignees(task.projectId, 'editTaskAssignee');
+            refreshSingleProjectCard(projectId);
 
             setTimeout(() => {
                 if (task.assignedToId) {
@@ -354,10 +355,9 @@ function deleteTask(taskId, entryProjectId) {
             setTimeout(() => {
                 loadProjectTasks(projectId);
                 loadTaskSummary(projectId);
-
-           
             }, 300);
 
+            refreshSingleProjectCard(projectId);
             snackbar.success('Task deleted successfully');
         },
         error: function (xhr, status, error) {
@@ -427,7 +427,8 @@ function saveTask() {
 
             $('#createTaskModal').modal('hide');
             form[0].reset();
-
+            refreshSingleProjectCard(projectId);
+            
             console.log("Task created successfully, refreshing with project ID:", projectId);
 
             setTimeout(() => {

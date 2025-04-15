@@ -653,6 +653,8 @@ function deleteComment(commentId, projectId) {
                         $('#commentsContainer').html('<p class="text-muted text-center">No status updates yet. Add the first comment.</p>');
                     }
                 });
+
+                refreshSingleProjectCard(projectId);
             },
             error: function (error) {
                 console.error("Error deleting comment:", error);
@@ -742,8 +744,11 @@ $(document).off('submit', '#commentForm').on('submit', '#commentForm', function 
                     const projectId = $(this).data('project-id');
                     deleteComment(commentId, projectId);
                 });
+                refreshSingleProjectCard(projectId);
             } else {
                 loadComments(projectId);
+
+                refreshSingleProjectCard(projectId);
             }
         },
         error: function (error) {

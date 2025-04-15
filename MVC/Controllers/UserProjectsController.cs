@@ -119,12 +119,12 @@ namespace MVC.Controllers
             if (string.IsNullOrEmpty(userId))
                 return RedirectToAction("Login", "Auth");
 
-            var result = await _projectMembershipService.GetAvailableProjectsForUserAsync(Guid.Parse(userId));
+            var result = await _projectMembershipService.GetAvailableActiveProjectsForUserAsync(Guid.Parse(userId));
 
             if (!result.Succeeded)
             {
                 ModelState.AddModelError(string.Empty, result.Error ?? "Failed to load available projects.");
-                return View(Array.Empty<Project>()); 
+                return View(Array.Empty<Project>());
             }
 
             return View(result.Result);

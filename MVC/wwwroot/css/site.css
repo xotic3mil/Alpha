@@ -41,6 +41,7 @@
     --dropdown-hover: #f5f7fa;
     --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     --navbar-border: #e3e5e8;
+    --bg-card-wrapp: #00000008;
 }
 
 body.dark-mode {
@@ -71,11 +72,14 @@ body.dark-mode {
     --dropdown-hover: #38383B;
     --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
     --navbar-border: #38383B;
+    --bg-card-wrapp: #151517;
 }
 
-/* Notification system styling */
+.bg-card-wrapp 
+{
+    background-color: var(--bg-card-wrapp);
+}
 
-/* Notification icon and wrapper */
 .notification-icon {
     position: relative;
     cursor: pointer;
@@ -96,7 +100,7 @@ body.dark-mode {
         color: var(--text-color);
     }
 
-/* Notification badge */
+
 .notification-badge {
     position: absolute;
     min-width: 18px;
@@ -115,7 +119,6 @@ body.dark-mode {
     border: 1.5px solid var(--surface);
 }
 
-/* Notification dropdown */
 .notification-dropdown {
     border-radius: 16px !important;
     width: 350px !important;
@@ -744,6 +747,8 @@ iframe {
     padding-top: 10px;
     transition: margin-left 0.3s ease-in-out;
 }
+
+
 
 @media (max-width: 767.98px) {
     .sidebar {

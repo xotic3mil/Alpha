@@ -168,6 +168,36 @@ namespace Business.Services
             }
         }
 
+        public async Task<ProjectManagementResult<IEnumerable<Project>>> GetAvailableActiveProjectsForUserAsync(Guid userId)
+        {
+            try
+            {
+                var availableProjectsResult = await GetAvailableProjectsForUserAsync(userId);
+                if (!availableProjectsResult.Succeeded)
+                    return availableProjectsResult;
+
+                var activeProjects = availableProjectsResult.Result.Where(p =>
+                    p.Status == null ||
+                    !p.Status.StatusName.Equals("Completed", StringComparison.OrdinalIgnoreCase));
+
+                return new ProjectManagementResult<IEnumerable<Project>>
+                {
+                    Succeeded = true,
+                    StatusCode = 200,
+                    Result = activeProjects
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ProjectManagementResult<IEnumerable<Project>>
+                {
+                    Succeeded = false,
+                    StatusCode = 500,
+                    Error = ex.Message
+                };
+            }
+        }
+
         public async Task<ProjectManagementResult<IEnumerable<Project>>> GetAvailableProjectsForUserAsync(Guid userId)
         {
             try

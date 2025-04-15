@@ -6,16 +6,28 @@
 
     var projectTasks = ViewData["ProjectTasks"] as IEnumerable<ProjectTask> ?? new List<ProjectTask>();
     var projectTasksList = projectTasks.Where(t => t.ProjectId == project.Id).ToList();
+
+
     var totalTasks = projectTasksList.Count;
     var completedTasks = projectTasksList.Count(t => t.IsCompleted);
     var taskCompletionPercentage = totalTasks > 0 ? (int)Math.Round((double)completedTasks / totalTasks * 100) : 0;
 
-
     var timeEntries = ViewData["TimeEntries"] as IEnumerable<TimeEntry> ?? new List<TimeEntry>();
     var projectTimeEntries = timeEntries.Where(t => t.ProjectId == project.Id).ToList();
     var totalHours = projectTimeEntries.Sum(t => t.Hours);
+
     var billableHours = projectTimeEntries.Where(t => t.IsBillable).Sum(t => t.Hours);
     var billableAmount = projectTimeEntries.Where(t => t.IsBillable).Sum(t => (decimal)t.Hours * t.HourlyRate);
+
+    var comments = ViewData["ProjectComments"] as IEnumerable<Comment> ?? new List<Comment>();
+    var commentCount = comments.Count(c => c.ProjectId == project.Id);
+
+    const int maxDescriptionLength = 70; 
+
+    var plainDescription = System.Text.RegularExpressions.Regex.Replace(project.Description ?? "", "<.*?>", " ");
+    var displayDescription = plainDescription.Length > maxDescriptionLength
+        ? plainDescription.Substring(0, maxDescriptionLength) + "..."
+        : plainDescription;
 }
 
 <div class="col-12 col-md-9 col-lg-4 col-xl-4 col-xxl-3">
@@ -80,86 +92,93 @@
             </div>
 
             <div class="flex-grow-1 mb-3">
-                <p class="card-text text-muted text-truncate">
-                    @Html.Raw(@project.Description)
+                <p class="card-text text-muted" style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+                   title="@plainDescription">
+                    @displayDescription
                 </p>
             </div>
 
             <div class="mb-3 pt-1">
                 <div class="row g-2">
                     <div class="col-6">
-                        <div class="d-flex align-items-center mb-1">
-                            <i class="bi bi-check2-square text-primary me-1" style="font-size: 0.9rem;"></i>
-                            <span class="small fw-medium">Tasks</span>
-                            <span class="ms-auto small">@completedTasks/@totalTasks</span>
-                        </div>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-primary" role="progressbar" style="width: @taskCompletionPercentage%;"
-                                 aria-valuenow="@taskCompletionPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="p-2 rounded bg-card-wrapp">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="bi bi-check2-square text-primary me-1" style="font-size: 0.9rem;"></i>
+                                <span class="small fw-medium">Tasks</span>
+                                <span class="ms-auto small">@completedTasks/@totalTasks</span>
+                            </div>
+                            <div class="progress" style="height: 7px; ">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: @taskCompletionPercentage%;"
+                                     aria-valuenow="@taskCompletionPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+
+                            <div class="d-flex align-items-center small mt-1">
+                                <i class="bi bi-chat-text text-info me-1" style="font-size: 0.9rem;"></i>
+                                <span class="small fw-medium">Comments</span>
+                                <span class="ms-auto small">@commentCount</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="col-6">
-                        <div class="d-flex align-items-center mb-1">
-                            <i class="bi bi-clock text-info me-1" style="font-size: 0.9rem;"></i>
-                            <span class="small fw-medium">Hours</span>
-                            <span class="ms-auto small">@billableHours.ToString("F1")/@totalHours.ToString("F1")</span>
-                        </div>
-                        <div class="progress" style="height: 6px;">
-                            @if (totalHours > 0)
-                            {
-                                <div class="progress-bar bg-success" role="progressbar"
-                                     style="width: @(Math.Round(billableHours/totalHours*100, 0))%;"
-                                     aria-valuenow="@(Math.Round(billableHours/totalHours*100, 0))" aria-valuemin="0" aria-valuemax="100"></div>
-                            }
-                            else
-                            {
-                                <div class="progress-bar" role="progressbar" style="width: 0%;"
-                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                            }
-                        </div>
-                    </div>
+                        <div class="p-2 rounded bg-card-wrapp">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="bi bi-clock text-info me-1" style="font-size: 0.9rem;"></i>
+                                <span class="small fw-medium">Hours</span>
+                                <span class="ms-auto small">@totalHours.ToString("F1")</span>
+                            </div>
+                            <div class="progress" style="height: 7px;">
+                                @if (totalHours > 0)
+                                {
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                         style="width: @(Math.Round(billableHours/totalHours*100, 0))%;"
+                                         aria-valuenow="@(Math.Round(billableHours/totalHours*100, 0))" aria-valuemin="0" aria-valuemax="100"></div>
+                                }
+                                else
+                                {
+                                    <div class="progress-bar" role="progressbar" style="width: 0%;"
+                                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                }
+                            </div>
 
-                    @if (billableAmount > 0)
-                    {
-                        <div class="col-12">
-                            <div class="d-flex align-items-center small text-muted mt-1">
+                            <div class="d-flex align-items-center small mt-1">
                                 <i class="bi bi-currency-dollar text-success me-1" style="font-size: 0.9rem;"></i>
-                                <span>Billable: $@billableAmount.ToString("N2")</span>
+                                <span class="small fw-medium">Billable</span>
+                                <span class="ms-auto small">@billableHours.ToString("F1") hrs / $@billableAmount.ToString("N2")</span>
                             </div>
                         </div>
-                    }
+                    </div>
                 </div>
             </div>
 
-            <div class="d-flex flex-wrap align-items-center gap-2">
-                <div class="time-container d-inline-flex align-items-center">
-                    <div class="time">
-                        <div class="d-flex align-items-center">
-                            <img src="/images/clock.svg" alt="clock" class="me-1" />
-                            @{
-                                var daysLeft = Math.Ceiling((project.EndDate.ToDateTime(TimeOnly.MinValue) - DateTime.Now).TotalDays);
-                            }
-                            <span class="text-nowrap">@daysLeft days left</span>
-                        </div>
-                    </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center py-1 px-2 rounded-pill bg-light border">
+                    <i class="bi bi-clock-history text-primary me-1" style="font-size: 0.85rem;"></i>
+                    @{
+                        var daysLeft = Math.Ceiling((project.EndDate.ToDateTime(TimeOnly.MinValue) - DateTime.Now).TotalDays);
+                        var textClass = daysLeft < 3 ? "text-danger" : daysLeft < 7 ? "text-warning" : "text-success";
+                    }
+                    <span class="small @textClass fw-medium">@daysLeft days left</span>
                 </div>
-                <div class="shadow-sm status-container"
-                     style="background-color: @(string.IsNullOrEmpty(project.Status?.ColorCode) ? "#b3ff0352" : project.Status.ColorCode + "52")">
-                    <div class="status d-flex align-items-center">
-                        <div class="status-indicator me-2"
+
+                <div class="py-1 px-2 rounded-pill"
+                     style="background-color: @(string.IsNullOrEmpty(project.Status?.ColorCode) ? "#4caf50" : project.Status.ColorCode + "20")">
+                    <div class="d-flex align-items-center">
+                        <div class="status-indicator me-1"
                              style="background-color: @(string.IsNullOrEmpty(project.Status?.ColorCode) ? "#4caf50" : project.Status.ColorCode);
-                                    width: 10px;
-                                    height: 10px;
+                                    width: 8px;
+                                    height: 8px;
                                     border-radius: 50%;">
                         </div>
-                        <span>@project.Status?.StatusName</span>
+                        <span class="small fw-medium" style="color: @(string.IsNullOrEmpty(project.Status?.ColorCode) ? "#4caf50" : project.Status.ColorCode)">
+                            @project.Status?.StatusName
+                        </span>
                     </div>
                 </div>
                 <div class="ms-auto">
                     @if (project.Users != null && project.Users.Any())
                     {
-                        <div class="d-flex align-items-center team-members">
+                        <div class="team-avatar-group">
                             @{
                                 var maxDisplay = 3;
                                 var displayUsers = project.Users.Take(maxDisplay).ToList();
@@ -168,16 +187,21 @@
 
                             @foreach (var user in displayUsers)
                             {
-                                <img src="@(string.IsNullOrEmpty(user.AvatarUrl) ? "/images/avatar-template-1.svg" : user.AvatarUrl)"
-                                     alt="@user.FirstName @user.LastName"
-                                     class="rounded-circle team-avatar"
-                                     title="@user.FirstName @user.LastName"
-                                     style="width: 28px; height: 28px; border: 2px solid white; margin-left: -8px;" />
+                                <div class="avatar-wrapper d-inline-block">
+                                    <img src="@(string.IsNullOrEmpty(user.AvatarUrl) ? "/images/avatar-template-1.svg" : user.AvatarUrl)"
+                                         alt="@user.FirstName @user.LastName"
+                                         class="rounded-circle team-avatar border border-2 border-white"
+                                         title="@user.FirstName @user.LastName"
+                                         style="width: 30px; height: 30px; margin-left: -10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
+                                </div>
                             }
 
                             @if (remainingCount > 0)
                             {
-                                <span class="ms-1 text-muted small">+@remainingCount</span>
+                                <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white"
+                                      style="width: 30px; height: 30px; font-size: 0.75rem; margin-left: -10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    +@remainingCount
+                                </span>
                             }
                         </div>
                     }
@@ -186,18 +210,25 @@
                         <div class="d-flex align-items-center">
                             <img src="@(string.IsNullOrEmpty(project.User.AvatarUrl) ? "/images/avatar-template-1.svg" : project.User.AvatarUrl)"
                                  alt="@project.User.FirstName @project.User.LastName"
-                                 class="rounded-circle"
+                                 class="rounded-circle border border-2 border-white"
                                  title="@project.User.FirstName @project.User.LastName"
-                                 style="width: 28px; height: 28px;" />
+                                 style="width: 30px; height: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
                             <span class="ms-2 text-muted small">@project.User.FirstName</span>
                         </div>
                     }
                     else
                     {
-                        <span class="text-muted small">No team assigned</span>
+                        <div class="d-flex align-items-center">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-secondary border"
+                                 style="width: 30px; height: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                <i class="bi bi-person-plus" style="font-size: 0.8rem;"></i>
+                            </div>
+                        </div>
                     }
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+

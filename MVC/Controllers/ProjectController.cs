@@ -22,7 +22,8 @@ public class ProjectController(
     IProjectMembershipService projectMembershipService,
     INotificationService notificationService,
     IProjectTaskService taskService,
-    ITimeEntryService timeEntryService
+    ITimeEntryService timeEntryService,
+    ICommentService commentService
         ) : Controller
 {
     private readonly IProjectsService _projectService = projectService;
@@ -34,15 +35,16 @@ public class ProjectController(
     private readonly UserManager<UserEntity> _userManager = userManager;
     private readonly IProjectMembershipService _projectMembershipService = projectMembershipService;
     private readonly IProjectTaskService _taskService = taskService;       
-    private readonly ITimeEntryService _timeEntryService = timeEntryService;   
+    private readonly ITimeEntryService _timeEntryService = timeEntryService;
+    private readonly ICommentService _commentService = commentService;
 
     [HttpGet]
-    public async Task<IActionResult> Index(string statusFilter = null)
+    public async Task<IActionResult> Index(string? statusFilter = null)
     {
-
         Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
         Response.Headers["Pragma"] = "no-cache";
         Response.Headers["Expires"] = "0";
+
         try
         {
             var viewModel = new ProjectViewModel();
@@ -51,6 +53,7 @@ public class ProjectController(
             var tasksResult = await _taskService.GetAllTasksAsync();
             if (tasksResult.Succeeded)
             {
+                var taskCount = tasksResult.Result.Count();
                 viewModel.ProjectTasks = tasksResult.Result;
                 ViewData["ProjectTasks"] = tasksResult.Result;
             }
@@ -58,34 +61,47 @@ public class ProjectController(
             var timeEntriesResult = await _timeEntryService.GetAllTimeEntriesAsync();
             if (timeEntriesResult.Succeeded)
             {
+                var entryCount = timeEntriesResult.Result.Count();
                 viewModel.TimeEntries = timeEntriesResult.Result;
                 ViewData["TimeEntries"] = timeEntriesResult.Result;
             }
 
-            ViewBag.StatusFilter = statusFilter;
-            var allProjects = viewModel.Projects.ToList();
+            var userId = _userManager.GetUserId(User);
 
-            var statusCounts = allProjects
-                .Where(p => p.Status?.StatusName != null)
-                .GroupBy(p => p.Status!.StatusName)
-                .ToDictionary(g => g.Key!, g => g.Count());
-
-            ViewBag.StatusCounts = statusCounts;
-            ViewBag.TotalCount = allProjects.Count;
-
-
-            if (!string.IsNullOrEmpty(statusFilter))
+            if (!string.IsNullOrEmpty(userId))
             {
-                viewModel.Projects = viewModel.Projects.Where(p => p.Status?.StatusName == statusFilter);
-            }
+                var userGuid = Guid.Parse(userId);
+                List<Comment> allComments = new List<Comment>();
 
-            if (!User.IsInRole("Admin") && !User.IsInRole("ProjectManager"))
-            {
-                var userId = _userManager.GetUserId(User);
-                if (!string.IsNullOrEmpty(userId))
+                foreach (var project in viewModel.Projects)
                 {
-                    var userGuid = Guid.Parse(userId);
+                    var commentsResult = await _commentService.GetCommentsByProjectIdAsync(project.Id, userGuid);
+                    if (commentsResult.Succeeded && commentsResult.Result != null)
+                    {
+                        allComments.AddRange(commentsResult.Result);
+                    }
+                }
 
+                ViewData["ProjectComments"] = allComments;
+
+                ViewBag.StatusFilter = statusFilter;
+                var allProjects = viewModel.Projects.ToList();
+
+                var statusCounts = allProjects
+                    .Where(p => p.Status?.StatusName != null)
+                    .GroupBy(p => p.Status!.StatusName)
+                    .ToDictionary(g => g.Key!, g => g.Count());
+
+                ViewBag.StatusCounts = statusCounts;
+                ViewBag.TotalCount = allProjects.Count;
+
+                if (!string.IsNullOrEmpty(statusFilter))
+                {
+                    viewModel.Projects = viewModel.Projects.Where(p => p.Status?.StatusName == statusFilter);
+                }
+
+                if (!User.IsInRole("Admin") && !User.IsInRole("ProjectManager"))
+                {
                     var userProjectsResult = await _projectMembershipService.GetUserProjectsAsync(userGuid);
                     if (userProjectsResult.Succeeded)
                     {
@@ -102,14 +118,16 @@ public class ProjectController(
                             .ToList();
                     }
                 }
-            }
 
-            return View(viewModel);
+                return View(viewModel);
+            }
         }
         catch (Exception ex)
         {
             return Error(ex.Message);
         }
+
+        return RedirectToAction("Index");
     }
 
 
@@ -417,6 +435,17 @@ public class ProjectController(
             ViewData["TimeEntries"] = timeEntriesResult.Result;
         }
 
+        var userId = _userManager.GetUserId(User);
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var userGuid = Guid.Parse(userId);
+            var commentsResult = await _commentService.GetCommentsByProjectIdAsync(id, userGuid);
+            if (commentsResult.Succeeded)
+            {
+                ViewData["ProjectComments"] = commentsResult.Result;
+            }
+        }
+
         ViewBag.OpenProjectDetails = true;
         ViewBag.ProjectIdToOpen = id;
 
@@ -447,6 +476,17 @@ public class ProjectController(
         if (timeEntriesResult.Succeeded)
         {
             ViewData["TimeEntries"] = timeEntriesResult.Result;
+        }
+
+        var userId = _userManager.GetUserId(User);
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var userGuid = Guid.Parse(userId);
+            var commentsResult = await _commentService.GetCommentsByProjectIdAsync(projectId, userGuid);
+            if (commentsResult.Succeeded)
+            {
+                ViewData["ProjectComments"] = commentsResult.Result;
+            }
         }
 
         return PartialView("_ProjectCardPartial", projectResult.Result);

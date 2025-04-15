@@ -20,4 +20,6 @@ public interface IProjectMembershipService
     public Task<ProjectManagementResult> CancelProjectRequestAsync(Guid requestId);
     public Task<ProjectManagementResult<ProjectRequest>> GetRequestByIdAsync(Guid requestId);
     public Task<ProjectManagementResult<IEnumerable<ProjectRequest>>> GetAllPendingRequestsAsync();
+
+    public Task<ProjectManagementResult<IEnumerable<Project>>> GetAvailableActiveProjectsForUserAsync(Guid userId);
 }

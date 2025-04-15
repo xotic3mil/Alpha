@@ -23,7 +23,7 @@
             <li class="nav-item">
                 <a class="nav-link @(ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")"
                    asp-controller="Project" asp-action="Index">
-                    <i class="bi bi-grid me-1"></i> My Projects
+                    <i class="bi bi-grid me-1"></i> All Projects
                 </a>
             </li>
             <li class="nav-item">
@@ -50,7 +50,7 @@
         @if (ViewContext.RouteData.Values["action"].ToString() == "Index" &&
         ViewContext.RouteData.Values["controller"].ToString() == "Project")
         {
-            <div class="sub-navigation border-start border-end border-bottom rounded-bottom pt-2 px-3 pb-2 bg-light">
+            <div class="sub-navigation border-start border-end border-bottom rounded-bottom pt-2 px-3 pb-2">
                 <div class="d-flex flex-wrap">
                     <span class="me-3 text-muted small pt-1">Filter by status:</span>
                     <div class="nav nav-pills nav-pills-sm">

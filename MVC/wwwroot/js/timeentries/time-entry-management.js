@@ -291,7 +291,6 @@ function createTimeEntry() {
     }
 
     const taskId = $('#timeEntryTask').val() || null; 
-
     isSubmitting = true;
 
 
@@ -338,6 +337,7 @@ function createTimeEntry() {
 
             $('#createTimeEntryModal').modal('hide');
             $('#createTimeEntryForm')[0].reset();
+            refreshSingleProjectCard(projectId);
 
             setTimeout(() => {
                 loadProjectTimeEntries(projectId);
@@ -417,11 +417,12 @@ function updateTimeEntry() {
             }
 
             $('#createTimeEntryModal').modal('hide');
-
             $('#createTimeEntryForm')[0].reset();
             $('#createTimeEntryModalLabel').text('Log Time');
             $('#saveTimeEntryBtn').text('Save Time Entry');
             $('#timeEntryId').val('');
+
+            refreshSingleProjectCard(projectId);
 
             setTimeout(() => {
                 loadProjectTimeEntries(projectId);
@@ -468,13 +469,13 @@ function deleteTimeEntry(timeEntryId) {
                 snackbar.error('Failed to delete time entry: ' + (response.error || 'Unknown error'));
                 return;
             }
-
             const projectId = getProjectId();
             setTimeout(() => {
                 loadProjectTimeEntries(projectId);
                 loadTimeEntrySummary(projectId);
             }, 300);
 
+            refreshSingleProjectCard(projectId);
             snackbar.success('Time entry deleted successfully');
         },
         error: function (xhr, status, error) {

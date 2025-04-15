@@ -50,10 +50,10 @@
                             <div class="tab-pane fade show active" id="overview-content" role="tabpanel" aria-labelledby="overview-tab">
                                 <div class="row g-4">
                                     <div class="col-lg-8">
-                                        <div class="card shadow-sm rounded-4 mb-4 ">
-                                            <div class="card-body">
-                                                <h5 class="card-title mb-3">Description</h5>
-                                                <p id="projectDetailDescription" class="card-text text-muted"></p>
+                                        <div class="card shadow-sm rounded-4 mb-3">
+                                            <div class="card-body p-3">
+                                                <h6 class="card-subtitle mb-2 text-body-secondary">Description</h6>
+                                                <p id="projectDetailDescription" class="card-text"></p>
                                             </div>
                                         </div>
                                         <div class="card shadow-sm rounded-4 mb-4">
@@ -84,124 +84,103 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="card shadow-sm rounded-4 mb-4">
-                                            <div class="card-body">
-                                                <h5 class="card-title mb-3">Timeline</h5>
-                                                <div class="row g-3">
-                                                    <div class="col-md-4">
-                                                        <div class="d-flex align-items-center mb-2">
-                                                            <i class="bi bi-calendar-check text-muted me-2"></i>
-                                                            <span class="text-muted">Start Date:</span>
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-md-6">
+                                                <div class="card shadow-sm rounded-4 h-100">
+                                                    <div class="card-body p-3">
+                                                        <h6 class="card-subtitle mb-2 text-body-secondary">Timeline</h6>
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <span class="text-muted"><i class="bi bi-calendar-check me-1"></i> Start:</span>
+                                                            <span id="projectDetailStartDate" class="fw-medium">Not set</span>
                                                         </div>
-                                                        <h6 id="projectDetailStartDate" class="mb-0">Not set</h6>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="d-flex align-items-center mb-2">
-                                                            <i class="bi bi-calendar-x text-muted me-2"></i>
-                                                            <span class="text-muted">End Date:</span>
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <span class="text-muted"><i class="bi bi-calendar-x me-1"></i> End:</span>
+                                                            <span id="projectDetailEndDate" class="fw-medium">Not set</span>
                                                         </div>
-                                                        <h6 id="projectDetailEndDate" class="mb-0">Not set</h6>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="d-flex align-items-center mb-2">
-                                                            <i class="bi bi-alarm text-muted me-2"></i>
-                                                            <span class="text-muted">Time Remaining:</span>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span class="text-muted"><i class="bi bi-alarm me-1"></i> Remaining:</span>
+                                                            <span id="projectDetailTimeRemaining" class="fw-medium">-</span>
                                                         </div>
-                                                        <h6 id="projectDetailTimeRemaining" class="mb-0">-</h6>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="card shadow-sm rounded-4">
-                                            <div class="card-body">
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <h5 class="card-title mb-3">Financial Details</h5>
-                                                        <div class="d-flex align-items-center mb-2">
-                                                            <i class="bi bi-cash text-muted me-2"></i>
-                                                            <span class="text-muted">Budget:</span>
+                                            <div class="col-md-6">
+                                                <div class="card shadow-sm rounded-4 h-100">
+                                                    <div class="card-body p-3">
+                                                        <h6 class="card-subtitle mb-2 text-body-secondary">Financial Details</h6>
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <span class="text-muted"><i class="bi bi-cash me-1"></i> Budget:</span>
+                                                            <span id="projectDetailBudget" class="fw-medium">-</span>
                                                         </div>
-                                                        <h6 id="projectDetailBudget" class="mb-0">-</h6>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <h5 class="card-title mb-3">Service Information</h5>
-                                                        <div class="d-flex align-items-center mb-2">
-                                                            <i class="bi bi-gear text-muted me-2"></i>
-                                                            <span class="text-muted">Service Type:</span>
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <span class="text-muted"><i class="bi bi-gear me-1"></i> Service:</span>
+                                                            <span id="projectDetailServiceName" class="fw-medium">-</span>
                                                         </div>
-                                                        <h6 id="projectDetailServiceName" class="mb-0">-</h6>
-                                                        <div class="d-flex align-items-center mt-3 mb-2">
-                                                            <i class="bi bi-info-circle text-muted me-2"></i>
-                                                            <span class="text-muted">Description:</span>
+                                                        <div class="text-muted small mt-2">
+                                                            <i class="bi bi-info-circle me-1"></i>
+                                                            <span id="projectDetailServiceDescription">-</span>
                                                         </div>
-                                                        <p id="projectDetailServiceDescription" class="text-muted mb-0 small">-</p>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-lg-4">
-                                        <div class="card shadow-sm rounded-4 mb-4">
-                                            <div class="card-body">
-                                                <h5 class="card-title d-flex justify-content-between align-items-center mb-3">
-                                                    Customer Information
-                                                    <a href="#" id="viewCustomerLink" class="btn btn-sm btn-link text-decoration-none">View</a>
-                                                </h5>
-                                                <div class="d-flex align-items-center mb-3">
-                                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style="width: 56px; height: 56px;">
-                                                        <i class="bi bi-building text-primary" style="font-size: 24px;"></i>
+                                        <div class="card shadow-sm rounded-4 mb-3">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <h6 class="card-subtitle mb-0 text-body-secondary">Customer</h6>
+                                                    <a href="#" id="viewCustomerLink" class="btn btn-sm btn-link p-0 text-decoration-none">View</a>
+                                                </div>
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2"
+                                                         style="width: 42px; height: 42px;">
+                                                        <i class="bi bi-building text-primary" style="font-size: 20px;"></i>
                                                     </div>
                                                     <div>
-                                                        <h6 id="projectDetailCustomerName" class="mb-0">-</h6>
-                                                        <p id="projectDetailCustomerContact" class="text-muted mb-0">-</p>
+                                                        <h6 id="projectDetailCustomerName" class="mb-0 fw-medium">-</h6>
+                                                        <p id="projectDetailCustomerContact" class="text-muted mb-0 small">-</p>
                                                     </div>
                                                 </div>
-                                                <hr>
-                                                <div class="mb-2">
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <i class="bi bi-envelope text-muted me-2"></i>
+                                                <hr class="my-2">
+                                                <div class="text-muted small">
+                                                    <div class="d-flex align-items-center mb-1">
+                                                        <i class="bi bi-envelope me-2"></i>
                                                         <span id="projectDetailCustomerEmail">-</span>
                                                     </div>
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <i class="bi bi-telephone text-muted me-2"></i>
+                                                    <div class="d-flex align-items-center mb-1">
+                                                        <i class="bi bi-telephone me-2"></i>
                                                         <span id="projectDetailCustomerPhone">-</span>
                                                     </div>
                                                     <div class="d-flex align-items-center">
-                                                        <i class="bi bi-geo-alt text-muted me-2"></i>
+                                                        <i class="bi bi-geo-alt me-2"></i>
                                                         <span id="projectDetailCustomerAddress">-</span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+
                                         <div class="card shadow-sm rounded-4">
-                                            <div class="card-body">
-                                                <h5 class="card-title d-flex justify-content-between align-items-center mb-3">
-                                                    Team Members
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <h6 class="card-subtitle mb-0 text-body-secondary">Team Members</h6>
                                                     @if (User.IsInRole("Admin") || User.IsInRole("ProjectManager"))
                                                     {
-
-                                                        <button class="btn btn-sm btn-outline-primary rounded-pill"
-                                                        id="addTeamMemberBtn"
-                                                        onclick="openAddTeamMemberModal()"
-                                                        type="button">
-                                                            <i class="bi bi-person-plus me-1"></i> Add
+                                                        <button class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2"
+                                                                id="addTeamMemberBtn" onclick="openAddTeamMemberModal()">
+                                                            <i class="bi bi-person-plus"></i><span class="ms-1">Add</span>
                                                         </button>
                                                     }
-
-                                                </h5>
+                                                </div>
                                                 <div id="projectDetailTeamMembers" class="d-flex flex-column gap-2">
-                                                    <div class="text-center py-3">
-                                                        <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                                            <span class="visually-hidden">Loading team members...</span>
-                                                        </div>
-                                                        <p class="text-muted mt-2">Loading team members...</p>
+                                                    <div class="text-center py-2">
+                                                        <div class="spinner-border spinner-border-sm text-primary"></div>
+                                                        <p class="text-muted small mt-1">Loading team...</p>
                                                     </div>
                                                 </div>
-
-                                                <div class="mt-4" id="pendingRequestsSection" style="display: none;">
-                                                    <h6 class="card-subtitle mb-3">Pending Requests</h6>
-                                                    <div id="pendingRequests" class="d-flex flex-column gap-2">
-                                                    </div>
+                                                <div class="mt-3" id="pendingRequestsSection" style="display: none;">
+                                                    <h6 class="card-subtitle text-body-secondary mb-2">Pending Requests</h6>
+                                                    <div id="pendingRequests" class="d-flex flex-column gap-2"></div>
                                                 </div>
                                             </div>
                                         </div>

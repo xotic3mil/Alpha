@@ -3,18 +3,19 @@
 
 @{
     ViewData["Title"] = "Join Projects";
+
 }
 
-<div class="pt-3">
+<div class="container-fluid pt-3">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3">
-        <h1 class="h2">Projects</h1>
+        <h1 class="h2">Available Projects</h1>
     </div>
 
     <ul class="nav nav-tabs mb-4">
         <li class="nav-item">
             <a class="nav-link"
                asp-controller="Project" asp-action="Index">
-                <i class="bi bi-grid me-1"></i> My Projects
+                <i class="bi bi-grid me-1"></i> All Projects
             </a>
         </li>
         <li class="nav-item">
@@ -43,54 +44,112 @@
         </div>
     }
 
-    <div class="row g-3">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center border-bottom-0">
+            <h5 class="mb-0">Available Projects</h5>
+            <div class="d-flex gap-2">
+                <div class="input-group">
+                    <span class="input-group-text border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0 ps-0" id="projectSearchInput" placeholder="Search projects...">
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                @if (Model != null && Model.Any())
+                {
+                    <table class="table table-hover align-middle mb-0" id="availableProjectsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Project</th>
+                                <th>Status</th>
+                                <th>Service</th>
+                                <th>Timeline</th>
+                                <th>Customer</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var project in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <img src="@(string.IsNullOrEmpty(project.ImageUrl) ? "/images/project-template-1.svg" : project.ImageUrl)"
+                                                 class="rounded-2 me-3" alt="@project.Name"
+                                                 style="width: 40px; height: 40px; object-fit: cover;">
+                                            <div>
+                                                <h6 class="mb-0">@project.Name</h6>
+                                                @if (!string.IsNullOrEmpty(project.Description))
+                                                {
+                                                    <small class="text-muted d-inline-block text-truncate" style="max-width: 250px;">
+                                                        @Html.Raw(project.Description.Length > 100
+                                                                 ? new string(System.Text.RegularExpressions.Regex.Replace(project.Description.Substring(0, 100), "<.*?>", "").Take(100).ToArray()) + "..."
+                                                                 : System.Text.RegularExpressions.Regex.Replace(project.Description, "<.*?>", ""))
+                                                    </small>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="status-indicator me-2"
+                                                  style="width: 8px; height: 8px; border-radius: 50%; background-color: @(project.Status?.ColorCode ?? "#6c757d")">
+                                            </span>
+                                            <span>@(project.Status?.StatusName ?? "No Status")</span>
+                                        </div>
+                                    </td>
+                                    <td>@(project.Service?.ServiceName ?? "N/A")</td>
+                                    <td>
+                                        @{
+                                            var startDate = project.StartDate.ToDateTime(TimeOnly.MinValue).ToString("MMM d, yyyy");
+                                            var endDate = project.EndDate.ToDateTime(TimeOnly.MinValue).ToString("MMM d, yyyy");
+                                            var daysLeft = Math.Ceiling((project.EndDate.ToDateTime(TimeOnly.MinValue) - DateTime.Now).TotalDays);
+                                            var badgeClass = daysLeft <= 0 ? "danger" :
+                                            daysLeft <= 7 ? "warning" : "success";
+                                        }
+                                        <div class="small">
+                                            <div>@startDate - @endDate</div>
+                                            <span class="badge bg-@badgeClass bg-opacity-25 text-@badgeClass small">
+                                                @(daysLeft > 0 ? $"{daysLeft} days left" : "Overdue")
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>@(project.Customer?.CompanyName ?? "N/A")</td>
+                                    <td class="text-end pe-4">
+                                        <button type="button" class="btn btn-primary btn-sm"
+                                                onclick="openRequestModal('@project.Id', '@project.Name')">
+                                            <i class="bi bi-person-plus me-1"></i> Request to Join
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
+                                                onclick="openProjectDetails('@project.Id')">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="text-center p-5">
+                        <i class="bi bi-search mb-3" style="font-size: 2rem;"></i>
+                        <h4>No projects available</h4>
+                        <p class="text-muted">
+                            There are currently no projects available for you to join.<br>
+                            Projects you're already a member of won't show here.
+                        </p>
+                    </div>
+                }
+            </div>
+        </div>
         @if (Model != null && Model.Any())
         {
-            foreach (var project in Model)
-            {
-                <div class="col-md-6 col-lg-4 col-xl-3">
-                    <div class="card h-100 shadow-sm rounded-4">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-3">
-                                <img src="@(string.IsNullOrEmpty(project.ImageUrl) ? "/images/project-template-1.svg" : project.ImageUrl)"
-                                     class="rounded-3 me-3" alt="@project.Name"
-                                     style="width: 56px; height: 56px; object-fit: cover;">
-                                <div>
-                                    <h5 class="card-title mb-1">@project.Name</h5>
-                                    <div class="small text-muted">
-                                        @project.Status?.StatusName
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="card-text text-muted mb-3">@Html.Raw(project.Description)</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-light text-dark">
-                                    @{
-                                        var daysLeft = Math.Ceiling((project.EndDate.ToDateTime(TimeOnly.MinValue) - DateTime.Now).TotalDays);
-                                        @(daysLeft > 0 ? $"{daysLeft} days left" : "Overdue")
-                                    }
-                                </span>
-                                <button type="button" class="btn btn-primary btn-sm rounded-pill"
-                                        onclick="openRequestModal('@project.Id', '@project.Name')">
-                                    Request to Join
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        }
-        else
-        {
-            <div class="col-12">
-                <div class="text-center p-5 bg-light rounded-4">
-                    <i class="bi bi-search" style="font-size: 2rem;"></i>
-                    <h4 class="mt-3">No projects available</h4>
-                    <p class="text-muted">
-                        There are currently no projects available for you to join.<br>
-                        Projects you're already a member of won't show here.
-                    </p>
-                </div>
+            <div class="card-footer bg-transparent border-top-0 text-muted small py-3">
+                Showing @Model.Count() available project(s)
             </div>
         }
     </div>
@@ -98,7 +157,7 @@
 
 <div class="modal fade" id="requestJoinModal" tabindex="-1" aria-labelledby="requestJoinModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0">
+        <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header border-0">
                 <h5 class="modal-title" id="requestJoinModalLabel">Request to Join Project</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -120,13 +179,168 @@
     </div>
 </div>
 
+<div class="modal fade" id="projectPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Project Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="projectPreviewContent">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading project details...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="requestJoinBtn">
+                    <i class="bi bi-person-plus me-1"></i> Request to Join
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
+        $(document).ready(function() {
+            $("#projectSearchInput").on("keyup", function() {
+                const value = $(this).val().toLowerCase();
+                $("#availableProjectsTable tbody tr").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+        });
+
         function openRequestModal(projectId, projectName) {
             $('#requestProjectId').val(projectId);
-            $('.modal-title').text(`Request to Join: ${projectName}`);
+            $('#requestJoinModalLabel').text(`Request to Join: ${projectName}`);
             $('#requestMessage').val('');
             $('#requestJoinModal').modal('show');
+        }
+
+        function openProjectDetails(projectId) {
+            $('#projectPreviewContent').html(`
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading project details...</p>
+                </div>
+            `);
+
+            $('#projectPreviewModal').modal('show');
+
+            $.ajax({
+                url: `/Project/GetProjectByIdWithDetails?id=${projectId}`,
+                type: 'GET',
+                success: function(project) {
+                    $('#requestJoinBtn').off('click').on('click', function() {
+                        $('#projectPreviewModal').modal('hide');
+                        openRequestModal(projectId, project.name);
+                    });
+
+                    const startDate = project.startDate ? new Date(project.startDate).toLocaleDateString() : 'Not set';
+                    const endDate = project.endDate ? new Date(project.endDate).toLocaleDateString() : 'Not set';
+
+                    let daysLeftText = 'N/A';
+                    let badgeClass = 'secondary';
+
+                    if (project.endDate) {
+                        const now = new Date();
+                        const end = new Date(project.endDate);
+                        const daysLeft = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+
+                        daysLeftText = daysLeft > 0 ? `${daysLeft} days left` : 'Overdue';
+                        badgeClass = daysLeft <= 0 ? 'danger' : daysLeft <= 7 ? 'warning' : 'success';
+                    }
+                    const html = `
+                        <div class="p-4 bg-light rounded-top">
+                            <div class="d-flex align-items-center">
+                                <img src="${project.imageUrl || '/images/project-template-1.svg'}"
+                                     class="rounded-3 me-3" alt="${project.name}"
+                                     style="width: 64px; height: 64px; object-fit: cover;">
+                                <div>
+                                    <h4 class="mb-1">${project.name}</h4>
+                                    <div class="d-flex align-items-center">
+                                        <span class="status-indicator me-2"
+                                              style="width: 10px; height: 10px; border-radius: 50%; background-color: ${project.status?.colorCode || '#6c757d'}">
+                                        </span>
+                                        <span>${project.status?.statusName || 'No Status'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4">
+                            <div class="mb-4">
+                                <h6 class="text-secondary mb-2">Description</h6>
+                                <p>${project.description || 'No description available'}</p>
+                            </div>
+
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body">
+                                            <h6 class="text-secondary mb-3">Timeline</h6>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="text-muted">Start Date:</span>
+                                                <span>${startDate}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="text-muted">End Date:</span>
+                                                <span>${endDate}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted">Status:</span>
+                                                <span class="badge bg-${badgeClass} bg-opacity-25 text-${badgeClass}">
+                                                    ${daysLeftText}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body">
+                                            <h6 class="text-secondary mb-3">Details</h6>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="text-muted">Service:</span>
+                                                <span>${project.service?.serviceName || 'N/A'}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="text-muted">Budget:</span>
+                                                <span>${project.budget ? '$' + project.budget.toLocaleString() : 'N/A'}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted">Customer:</span>
+                                                <span>${project.customer?.companyName || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    $('#projectPreviewContent').html(html);
+                },
+                error: function(error) {
+                    $('#projectPreviewContent').html(`
+                        <div class="text-center py-5">
+                            <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2rem;"></i>
+                            <h5 class="mt-2">Error Loading Project</h5>
+                            <p class="text-muted">Failed to load project details. Please try again later.</p>
+                        </div>
+                    `);
+                    console.error("Error loading project details:", error);
+                }
+            });
         }
 
         function submitJoinRequest() {
