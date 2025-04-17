@@ -225,7 +225,6 @@ public class TimeEntryService(ITimeEntryRepository timeEntryRepository) : ITimeE
         if (timeEntry == null)
             return new TimeEntryResult<TimeEntry> { Succeeded = false, StatusCode = 400, Error = "Time entry data cannot be null" };
 
-        // Validate required fields
         if (timeEntry.ProjectId == Guid.Empty)
             return new TimeEntryResult<TimeEntry> { Succeeded = false, StatusCode = 400, Error = "Project ID is required" };
 

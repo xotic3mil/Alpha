@@ -10,6 +10,10 @@ namespace MVC.Models
 
         public UserEntity User { get; set; }
 
+        public Guid UserId { get; set; }
+
+        public IEnumerable<RoleEntity> Roles { get; set; } = new List<RoleEntity>();
+
         public UserRegForm Form { get; set; } = new UserRegForm();
     }
 

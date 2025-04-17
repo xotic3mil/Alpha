@@ -5,8 +5,10 @@ using Data.Interfaces;
 using Data.Repositories;
 using Domain.Extensions;
 using Domain.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 
 namespace Business.Services;
@@ -85,10 +87,21 @@ public class UserService(IUserRepository userRepository, UserManager<UserEntity>
 
     public async Task<UserResult> UpdateUser(User user)
     {
-        var userEntity = await _userManager.FindByIdAsync(user.Id.ToString());
-        if (userEntity == null)
-            return new UserResult { Succeeded = false, StatusCode = 404, Error = "User doesn't exists." };
+        var existingUser = await _userManager.FindByIdAsync(user.Id.ToString());
+        if (existingUser == null)
+            return new UserResult { Succeeded = false, StatusCode = 404, Error = "User doesn't exist." };
 
+
+        var userEntity = user.MapTo<UserEntity>();
+
+
+        userEntity.PasswordHash = existingUser.PasswordHash;
+        userEntity.SecurityStamp = existingUser.SecurityStamp;
+        userEntity.ConcurrencyStamp = existingUser.ConcurrencyStamp;
+
+        userEntity.UserName = userEntity.Email;
+        userEntity.NormalizedEmail = userEntity.Email?.ToUpperInvariant();
+        userEntity.NormalizedUserName = userEntity.Email?.ToUpperInvariant();
         var result = await _userManager.UpdateAsync(userEntity);
 
         return result.Succeeded
@@ -110,6 +123,79 @@ public class UserService(IUserRepository userRepository, UserManager<UserEntity>
         return deleteResponse.Succeeded
             ? new UserResult<User> { Succeeded = true, StatusCode = 200 }
             : new UserResult<User> { Succeeded = false, StatusCode = 500, Error = "Failed to delete user." };
+    }
+
+    public async Task<UserResult<UserEntity>> CreateUserWithRoleAsync(UserRegForm form, string role)
+    {
+        if (form == null)
+            return new UserResult<UserEntity> { Succeeded = false, StatusCode = 400, Error = "Not all required fields are supplied." };
+
+        if (!string.IsNullOrEmpty(role) && !await _roleManager.RoleExistsAsync(role))
+            return new UserResult<UserEntity> { Succeeded = false, StatusCode = 404, Error = $"Role '{role}' does not exist." };
+
+        var userEntity = form.MapTo<UserEntity>();
+        userEntity.UserName = form.Email;
+        userEntity.NormalizedUserName = form.Email?.ToUpper();
+
+        var result = await _userManager.CreateAsync(userEntity, form.Password);
+        if (!result.Succeeded)
+        {
+            return new UserResult<UserEntity>
+            { Succeeded = false,  StatusCode = 500, Error = string.Join(", ", result.Errors.Select(e => e.Description))};
+        }
+        if (!string.IsNullOrEmpty(role))
+        {
+            var roleResult = await _userManager.AddToRoleAsync(userEntity, role);
+            if (!roleResult.Succeeded)
+            {
+                var roleError = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                Console.WriteLine($"Failed to add user to role: {roleError}");
+
+                await _userManager.DeleteAsync(userEntity);
+                return new UserResult<UserEntity>
+                { Succeeded = false, StatusCode = 500, Error = $"Failed to assign role to user: {roleError}" };
+            }
+        }
+
+        return new UserResult<UserEntity>
+        {
+            Succeeded = true,
+            StatusCode = 201,
+            Result = userEntity
+        };
+    }
+
+    public async Task<string> ProcessAvatarImageAsync(IFormFile userImage, string webRootPath)
+    {
+        if (userImage == null || userImage.Length == 0)
+        {
+            return null;
+        }
+
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+        var extension = Path.GetExtension(userImage.FileName).ToLowerInvariant();
+
+        if (!allowedExtensions.Contains(extension))
+        {
+            throw new ArgumentException("Invalid file type. Allowed types: .jpg, .jpeg, .png, .gif");
+        }
+
+        var fileName = $"{Guid.NewGuid()}{extension}";
+        var uploadsFolder = Path.Combine(webRootPath, "uploads", "avatars");
+
+        if (!Directory.Exists(uploadsFolder))
+        {
+            Directory.CreateDirectory(uploadsFolder);
+        }
+
+        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        using (var fileStream = new FileStream(filePath, FileMode.Create))
+        {
+            await userImage.CopyToAsync(fileStream);
+        }
+
+        return $"/uploads/avatars/{fileName}";
     }
 
 }
