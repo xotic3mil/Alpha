@@ -1,19 +1,13 @@
-﻿/**
- * Quill editor initialization for rich text fields
- */
+﻿
 
 const quillDefaultConfig = {
     theme: 'snow',
     modules: {
         toolbar: [
-            ['bold', 'italic', 'underline', 'strike'],
-            ['blockquote', 'code-block'],
-            [{ 'header': 1 }, { 'header': 2 }],
+            ['bold', 'italic', 'underline'],
+            [{ 'align': [] }],
             [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-            [{ 'script': 'sub' }, { 'script': 'super' }],
-            [{ 'indent': '-1' }, { 'indent': '+1' }],
-            ['link'],
-            ['clean']
+            ['link']
         ]
     },
     placeholder: 'Enter description...'

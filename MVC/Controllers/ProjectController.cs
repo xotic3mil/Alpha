@@ -153,20 +153,15 @@ public class ProjectController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(ProjectViewModel model, IFormFile? ProjectImage)
+    public async Task<IActionResult> Create(ProjectViewModel model, IFormFile? ProjectImage, Guid[] ProjectMembers)
     {
-        if (ProjectImage == null || ProjectImage.Length == 0)
-        {
-            ModelState.Remove("ProjectImage");
-        }
-
         if (!ModelState.IsValid)
         {
             await PopulateViewModelAsync(model);
             return View("Index", model);
         }
 
-        var form = model.Form;
+        model.Form.ImageUrl = "/images/project-template-1.svg";  // Default image
 
         if (ProjectImage != null && ProjectImage.Length > 0)
         {
@@ -190,7 +185,7 @@ public class ProjectController(
                     await ProjectImage.CopyToAsync(fileStream);
                 }
 
-                form.ImageUrl = $"/uploads/projects/{fileName}";
+                model.Form.ImageUrl = $"/uploads/projects/{fileName}";
             }
             else
             {
@@ -199,25 +194,35 @@ public class ProjectController(
                 return View("Index", model);
             }
         }
-        else
+
+        var projectResult = await _projectService.CreateProjectAsync(model.Form);
+
+        if (!projectResult.Succeeded)
         {
-            form.ImageUrl = "/images/project-template-1.svg";
+            TempData["ErrorMessage"] = projectResult.Error;
+            await PopulateViewModelAsync(model);
+            return View("Index", model);
         }
 
-        var creationResult = await _projectService.CreateProjectAsync(form);
-
-        if (creationResult.Succeeded)
+        if (ProjectMembers != null && ProjectMembers.Length > 0)
         {
-            await SendNewProjectNotificationAsync(creationResult.Result);
+            foreach (var userId in ProjectMembers)
+            {
+                await _projectMembershipService.AddUserToProjectAsync(projectResult.Result.Id, userId);
 
-            model.Form = new ProjectRegForm();
-            ViewBag.SuccessMessage = "Project created successfully.";
-            return RedirectToAction(nameof(Index));
+                // Send notification
+                await _notificationService.CreateUserNotificationAsync(
+                    userId,
+                    "Added to Project",
+                    $"You've been added to project \"{model.Form.Name}\"",
+                    "ProjectMemberAdded",
+                    projectResult.Result.Id);
+            }
         }
 
-        ModelState.AddModelError(string.Empty, creationResult.Error);
-        await PopulateViewModelAsync(model);
-        return View("Index", model);
+        await SendNewProjectNotificationAsync(projectResult.Result);
+        TempData["SuccessMessage"] = "Project created successfully.";
+        return RedirectToAction(nameof(Index));
     }
 
     private async Task SendNewProjectNotificationAsync(Project project)
@@ -319,35 +324,18 @@ public class ProjectController(
         return RedirectToAction("Index");
     }
 
-
-
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(ProjectViewModel model, IFormFile? ProjectImage)
     {
-
-        if (ProjectImage == null || ProjectImage.Length == 0)
-        {
-            ModelState.Remove("ProjectImage");
-        }
-
         if (!ModelState.IsValid)
         {
-            await PopulateViewModelAsync(model); 
+            await PopulateViewModelAsync(model);
             ViewBag.OpenEditModal = true;
-            return View("Index", model);
+            return PartialView("_EditProjectPartial", model);
         }
 
-        var form = model.Form;
-        if (ProjectImage == null || ProjectImage.Length == 0)
-        {
-            var existingProject = await _projectService.GetProjectAsync(form.Id);
-            if (existingProject.Succeeded && existingProject.Result != null)
-            {
-                form.ImageUrl = existingProject.Result.ImageUrl;
-            }
-        }
-        else
+        if (ProjectImage != null && ProjectImage.Length > 0)
         {
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".svg" };
             var extension = Path.GetExtension(ProjectImage.FileName).ToLowerInvariant();
@@ -368,10 +356,11 @@ public class ProjectController(
                 {
                     await ProjectImage.CopyToAsync(fileStream);
                 }
-                if (form.ImageUrl != null && !form.ImageUrl.Contains("project-template-1.svg"))
+
+                if (model.Form.ImageUrl != null && !model.Form.ImageUrl.Contains("project-template-1.svg"))
                 {
                     var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
-                        form.ImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                        model.Form.ImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
 
                     if (System.IO.File.Exists(oldFilePath))
                     {
@@ -386,30 +375,39 @@ public class ProjectController(
                     }
                 }
 
-                form.ImageUrl = $"/uploads/projects/{fileName}";
+                model.Form.ImageUrl = $"/uploads/projects/{fileName}";
             }
             else
             {
                 ModelState.AddModelError("ProjectImage", "Invalid file type. Allowed types: .jpg, .jpeg, .png, .gif, .svg");
                 await PopulateViewModelAsync(model);
                 ViewBag.OpenEditModal = true;
-                return View("Index", model);
+                return PartialView("_EditProjectPartial", model);
+            }
+        }
+        else
+        {
+            var existingProject = await _projectService.GetProjectAsync(model.Form.Id);
+            if (existingProject.Succeeded && existingProject.Result != null)
+            {
+                model.Form.ImageUrl = existingProject.Result.ImageUrl;
             }
         }
 
-        var updateResult = await _projectService.UpdateProjectAsync(form);
+        var result = await _projectService.UpdateProjectAsync(model.Form);
 
-        if (updateResult.Succeeded)
+        if (result.Succeeded)
         {
             ViewBag.SuccessMessage = "Project updated successfully.";
             return RedirectToAction(nameof(Index));
         }
-        ModelState.AddModelError(string.Empty, updateResult.Error ?? "Failed to update project");
+
+        ModelState.AddModelError(string.Empty, result.Error ?? "Failed to update project");
         await PopulateViewModelAsync(model);
         ViewBag.OpenEditModal = true;
-        return View("Index", model);
-
+        return PartialView("_EditProjectPartial", model);
     }
+
 
     [HttpGet]
     [Route("Project/Details/{id}")]

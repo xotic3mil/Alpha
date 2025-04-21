@@ -19,6 +19,5 @@ public class ServiceEntity
     [Required]
     public decimal Budget { get; set; }
 
-    // To see which Projects are using this service
     public ICollection<ProjectEntity>? Projects { get; set; } = [];
 }

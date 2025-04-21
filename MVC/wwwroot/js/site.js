@@ -1,6 +1,5 @@
 ﻿// Time & Task Global Navigation Functions
 
-// Open most recent project with time tab selected
 function openRecentTimeEntries() {
     // Get the most recent project the user has access to
     $.ajax({
@@ -21,7 +20,6 @@ function openRecentTimeEntries() {
     });
 }
 
-// Open time entry modal for most recent project
 function openLogTime() {
     $.ajax({
         url: '/Project/GetMostRecentProject',
@@ -44,7 +42,7 @@ function openLogTime() {
     });
 }
 
-// Open most recent project with tasks tab selected
+
 function openMyTasks() {
     $.ajax({
         url: '/Project/GetMostRecentProject',
@@ -63,7 +61,6 @@ function openMyTasks() {
     });
 }
 
-// Open create task modal for most recent project
 function openCreateTask() {
     $.ajax({
         url: '/Project/GetMostRecentProject',
@@ -91,8 +88,6 @@ function openCreateTask() {
     });
 }
 
-// Helper function to open project details with specific tab
-// Add this if it doesn't already exist
 function openProjectDetails(id) {
     if (!id) {
         console.error("Missing project ID");
@@ -167,7 +162,6 @@ function openProjectDetails(id) {
                 loadTimeEntrySummary(project.id);
             }
 
-            // Show the modal
             $('#projectDetailsModal').modal('show');
         },
         error: function (error) {
@@ -177,7 +171,7 @@ function openProjectDetails(id) {
     });
 }
 
-// Helper function to format dates
+
 function formatDateString(dateString) {
     if (!dateString) return null;
     const date = new Date(dateString);
@@ -185,7 +179,6 @@ function formatDateString(dateString) {
     return date.toLocaleDateString();
 }
 
-// Helper function to show alert when no project is available
 function showNoProjectAlert() {
     alert('You need to be assigned to at least one project to use this feature. Please join or create a project first.');
 }

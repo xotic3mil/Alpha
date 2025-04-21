@@ -299,7 +299,7 @@ function editTask(taskId) {
             }
 
             loadTaskAssignees(task.projectId, 'editTaskAssignee');
-            refreshSingleProjectCard(projectId);
+            refreshSingleProjectCard(task.projectId);
 
             setTimeout(() => {
                 if (task.assignedToId) {

@@ -1,7 +1,4 @@
-﻿/**
- * Project management functionality
- */
-
+﻿
 if (typeof commentConnection === 'undefined') {
     var commentConnection = null;
 }
@@ -204,6 +201,201 @@ function openProjectDetails(id) {
             snackbar.error('Failed to load project details. Please try again.');
         }
 
+    });
+}
+
+function openEditProjectModal(projectId) {
+    window.blockEditFormReset = true;
+
+    $.ajax({
+        url: `/Project/Edit?id=${projectId}`,
+        type: 'GET',
+        success: function (response) {
+            console.log("Using primary method: replacing edit modal content");
+            $('#editProjectModal').replaceWith($(response));
+            $('#editProjectModal').modal('show');
+
+            initializeEditModalEventHandlers();
+            if (typeof initQuillEditor === 'function') {
+                setTimeout(() => {
+                    initQuillEditor('editProjectDescription');
+                }, 100);
+            }
+
+            setTimeout(() => {
+                window.blockEditFormReset = false;
+            }, 500);
+        },
+        error: function (error) {
+            console.error('Error loading project edit form:', error);
+
+            populateEditModalFields(projectId);
+        }
+    });
+}
+
+function populateEditModalFields(projectId) {
+    clearEditValidationErrors();
+
+    fetch(`/Project/GetProjectById?id=${projectId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load project data');
+            }
+            return response.json();
+        })
+        .then(project => {
+            document.getElementById('editProjectId').value = project.id;
+            document.getElementById('editProjectName').value = project.name || '';
+            document.getElementById('editProjectDescription').value = project.description || '';
+
+            if (project.statusId) {
+                $('#editProjectStatusId').val(project.statusId).trigger('change');
+            }
+            if (project.serviceId) {
+                $('#editProjectServiceId').val(project.serviceId).trigger('change');
+            }
+            if (project.customerId) {
+                $('#editProjectCustomerId').val(project.customerId).trigger('change');
+            }
+            const descriptionTextarea = document.getElementById('editProjectDescription');
+            if (descriptionTextarea) {
+                if (typeof initQuillEditor === 'function' && !descriptionTextarea.quill) {
+                    setTimeout(() => {
+                        const quill = initQuillEditor('editProjectDescription');
+                        if (quill && project.description) {
+                            quill.clipboard.dangerouslyPasteHTML(project.description);
+                        }
+                    }, 100);
+                } else if (descriptionTextarea.quill && project.description) {
+                    descriptionTextarea.quill.clipboard.dangerouslyPasteHTML(project.description);
+                }
+            }
+            const editImagePreview = document.getElementById('editImagePreview');
+            const editDefaultImage = document.getElementById('editDefaultProjectImage');
+
+            if (document.getElementById('Form_ImageUrl')) {
+                document.getElementById('Form_ImageUrl').value = project.imageUrl || '';
+            }
+
+            if (project.imageUrl && project.imageUrl !== '/images/project-template-1.svg') {
+                editImagePreview.src = project.imageUrl;
+                editImagePreview.classList.remove('d-none');
+                if (editDefaultImage) editDefaultImage.style.display = 'none';
+            } else {
+                editImagePreview.classList.add('d-none');
+                if (editDefaultImage) editDefaultImage.style.display = 'block';
+            }
+
+            if (project.startDate) {
+                const startDate = project.startDate.split('T')[0];
+                document.getElementById('editProjectStartDate').value = startDate;
+            }
+            if (project.endDate) {
+                const endDate = project.endDate.split('T')[0];
+                document.getElementById('editProjectEndDate').value = endDate;
+            }
+
+            $('#editProjectModal').modal('show');
+
+            setTimeout(() => {
+                window.blockEditFormReset = false;
+            }, 500);
+        })
+        .catch(error => {
+            console.error('Error fetching project details:', error);
+            alert('Failed to load project details. Please try again.');
+            window.blockEditFormReset = false;
+        });
+}
+
+function initializeEditModalEventHandlers() {
+    $('#editProjectForm').off('submit').on('submit', function (e) {
+        e.preventDefault();
+
+        if (!validateEditProjectForm()) {
+            return false;
+        }
+
+        const formData = new FormData(this);
+
+        const projectImageInput = document.getElementById('editProjectImage');
+        if (projectImageInput && projectImageInput.files.length === 0) {
+            projectImageInput.removeAttribute('name');
+        }
+
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (typeof response === 'string' && response.includes('field-validation-error') &&
+                    $(response).find('.field-validation-error').text().trim() !== '') {
+
+                    $('#editProjectModal .modal-content').html($(response).find('.modal-content').html());
+
+                    initializeEditModalEventHandlers();
+                } else {
+                    $('#editProjectModal').modal('hide');
+
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success('Project updated successfully!');
+                    } else {
+                        alert('Project updated successfully!');
+                    }
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error updating project:', error);
+                alert('An error occurred while updating the project. Please try again.');
+            }
+        });
+    });
+
+    const editDropArea = document.getElementById('editDropArea');
+    const editProjectImageInput = document.getElementById('editProjectImage');
+    const editCameraOverlay = document.getElementById('editCameraOverlay');
+
+    if (editDropArea && editProjectImageInput) {
+        editDropArea.addEventListener('click', function () {
+            editProjectImageInput.click();
+        });
+
+        if (editCameraOverlay) {
+            editDropArea.addEventListener('mouseenter', function () {
+                editCameraOverlay.style.opacity = '1';
+            });
+
+            editDropArea.addEventListener('mouseleave', function () {
+                editCameraOverlay.style.opacity = '0';
+            });
+        }
+    }
+
+    if (editProjectImageInput) {
+        editProjectImageInput.addEventListener('change', function (e) {
+            if (e.target.files && e.target.files[0]) {
+                handleEditImageFile(e.target.files[0]);
+            }
+        });
+    }
+}
+
+function clearEditValidationErrors() {
+    const errorElements = document.querySelectorAll('#editProjectForm .field-validation-error');
+    errorElements.forEach(el => {
+        el.textContent = '';
+    });
+
+    const invalidInputs = document.querySelectorAll('#editProjectForm .is-invalid');
+    invalidInputs.forEach(input => {
+        input.classList.remove('is-invalid');
     });
 }
 
@@ -766,7 +958,6 @@ $('#projectDetailsModal').on('hidden.bs.modal', function () {
         commentConnection.stop();
     }
 });
-
 
 $(document).ready(function () {
     if ($('#confirmationModal').length === 0) {

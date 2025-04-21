@@ -74,7 +74,9 @@ public class ProjectService(IProjectRespository projectRespository, IStatusTypeS
             (
                 where: x => x.Id == id,
                 include => include.Status,
-                include => include.Customer
+                include => include.Customer,
+                include => include.Service,
+                include => include.Users
             );
         return response.Succeeded
             ? new ProjectResult<Project> { Succeeded = true, StatusCode = 200, Result = response.Result }

@@ -1,4 +1,5 @@
 ﻿using Business.Interfaces;
+using Business.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,28 +7,58 @@ using Microsoft.AspNetCore.Mvc;
 namespace MVC.Controllers
 {
     [Authorize]
-    public class ProjectMembershipController(IProjectMembershipService projectMembershipService) : Controller
+    public class ProjectMembershipController(IProjectMembershipService projectMembershipService, IUserService userService) : Controller
     {
         private readonly IProjectMembershipService _projectMembershipService = projectMembershipService;
+        private readonly IUserService _userService = userService;
 
         [HttpGet]
-        public async Task<IActionResult> GetAvailableUsers(Guid projectId)
+        public async Task<IActionResult> GetAvailableUsers(Guid? projectId = null)
         {
-            var result = await _projectMembershipService.GetAvailableUsersForProjectAsync(projectId);
-            if (!result.Succeeded)
-                return Json(new { success = false, message = result.Error });
-
-            return Json(new
+            try
             {
-                success = true,
-                users = result.Result.Select(u => new
+                if (projectId.HasValue && projectId.Value != Guid.Empty)
                 {
-                    id = u.Id,
-                    name = $"{u.FirstName} {u.LastName}",
-                    email = u.Email,
-                    avatarUrl = u.AvatarUrl ?? "/images/avatar-template-1.svg"
-                })
-            });
+                    var result = await _projectMembershipService.GetAvailableUsersForProjectAsync(projectId.Value);
+                    if (!result.Succeeded)
+                        return Json(new { success = false, message = result.Error });
+
+                    return Json(new
+                    {
+                        success = true,
+                        users = result.Result.Select(u => new
+                        {
+                            id = u.Id,
+                            name = $"{u.FirstName} {u.LastName}",
+                            email = u.Email,
+                            avatarUrl = u.AvatarUrl ?? "/images/avatar-template-1.svg"
+                        })
+                    });
+                }
+                else
+                {
+                    var userResult = await _userService.GetUsersAsync();
+
+                    if (!userResult.Succeeded)
+                        return Json(new { success = false, message = userResult.Error });
+
+                    return Json(new
+                    {
+                        success = true,
+                        users = userResult.Result.Select(u => new
+                        {
+                            id = u.Id,
+                            name = $"{u.FirstName} {u.LastName}",
+                            email = u.Email,
+                            avatarUrl = u.AvatarUrl ?? "/images/avatar-template-1.svg"
+                        })
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         [HttpPost]

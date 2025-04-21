@@ -67,6 +67,13 @@
                         <input type="tel" id="Form_PhoneNumber" name="PhoneNumber" class="form-control" placeholder="Enter phone number" />
                         <span class="field-validation-error text-danger"></span>
                     </div>
+
+                    <div class="mb-3">
+                        <label for="Form_Title" class="form-label">Job Title</label>
+                        <input type="text" id="Form_Title" name="Title" class="form-control" placeholder="Enter job title" />
+                        <span class="field-validation-error text-danger"></span>
+                    </div>
+
                     <div class="mb-3">
                         <label for="Form_Role" class="form-label">Role *</label>
                         <select id="Form_Role" name="selectedRole" class="form-select">
@@ -393,12 +400,10 @@
             const toast = new bootstrap.Toast(toastElement);
             toast.show();
             
-            // Auto remove toast after it's hidden
             toastElement.addEventListener('hidden.bs.toast', function() {
                 toastElement.remove();
             });
         } else {
-            // Fallback to alert if no toast system is available
             alert(`${title}: ${message}`);
         }
     }

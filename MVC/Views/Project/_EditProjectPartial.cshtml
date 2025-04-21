@@ -17,11 +17,11 @@
             </div>
             <div class="modal-body">
                 <div class="container-fluid px-3">
-                    <form id="editProjectForm" method="post" enctype="multipart/form-data" action="@Url.Action("Edit", "Project")"
+                    <form id="editProjectForm" method="post" enctype="multipart/form-data" asp-action="Edit" asp-controller="Project"
                           onsubmit="return validateEditProjectForm(event)">
-                        @Html.ValidationSummary(true, "", new { @class = "text-danger", id = "edit-validation-summary" })
+                        <div asp-validation-summary="ModelOnly" class="text-danger" id="edit-validation-summary"></div>
                         @Html.AntiForgeryToken()
-                        <input type="hidden" id="editProjectId" name="Form.Id" />
+                        <input type="hidden" id="editProjectId" asp-for="Form.Id" />
                         <div class="mb-4">
                             <div class="d-flex flex-column align-items-center">
                                 <div class="flex-grow-1 text-center">
@@ -43,64 +43,53 @@
                                     </div>
                                     <input type="file" id="editProjectImage" name="ProjectImage" class="d-none" accept="image/*" />
                                     <input type="hidden" id="editImageSelected" name="EditImageSelected" value="false" />
+                                    <input type="hidden" asp-for="Form.ImageUrl" />
                                     <p class="text-muted small">Click to change project image</p>
                                 </div>
                             </div>
                         </div>
                         <div class="mb-3">
-                            @Html.LabelFor(m => m.Form.Name, new { @class = "form-label" })
-                            <input type="text" id="editProjectName" name="Form.Name" class="form-control formBorder" placeholder="Project name" required="required" />
-                            <span class="text-danger field-validation-error" id="editNameError"></span>
+                            <label asp-for="Form.Name" class="form-label"></label>
+                            <input asp-for="Form.Name" id="editProjectName" class="form-control formBorder" placeholder="Project name" required="required" />
+                            <span asp-validation-for="Form.Name" class="text-danger field-validation-error" id="editNameError"></span>
                         </div>
                         <div class="mb-3">
-                            @Html.LabelFor(m => m.Form.StatusId, new { @class = "form-label" })
-                            <select id="editProjectStatusId" name="Form.StatusId" class="form-control formBorder" required="required">
+                            <label asp-for="Form.StatusId" class="form-label"></label>
+                            <select asp-for="Form.StatusId" id="editProjectStatusId" asp-items="@(new SelectList(Model.Statuses, "Id", "StatusName", Model.Form.StatusId))" class="form-control formBorder" required="required">
                                 <option value="">Select Status</option>
-                                @foreach (var status in Model.Statuses)
-                                {
-                                    <option value="@status.Id">@status.StatusName</option>
-                                }
                             </select>
-                            <span class="text-danger field-validation-error" id="editStatusError"></span>
+                            <span asp-validation-for="Form.StatusId" class="text-danger field-validation-error" id="editStatusError"></span>
                         </div>
                         <div class="mb-3">
-                            @Html.LabelFor(m => m.Form.Description, new { @class = "form-label" })
-                            @Html.TextAreaFor(m => m.Form.Description, new { @id = "editProjectDescription", @class = "form-control formBorder", @placeholder = "Brief description of the project", @required = "required", data_quill_editor = "" })
-                            <span class="text-danger field-validation-error" id="editDescriptionError"></span>
+                            <label asp-for="Form.Description" class="form-label"></label>
+                            <textarea asp-for="Form.Description" id="editProjectDescription" class="form-control formBorder" placeholder="Brief description of the project" required="required" data-quill-editor></textarea>
+                            <span asp-validation-for="Form.Description" class="text-danger field-validation-error" id="editDescriptionError"></span>
                         </div>
                         <div class="mb-3">
-                            @Html.LabelFor(m => m.Form.ServiceId, new { @class = "form-label" })
-                            <select id="editProjectServiceId" name="Form.ServiceId" class="form-control formBorder" required="required">
+                            <label asp-for="Form.ServiceId" class="form-label"></label>
+                            <select asp-for="Form.ServiceId" id="editProjectServiceId" asp-items="@(new SelectList(Model.Services, "Id", "ServiceName", Model.Form.ServiceId))" class="form-control formBorder" required="required">
                                 <option value="">Select Service</option>
-                                @foreach (var service in Model.Services)
-                                {
-                                    <option value="@service.Id">@service.ServiceName</option>
-                                }
                             </select>
-                            <span class="text-danger field-validation-error" id="editServiceError"></span>
+                            <span asp-validation-for="Form.ServiceId" class="text-danger field-validation-error" id="editServiceError"></span>
                         </div>
                         <div class="mb-3">
-                            @Html.LabelFor(m => m.Form.CustomerId, new { @class = "form-label" })
-                            <select id="editProjectCustomerId" name="Form.CustomerId" class="form-control formBorder" required="required">
+                            <label asp-for="Form.CustomerId" class="form-label"></label>
+                            <select asp-for="Form.CustomerId" id="editProjectCustomerId" asp-items="@(new SelectList(Model.Customers, "Id", "CompanyName", Model.Form.CustomerId))" class="form-control formBorder" required="required">
                                 <option value="">Select Customer</option>
-                                @foreach (var customer in Model.Customers)
-                                {
-                                    <option value="@customer.Id">@customer.CompanyName</option>
-                                }
                             </select>
-                            <span class="text-danger field-validation-error" id="editCustomerError"></span>
+                            <span asp-validation-for="Form.CustomerId" class="text-danger field-validation-error" id="editCustomerError"></span>
                         </div>
                         <div class="mb-3">
                             <div class="row">
                                 <div class="col-md-6">
-                                    @Html.LabelFor(m => m.Form.StartDate, new { @class = "form-label" })
-                                    <input type="date" id="editProjectStartDate" name="Form.StartDate" class="form-control formBorder" required="required" />
-                                    <span class="text-danger field-validation-error" id="editStartDateError"></span>
+                                    <label asp-for="Form.StartDate" class="form-label"></label>
+                                    <input asp-for="Form.StartDate" id="editProjectStartDate" type="date" class="form-control formBorder" required="required" />
+                                    <span asp-validation-for="Form.StartDate" class="text-danger field-validation-error" id="editStartDateError"></span>
                                 </div>
                                 <div class="col-md-6">
-                                    @Html.LabelFor(m => m.Form.EndDate, new { @class = "form-label" })
-                                    <input type="date" id="editProjectEndDate" name="Form.EndDate" class="form-control formBorder" required="required" />
-                                    <span class="text-danger field-validation-error" id="editEndDateError"></span>
+                                    <label asp-for="Form.EndDate" class="form-label"></label>
+                                    <input asp-for="Form.EndDate" id="editProjectEndDate" type="date" class="form-control formBorder" required="required" />
+                                    <span asp-validation-for="Form.EndDate" class="text-danger field-validation-error" id="editEndDateError"></span>
                                 </div>
                             </div>
                         </div>
@@ -114,300 +103,4 @@
     </div>
 </div>
 
-<script>
-    console.log('EditProjectPartial script loaded');
 
-    function clearEditValidationErrors() {
-        const errorElements = document.querySelectorAll('#editProjectForm .field-validation-error');
-        errorElements.forEach(el => {
-            el.textContent = '';
-        });
-
-        const invalidInputs = document.querySelectorAll('#editProjectForm .is-invalid');
-        invalidInputs.forEach(input => {
-            input.classList.remove('is-invalid');
-        });
-    }
-
-    function resetEditModalForm() {
-        const form = document.getElementById('editProjectForm');
-        if (form) form.reset();
-
-        clearEditValidationErrors();
-        const defaultImg = document.getElementById('editDefaultProjectImage');
-        const previewImg = document.getElementById('editImagePreview');
-
-        if (defaultImg) defaultImg.style.display = 'block';
-        if (previewImg) {
-            previewImg.classList.add('d-none');
-            previewImg.src = '#';
-        }
-
-        console.log('Edit form reset complete');
-    }
-
-    function validateEditProjectForm(event) {
-        clearEditValidationErrors();
-        let isValid = true;
-
-        const nameField = document.getElementById('editProjectName');
-        if (!nameField.value.trim()) {
-            document.getElementById('editNameError').textContent = 'Project name is required.';
-            nameField.classList.add('is-invalid');
-            isValid = false;
-        }
-
-        const statusField = document.getElementById('editProjectStatusId');
-        if (!statusField.value || statusField.value === '') {
-            document.getElementById('editStatusError').textContent = 'Status is required.';
-            statusField.classList.add('is-invalid');
-            isValid = false;
-        }
-
-        const descriptionField = document.getElementById('editProjectDescription');
-        if (!descriptionField.value.trim()) {
-            document.getElementById('editDescriptionError').textContent = 'Description is required.';
-            descriptionField.classList.add('is-invalid');
-            isValid = false;
-        }
-
-        const serviceField = document.getElementById('editProjectServiceId');
-        if (!serviceField.value || serviceField.value === '') {
-            document.getElementById('editServiceError').textContent = 'Service is required.';
-            serviceField.classList.add('is-invalid');
-            isValid = false;
-        }
-
-        const customerField = document.getElementById('editProjectCustomerId');
-        if (!customerField.value || customerField.value === '') {
-            document.getElementById('editCustomerError').textContent = 'Customer is required.';
-            customerField.classList.add('is-invalid');
-            isValid = false;
-        }
-
-        const startDateField = document.getElementById('editProjectStartDate');
-        if (!startDateField.value) {
-            document.getElementById('editStartDateError').textContent = 'Start date is required.';
-            startDateField.classList.add('is-invalid');
-            isValid = false;
-        }
-
-        const endDateField = document.getElementById('editProjectEndDate');
-        if (!endDateField.value) {
-            document.getElementById('editEndDateError').textContent = 'End date is required.';
-            endDateField.classList.add('is-invalid');
-            isValid = false;
-        }
-
-        if (startDateField.value && endDateField.value) {
-            const startDate = new Date(startDateField.value);
-            const endDate = new Date(endDateField.value);
-
-            if (endDate < startDate) {
-                document.getElementById('editEndDateError').textContent = 'End date must be after start date.';
-                endDateField.classList.add('is-invalid');
-                isValid = false;
-            }
-        }
-
-        return isValid;
-    }
-
-    function handleEditImageFile(file) {
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const defaultImg = document.getElementById('editDefaultProjectImage');
-                const imagePreview = document.getElementById('editImagePreview');
-
-                document.getElementById('editImageSelected').value = 'true';
-
-                if (defaultImg) defaultImg.style.display = 'none';
-
-                if (imagePreview) {
-                    imagePreview.src = event.target.result;
-                    imagePreview.classList.remove('d-none');
-                }
-
-                const cameraOverlay = document.getElementById('editCameraOverlay');
-                if (cameraOverlay) cameraOverlay.style.opacity = '0';
-
-                console.log('Edit image preview updated successfully');
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function preventEditDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    function highlightEdit() {
-        const dropArea = document.getElementById('editDropArea');
-        const cameraOverlay = document.getElementById('editCameraOverlay');
-
-        if (dropArea) dropArea.classList.add('bg-light');
-        if (cameraOverlay) cameraOverlay.style.opacity = '1';
-    }
-
-    function unhighlightEdit() {
-        const dropArea = document.getElementById('editDropArea');
-        const cameraOverlay = document.getElementById('editCameraOverlay');
-
-        if (dropArea) dropArea.classList.remove('bg-light');
-        if (cameraOverlay) cameraOverlay.style.opacity = '0';
-    }
-
-    function handleEditDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        if (files.length && files[0].type.startsWith('image/')) {
-            handleEditImageFile(files[0]);
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM fully loaded, setting up edit project handlers');
-
-        const editFormInputs = document.querySelectorAll('#editProjectForm input:not(#editProjectImage), #editProjectForm select, #editProjectForm textarea');
-        editFormInputs.forEach(input => {
-            input.addEventListener('input', function() {
-                if (this.classList.contains('is-invalid')) {
-                    this.classList.remove('is-invalid');
-                    let fieldId = this.id.replace('editProject', '').toLowerCase();
-                    const errorSpan = document.getElementById('edit' + fieldId.charAt(0).toUpperCase() + fieldId.slice(1) + 'Error');
-                    if (errorSpan) {
-                        errorSpan.textContent = '';
-                    }
-                }
-            });
-        });
-
-        const editModal = document.getElementById('editProjectModal');
-        const editDropArea = document.getElementById('editDropArea');
-        const editCameraOverlay = document.getElementById('editCameraOverlay');
-        const editProjectImageInput = document.getElementById('editProjectImage');
-
-        if (editModal) {
-            editModal.addEventListener('hidden.bs.modal', function() {
-                try {
-                    resetEditModalForm();
-                    console.log('Edit modal form reset successfully');
-                } catch (error) {
-                    console.error('Error resetting edit modal form:', error);
-                }
-            });
-
-            editModal.addEventListener('show.bs.modal', function() {
-                clearEditValidationErrors();
-            });
-
-            const closeButton = editModal.querySelector('.btn-close');
-            if (closeButton) {
-                closeButton.addEventListener('click', function() {
-                    resetEditModalForm();
-                });
-            }
-        }
-
-        if (editDropArea && editCameraOverlay) {
-            editDropArea.addEventListener('mouseenter', function() {
-                editCameraOverlay.style.opacity = '1';
-            });
-
-            editDropArea.addEventListener('mouseleave', function() {
-                editCameraOverlay.style.opacity = '0';
-            });
-
-            editDropArea.addEventListener('click', function() {
-                if (editProjectImageInput) {
-                    editProjectImageInput.click();
-                }
-            });
-
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                editDropArea.addEventListener(eventName, preventEditDefaults, false);
-            });
-
-            ['dragenter', 'dragover'].forEach(eventName => {
-                editDropArea.addEventListener(eventName, highlightEdit, false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                editDropArea.addEventListener(eventName, unhighlightEdit, false);
-            });
-
-            editDropArea.addEventListener('drop', handleEditDrop, false);
-        }
-
-        if (editProjectImageInput) {
-            editProjectImageInput.addEventListener('change', function(e) {
-                if (e.target.files && e.target.files[0]) {
-                    handleEditImageFile(e.target.files[0]);
-                }
-            });
-        } else {
-            console.error('editProjectImage input not found');
-        }
-
-        const editProjectForm = document.getElementById('editProjectForm');
-        if (editProjectForm) {
-            editProjectForm.addEventListener('submit', function(e) {
-                const projectImageInput = document.getElementById('editProjectImage');
-                if (projectImageInput && projectImageInput.files.length === 0) {
-                    projectImageInput.removeAttribute('name');
-                    console.log('Removed name attribute from empty edit file input');
-                }
-            });
-        }
-    });
-
-    function openEditProjectModal(projectId) {
-        fetch(`/Project/GetProjectById?id=${projectId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to load project data');
-                }
-                return response.json();
-            })
-            .then(project => {
-                document.getElementById('editProjectId').value = project.id;
-                document.getElementById('editProjectName').value = project.name;
-                document.getElementById('editProjectDescription').value = project.description;
-                document.getElementById('editProjectStatusId').value = project.statusId;
-                document.getElementById('editProjectServiceId').value = project.serviceId;
-                document.getElementById('editProjectCustomerId').value = project.customerId;
-
-                const editImagePreview = document.getElementById('editImagePreview');
-                const editDefaultImage = document.getElementById('editDefaultProjectImage');
-
-                if (project.imageUrl && project.imageUrl !== '/images/project-template-1.svg') {
-                    editImagePreview.src = project.imageUrl;
-                    editImagePreview.classList.remove('d-none');
-                    if (editDefaultImage) editDefaultImage.style.display = 'none';
-                } else {
-                    editImagePreview.classList.add('d-none');
-                    if (editDefaultImage) editDefaultImage.style.display = 'block';
-                }
-
-                if (project.startDate) {
-                    const startDate = project.startDate.split('T')[0];
-                    document.getElementById('editProjectStartDate').value = startDate;
-                }
-                if (project.endDate) {
-                    const endDate = project.endDate.split('T')[0];
-                    document.getElementById('editProjectEndDate').value = endDate;
-                }
-
-                clearEditValidationErrors();
-
-                const editProjectModal = new bootstrap.Modal(document.getElementById('editProjectModal'));
-                editProjectModal.show();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to load project data. Please try again.');
-            });
-    }
-</script>

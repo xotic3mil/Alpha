@@ -53,7 +53,14 @@ namespace MVC.Controllers
                 return BadRequest("Invalid user ID");
             }
 
-            var userEntity = await _userManager.FindByIdAsync(id.ToString());
+            // Get user with projects included
+            var userEntity = await _userManager.Users
+                .Include(u => u.Projects)
+                    .ThenInclude(p => p.Status)
+                .Include(u => u.Projects)
+                    .ThenInclude(p => p.Customer)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
             if (userEntity == null)
             {
                 return NotFound("User not found");
@@ -61,6 +68,40 @@ namespace MVC.Controllers
 
             var user = userEntity.MapTo<User>();
 
+            var roles = await _userManager.GetRolesAsync(userEntity);
+            user.RoleName = roles.FirstOrDefault();
+
+            if (userEntity.Projects != null && userEntity.Projects.Any())
+            {
+                var activeProjects = userEntity.Projects
+                    .Where(p => p.Status == null ||
+                          !p.Status.StatusName.Equals("Completed", StringComparison.OrdinalIgnoreCase))
+                    .Select(p => new {
+                        id = p.Id,
+                        name = p.Name,
+                        description = p.Description,
+                        statusId = p.StatusId,
+                        status = p.Status != null ? new
+                        {
+                            name = p.Status.StatusName,
+                            colorCode = p.Status.ColorCode
+                        } : null
+                    })
+                    .ToList();
+
+                return Json(new
+                {
+                    id = user.Id,
+                    firstName = user.FirstName,
+                    lastName = user.LastName,
+                    email = user.Email,
+                    phoneNumber = user.PhoneNumber,
+                    title = user.Title,
+                    avatarUrl = user.AvatarUrl,
+                    roleName = user.RoleName,
+                    projects = activeProjects
+                });
+            }
             return Json(user);
         }
 
@@ -224,25 +265,31 @@ namespace MVC.Controllers
 
         private async Task PopulateViewModelAsync(MemberViewModel model)
         {
-            try
-            {
-                var userEntities = await _userManager.Users.ToListAsync();
+    try
+    {
+        var userEntities = await _userManager.Users.ToListAsync();
 
-                var users = userEntities.Select(entity => {
-                    var user = entity.MapTo<User>();
-                    if (string.IsNullOrEmpty(user.AvatarUrl))
-                    {
-                        user.AvatarUrl = "/images/member-template-1.svg";
-                    }
-                    return user;
-                }).ToList();
-
-                model.Users = users;
-            }
-            catch (Exception ex)
+        var users = new List<User>();
+        foreach (var entity in userEntities)
+        {
+            var user = entity.MapTo<User>();
+            if (string.IsNullOrEmpty(user.AvatarUrl))
             {
-                model.Users = new List<User>();
+                user.AvatarUrl = "/images/avatar-template-1.svg";
             }
+            
+            var roles = await _userManager.GetRolesAsync(entity);
+            user.RoleName = roles.FirstOrDefault(); 
+            
+            users.Add(user);
+        }
+
+        model.Users = users;
+    }
+    catch (Exception ex)
+    {
+        model.Users = new List<User>();
+    }
         }
     }
 }
