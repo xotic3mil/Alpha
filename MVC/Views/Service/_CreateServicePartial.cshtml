@@ -23,7 +23,7 @@
             </div>
             <div class="modal-body">
                 <div class="container-fluid px-4">
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Create" method="post" id="createServiceForm" data-validate="true">
                         @Html.AntiForgeryToken()
                         <div class="mb-3">
                             <label for="Form_ServiceName" class="form-label">Service Name</label>
@@ -31,29 +31,42 @@
                                    name="Form.ServiceName"
                                    class="form-control formBorder"
                                    id="Form_ServiceName"
-                                   placeholder="Enter service name" />
+                                   placeholder="Enter service name"
+                                   required
+                                   data-val="true"
+                                   data-val-required="Service name is required" />
                             <span class="text-danger" asp-validation-for="Form.ServiceName"></span>
                         </div>
                         <div class="mb-3">
-                            <label for="Form_ServiceDescription" class="form-label">Description</label>
-                            <textarea class="form-control formBorder" 
-                                      id="Form_ServiceDescription" 
-                                      name="Form.ServiceDescription" 
-                                      rows="3" 
-                                      placeholder="Describe this service"></textarea>
-                            <span class="text-danger" asp-validation-for="Form.ServiceDescription"></span>
-                        </div>
-                        <div class="mb-3">
-                            <label for="Form_Budget" class="form-label">Budget ($)</label>
-                            <input type="number" 
-                                   step="0.01" 
-                                   class="form-control formBorder" 
-                                   id="Form_Budget" 
-                                   name="Form.Budget" 
-                                   placeholder="Enter budget amount" />
+                            <label for="Form_Budget" class="form-label">Budget</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number"
+                                       name="Form.Budget"
+                                       class="form-control formBorder"
+                                       id="Form_Budget"
+                                       placeholder="Enter budget amount"
+                                       step="0.01"
+                                       min="0"
+                                       required
+                                       data-val="true"
+                                       data-val-required="Budget is required" />
+                            </div>
                             <span class="text-danger" asp-validation-for="Form.Budget"></span>
                         </div>
-                        <div class="d-flex justify-content-center mb-4 ">
+                        <div class="mb-3">
+                            <label for="Form_ServiceDescription" class="form-label">Description</label>
+                            <textarea class="form-control formBorder"
+                                      id="Form_ServiceDescription"
+                                      name="Form.ServiceDescription"
+                                      rows="3"
+                                      placeholder="Describe the service"
+                                      required
+                                      data-val="true"
+                                      data-val-required="Description is required"></textarea>
+                            <span class="text-danger" asp-validation-for="Form.ServiceDescription"></span>
+                        </div>
+                        <div class="d-flex justify-content-center mb-4">
                             <button type="submit" class="btnAuth">Create Service</button>
                         </div>
                     </form>

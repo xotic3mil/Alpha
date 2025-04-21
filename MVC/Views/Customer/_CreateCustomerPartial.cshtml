@@ -23,75 +23,56 @@
             </div>
             <div class="modal-body">
                 <div class="container-fluid px-4 ">
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Create" method="post" id="createCustomerForm" data-validate="true">
                         @Html.AntiForgeryToken()
                         <div class="mb-3">
-                            <label for="Form_CompanyName" class="form-label">Company Name *</label>
+                            <label for="Form_CompanyName" class="form-label">Company Name</label>
                             <input type="text"
                                    name="Form.CompanyName"
                                    class="form-control formBorder"
                                    id="Form_CompanyName"
                                    placeholder="Enter company name"
-                                   required />
+                                   required
+                                   data-val="true"
+                                   data-val-required="Company name is required" />
                             <span class="text-danger" asp-validation-for="Form.CompanyName"></span>
                         </div>
                         <div class="mb-3">
-                            <label for="Form_ContactName" class="form-label">Contact Person</label>
+                            <label for="Form_ContactPerson" class="form-label">Contact Person</label>
                             <input type="text"
-                                   name="Form.ContactName"
+                                   name="Form.ContactPerson"
                                    class="form-control formBorder"
-                                   id="Form_ContactName"
-                                   placeholder="Enter contact person's name" />
+                                   id="Form_ContactPerson"
+                                   placeholder="Enter contact person's name"
+                                   required
+                                   data-val="true"
+                                   data-val-required="Contact person is required" />
                             <span class="text-danger" asp-validation-for="Form.ContactName"></span>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label for="Form_Email" class="form-label">Email Address</label>
-                                <input type="email"
-                                       name="Form.Email"
-                                       class="form-control formBorder"
-                                       id="Form_Email"
-                                       placeholder="Enter email address" />
-                                <span class="text-danger" asp-validation-for="Form.Email"></span>
-                            </div>
-                            <div class="col">
-                                <label for="Form_PhoneNumber" class="form-label">Phone Number</label>
-                                <input type="tel"
-                                       name="Form.PhoneNumber"
-                                       class="form-control formBorder"
-                                       id="Form_PhoneNumber"
-                                       placeholder="Enter phone number" />
-                                <span class="text-danger" asp-validation-for="Form.PhoneNumber"></span>
-                            </div>
+                        <div class="mb-3">
+                            <label for="Form_Email" class="form-label">Email</label>
+                            <input type="email"
+                                   name="Form.Email"
+                                   class="form-control formBorder"
+                                   id="Form_Email"
+                                   placeholder="Enter email address"
+                                   required
+                                   data-val="true"
+                                   data-val-required="Email is required"
+                                   data-val-email="Please enter a valid email address" />
+                            <span class="text-danger" asp-validation-for="Form.Email"></span>
                         </div>
                         <div class="mb-3">
-                            <label for="Form_Address" class="form-label">Address</label>
-                            <input type="text"
-                                   name="Form.Address"
+                            <label for="Form_Phone" class="form-label">Phone</label>
+                            <input type="tel"
+                                   name="Form.Phone"
                                    class="form-control formBorder"
-                                   id="Form_Address"
-                                   placeholder="Enter street address" />
-                            <span class="text-danger" asp-validation-for="Form.Address"></span>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label for="Form_City" class="form-label">City</label>
-                                <input type="text"
-                                       name="Form.City"
-                                       class="form-control formBorder"
-                                       id="Form_City"
-                                       placeholder="Enter city" />
-                                <span class="text-danger" asp-validation-for="Form.City"></span>
-                            </div>
-                            <div class="col">
-                                <label for="Form_Country" class="form-label">Country</label>
-                                <input type="text"
-                                       name="Form.Country"
-                                       class="form-control formBorder"
-                                       id="Form_Country"
-                                       placeholder="Enter country" />
-                                <span class="text-danger" asp-validation-for="Form.Country"></span>
-                            </div>
+                                   id="Form_Phone"
+                                   placeholder="Enter phone number"
+                                   required
+                                   data-val="true"
+                                   data-val-required="Phone number is required" />
+                            <span class="text-danger" asp-validation-for="Form.PhoneNumber"></span>
                         </div>
                         <div class="d-flex justify-content-center mb-4">
                             <button type="submit" class="btnAuth">Create Customer</button>

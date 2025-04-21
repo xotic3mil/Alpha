@@ -23,7 +23,7 @@
             </div>
             <div class="modal-body">
                 <div class="container-fluid px-4">
-                    <form asp-action="Edit" method="post">
+                    <form asp-action="Edit" method="post" id="editServiceForm" data-validate="true">
                         @Html.AntiForgeryToken()
                         <input type="hidden" id="Form_Id" name="Form.Id" />
                         <div class="mb-3">

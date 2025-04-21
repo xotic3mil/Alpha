@@ -23,7 +23,7 @@
             </div>
             <div class="modal-body">
                 <div class="container-fluid px-4">
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Create" method="post" id="createStatusForm" data-validate="true">
                         @Html.AntiForgeryToken()
                         <div class="mb-3">
                             <label for="Form_StatusName" class="form-label">Status Name</label>
@@ -33,7 +33,9 @@
                                        class="form-control formBorder"
                                        id="Form_StatusName"
                                        placeholder="Enter status name"
-                                       required />
+                                       required
+                                       data-val="true"
+                                       data-val-required="Status name is required" />
                                 <input type="color"
                                        name="Form.ColorCode"
                                        asp-for="Form.ColorCode"
@@ -52,7 +54,9 @@
                                       name="Form.Description"
                                       rows="3"
                                       placeholder="Describe what this status means"
-                                      required></textarea>
+                                      required
+                                      data-val="true"
+                                      data-val-required="Description is required"></textarea>
                             <span class="text-danger" asp-validation-for="Form.Description"></span>
                         </div>
                         <div class="d-flex justify-content-center mb-4 ">
