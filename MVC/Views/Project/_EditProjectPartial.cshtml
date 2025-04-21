@@ -73,7 +73,7 @@
                                     <span class="input-group-text">
                                         <i class="bi bi-search"></i>
                                     </span>
-                                    <input type="text" id="editUserSearchInput" class="form-control formBorder" placeholder="Add team members...">
+                                    <input type="text" id="editUserSearchInput" class="form-control formBorder" placeholder="Add or remove team members...">
                                 </div>
                                 <div id="editSelectedMembersContainer" class="d-flex flex-wrap gap-1 mb-2">
                                 </div>
@@ -618,10 +618,8 @@
 
             $('#editProjectId').val(projectId);
             $(this).data('project-id', projectId);
-
             editSelectedMembers = [];
             editSelectedMembersContainer.innerHTML = '';
-
             loadEditAvailableUsers(projectId);
 
             $.ajax({
