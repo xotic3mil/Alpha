@@ -306,6 +306,11 @@ body.dark-mode .notification-item.unread {
         background-color: #155bc1;
     }
 
+.btn-primary {
+    background: var(--accent) !important;
+    border: none !important;
+}
+
 .btnGoogle {
     display: inline-flex;
     padding: 14px 137px 14px 16px;
@@ -530,8 +535,6 @@ body.dark-mode .formBorder {
     border-radius: 0.25rem;
 }
 
-
-
 @media (max-width: 768px) {
     .search {
         width: 100%;
@@ -565,11 +568,14 @@ body.dark-mode .formBorder {
 .sidebar .nav-link.active {
     display: flex;
     padding: 17px 128px 17px 17px;
-    align-items: flex-start;
     gap: 16px;
-    align-self: stretch;
     border-radius: 16px;
     background-color: var(--sidebar-active) !important;
+    margin: 0 15px;
+}
+
+.sidebar .nav-link {
+    margin: 0 15px;
 }
 
 .col-md-9.ms-sm-auto,

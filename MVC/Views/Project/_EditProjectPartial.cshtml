@@ -65,6 +65,28 @@
                             <textarea asp-for="Form.Description" id="editProjectDescription" class="form-control formBorder" placeholder="Brief description of the project" required="required" data-quill-editor></textarea>
                             <span asp-validation-for="Form.Description" class="text-danger field-validation-error" id="editDescriptionError"></span>
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Team Members</label>
+                            <div class="position-relative">
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-search"></i>
+                                    </span>
+                                    <input type="text" id="editUserSearchInput" class="form-control formBorder" placeholder="Add team members...">
+                                </div>
+                                <div id="editSelectedMembersContainer" class="d-flex flex-wrap gap-1 mb-2">
+                                </div>
+                                <div id="editUserSuggestionsContainer" 
+                                     class="border rounded p-2 formBorder"
+                                     style="max-height: 200px; overflow-y: auto; display: none; position: absolute; width: 100%; background: white; z-index: 1050; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                                </div>
+                                <div id="editSelectedMembersInputs">
+                                </div>
+                            </div>
+                            <span class="text-danger field-validation-error" id="editMembersError"></span>
+                        </div>
+
                         <div class="mb-3">
                             <label asp-for="Form.ServiceId" class="form-label"></label>
                             <select asp-for="Form.ServiceId" id="editProjectServiceId" asp-items="@(new SelectList(Model.Services, "Id", "ServiceName", Model.Form.ServiceId))" class="form-control formBorder" required="required">
@@ -93,7 +115,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-between mb-5">
+                        <div class="d-flex justify-content-center mb-5">
                             <button type="submit" class="btnAuth" id="editProjectButton">Save Changes</button>
                         </div>
                     </form>
@@ -103,4 +125,574 @@
     </div>
 </div>
 
+<style>
+    .member-tag {
+        display: inline-flex;
+        align-items: center;
+        background-color: #f0f0f0;
+        border-radius: 20px;
+        padding: 4px 10px;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
 
+        .member-tag .avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .member-tag .remove-tag {
+            margin-left: 8px;
+            cursor: pointer;
+            color: #888;
+        }
+
+            .member-tag .remove-tag:hover {
+                color: #dc3545;
+            }
+
+    .user-suggestion {
+        padding: 8px 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+    }
+
+        .user-suggestion:hover {
+            background-color: #f8f9fa;
+        }
+
+        .user-suggestion .avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const editUserSearchInput = document.getElementById('editUserSearchInput');
+        const editUserSuggestionsContainer = document.getElementById('editUserSuggestionsContainer');
+        const editSelectedMembersContainer = document.getElementById('editSelectedMembersContainer');
+        const editSelectedMembersInputs = document.getElementById('editSelectedMembersInputs');
+        const editDropArea = document.getElementById('editDropArea');
+        const editCameraOverlay = document.getElementById('editCameraOverlay');
+        const editProjectImage = document.getElementById('editProjectImage');
+        const editImagePreview = document.getElementById('editImagePreview');
+        const editDefaultProjectImage = document.getElementById('editDefaultProjectImage');
+        const editImageSelected = document.getElementById('editImageSelected');
+
+        let editSelectedMembers = [];
+
+        function showNotification(message, type) {
+            if (typeof showSnackbar === 'function') {
+                showSnackbar(message, type);
+            } else {
+                const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+
+                const notification = document.createElement('div');
+                notification.className = `alert ${alertClass} position-fixed top-0 start-50 translate-middle-x mt-3`;
+                notification.style.zIndex = 1060;
+                notification.textContent = message;
+
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+        }
+
+        function updateMembersDisplay() {
+            if (editSelectedMembers.length === 0) {
+                const existingMessages = editSelectedMembersContainer.querySelectorAll('.text-muted.small.py-2');
+                if (existingMessages.length === 0) {
+                    const noMembersMessage = document.createElement('div');
+                    noMembersMessage.className = 'text-muted small py-2';
+                    noMembersMessage.textContent = 'No team members selected.';
+                    editSelectedMembersContainer.appendChild(noMembersMessage);
+                }
+            } else {
+                const existingMessages = editSelectedMembersContainer.querySelectorAll('.text-muted.small.py-2');
+                existingMessages.forEach(msg => msg.remove());
+            }
+        }
+
+        function addMemberToProject(user) {
+            const projectId = $('#editProjectId').val() || $('#editProjectModal').data('project-id');
+
+            if (!projectId) {
+                showNotification("Project ID is missing. Please try again.", "danger");
+                return;
+            }
+
+            if (editSelectedMembers.some(member => member.id === user.id)) {
+                showNotification("This user is already added to the project.", "warning");
+                return;
+            }
+
+            if (projectId && user.id) {
+                const loadingIndicator = document.createElement('div');
+                loadingIndicator.className = 'text-center my-2';
+                loadingIndicator.innerHTML = '<div class="spinner-border spinner-border-sm text-primary"></div>';
+                editSelectedMembersContainer.appendChild(loadingIndicator);
+
+                $.ajax({
+                    url: '/ProjectMembership/AddUserToProject',
+                    type: 'POST',
+                    data: {
+                        projectId: projectId,
+                        userId: user.id,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        loadingIndicator.remove();
+
+                        if (response.success) {
+                            addEditSelectedUser(user);
+                            showNotification("Team member added successfully", "success");
+                        } else {
+                            console.error(`Failed to add user: ${response.message || 'Unknown error'}`);
+                            showNotification(response.message || "Failed to add team member", "danger");
+                        }
+                    },
+                    error: function(error) {
+                        loadingIndicator.remove();
+
+                        console.error('Error adding user to project:', error);
+                        showNotification("An error occurred while adding the team member", "danger");
+                    }
+                });
+            } else {
+                addEditSelectedUser(user);
+            }
+        }
+
+        function confirmRemoveMember(userId, userName, memberTag) {
+            if (confirm(`Are you sure you want to remove ${userName} from the project?`)) {
+                const projectId = $('#editProjectId').val();
+
+                if (projectId) {
+                    $.ajax({
+                        url: '/ProjectMembership/RemoveUserFromProject',
+                        type: 'POST',
+                        data: {
+                            projectId: projectId,
+                            userId: userId,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                console.log(`Successfully removed user ${userId} from project`);
+                                editSelectedMembers = editSelectedMembers.filter(member => member.id !== userId);
+                                memberTag.remove();
+                                updateMembersDisplay();
+                                showNotification("Team member removed successfully", "success");
+                            } else {
+                                console.error(`Failed to remove user: ${response.error || 'Unknown error'}`);
+                                showNotification(response.error || "Failed to remove team member", "danger");
+                            }
+                        },
+                        error: function(error) {
+                            console.error('Error removing user from project:', error);
+                            showNotification("An error occurred while removing the team member", "danger");
+                        }
+                    });
+                } else {
+                    editSelectedMembers = editSelectedMembers.filter(member => member.id !== userId);
+                    memberTag.remove();
+                    updateMembersDisplay();
+                }
+            }
+        }
+
+        function addEditSelectedUser(user) {
+            const userId = user.id;
+            const userName = user.name || user.fullName || '';
+            const userEmail = user.email || '';
+            const userAvatar = user.avatarUrl || user.profilePicture || '/images/default-avatar.png';
+
+            if (editSelectedMembers.some(member => member.id === userId)) {
+                return;
+            }
+
+            editSelectedMembers.push({
+                id: userId,
+                name: userName,
+                email: userEmail,
+                avatarUrl: userAvatar
+            });
+
+            const memberTag = document.createElement('div');
+            memberTag.className = 'member-tag';
+            memberTag.dataset.userId = userId;
+            memberTag.innerHTML = `
+                <img src="${userAvatar}" class="avatar" alt="${userName}">
+                <span>${userName}</span>
+                <span class="remove-tag">&times;</span>
+                <input type="hidden" name="SelectedMemberIds" value="${userId}">
+            `;
+
+            const removeButton = memberTag.querySelector('.remove-tag');
+            removeButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                confirmRemoveMember(userId, userName, memberTag);
+            });
+
+            editSelectedMembersContainer.appendChild(memberTag);
+            updateMembersDisplay();
+        }
+
+        function loadEditAvailableUsers(projectId) {
+            window.availableUsers = [];
+
+            if (editUserSearchInput) {
+                editUserSearchInput.placeholder = "Loading users...";
+                editUserSearchInput.disabled = true;
+            }
+
+            $.ajax({
+                url: projectId ?
+                    `/ProjectMembership/GetAvailableUsers?projectId=${projectId}` :
+                    '/ProjectMembership/GetAvailableUsers',
+                type: 'GET',
+                success: function(response) {
+                    if (editUserSearchInput) {
+                        editUserSearchInput.placeholder = "Add team members...";
+                        editUserSearchInput.disabled = false;
+                    }
+
+                    if (response.success && response.users && response.users.length > 0) {
+                        window.availableUsers = response.users;
+                        console.log('Available users loaded:', response.users.length);
+                    } else {
+                        console.warn('No users available or unexpected response format:', response);
+                        window.availableUsers = [];
+                    }
+                },
+                error: function(error) {
+                    if (editUserSearchInput) {
+                        editUserSearchInput.placeholder = "Add team members...";
+                        editUserSearchInput.disabled = false;
+                    }
+
+                    console.error('Error loading available users:', error);
+                    window.availableUsers = [];
+                    showNotification("Failed to load available users", "danger");
+                }
+            });
+        }
+
+        function filterAndShowEditSuggestions(searchTerm) {
+            if (!window.availableUsers) {
+                console.log('No available users to filter');
+                return;
+            }
+
+            console.log('Filtering users with search term:', searchTerm);
+            const filteredUsers = window.availableUsers.filter(user => {
+                if (editSelectedMembers.some(m => m.id === user.id)) {
+                    return false;
+                }
+
+                const userName = user.name || '';
+                const userEmail = user.email || '';
+
+                return searchTerm === '' ||
+                       userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       userEmail.toLowerCase().includes(searchTerm.toLowerCase());
+            });
+
+            console.log('Filtered users:', filteredUsers);
+            renderEditUserSuggestions(filteredUsers);
+        }
+
+        function renderEditUserSuggestions(users) {
+            editUserSuggestionsContainer.innerHTML = '';
+
+            if (users.length === 0) {
+                editUserSuggestionsContainer.innerHTML = '<div class="p-3 text-center">No matching users found</div>';
+                editUserSuggestionsContainer.style.display = 'block';
+                return;
+            }
+
+            users.forEach(user => {
+                const userName = user.name || '';
+                const userEmail = user.email || '';
+                const userAvatar = user.avatarUrl || '/images/default-avatar.png';
+
+                const suggestionElement = document.createElement('div');
+                suggestionElement.className = 'user-suggestion';
+                suggestionElement.innerHTML = `
+                    <img src="${userAvatar}" class="avatar" alt="${userName}">
+                    <div>
+                        <div>${userName}</div>
+                        <small class="text-muted">${userEmail}</small>
+                    </div>
+                `;
+
+                suggestionElement.addEventListener('click', function() {
+                    addMemberToProject(user);
+                    if (editUserSearchInput) {
+                        editUserSearchInput.value = '';
+                    }
+                    editUserSuggestionsContainer.style.display = 'none';
+                });
+
+                editUserSuggestionsContainer.appendChild(suggestionElement);
+            });
+
+            editUserSuggestionsContainer.style.display = 'block';
+        }
+
+        function handleEditImageFile(file) {
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    editImagePreview.src = e.target.result;
+                    editImagePreview.classList.remove('d-none');
+                    editDefaultProjectImage.classList.add('d-none');
+                    editImageSelected.value = 'true';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        window.validateEditProjectForm = function(event) {
+            if ($.data($("#editProjectForm")[0], "validator")) {
+                $.data($("#editProjectForm")[0], "validator").cancelSubmit = true;
+            }
+
+            clearEditValidationErrors();
+            let isValid = true;
+
+            const nameField = document.getElementById('editProjectName');
+            if (!nameField.value.trim()) {
+                showEditValidationError('editNameError', 'Project name is required');
+                nameField.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            const statusField = document.getElementById('editProjectStatusId');
+            if (!statusField.value || statusField.value === '') {
+                showEditValidationError('editStatusError', 'Status is required');
+                statusField.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            const descriptionField = document.getElementById('editProjectDescription');
+            if (!descriptionField.value.trim()) {
+                showEditValidationError('editDescriptionError', 'Description is required');
+                descriptionField.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            const serviceField = document.getElementById('editProjectServiceId');
+            if (!serviceField.value || serviceField.value === '') {
+                showEditValidationError('editServiceError', 'Service is required');
+                serviceField.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            const customerField = document.getElementById('editProjectCustomerId');
+            if (!customerField.value || customerField.value === '') {
+                showEditValidationError('editCustomerError', 'Customer is required');
+                customerField.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            const startDateField = document.getElementById('editProjectStartDate');
+            if (!startDateField.value) {
+                showEditValidationError('editStartDateError', 'Start date is required');
+                startDateField.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            const endDateField = document.getElementById('editProjectEndDate');
+            if (!endDateField.value) {
+                showEditValidationError('editEndDateError', 'End date is required');
+                endDateField.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            if (startDateField.value && endDateField.value) {
+                const startDate = new Date(startDateField.value);
+                const endDate = new Date(endDateField.value);
+
+                if (endDate < startDate) {
+                    showEditValidationError('editEndDateError', 'End date must be after start date');
+                    endDateField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+
+            return isValid;
+        };
+
+        function showEditValidationError(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = message;
+            }
+        }
+
+        function clearEditValidationErrors() {
+            const errorElements = document.querySelectorAll('.field-validation-error');
+            errorElements.forEach(el => {
+                el.textContent = '';
+            });
+
+            const invalidInputs = document.querySelectorAll('.is-invalid');
+            invalidInputs.forEach(input => {
+                input.classList.remove('is-invalid');
+            });
+        }
+
+        $('#editProjectForm').on('submit', function(e) {
+            if (!validateEditProjectForm()) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        if (editUserSearchInput) {
+            console.log('User search input found:', editUserSearchInput);
+            $('#editProjectModal').on('shown.bs.modal', function() {
+                editUserSearchInput.value = '';
+                editUserSuggestionsContainer.style.display = 'none';
+            });
+
+            editUserSearchInput.addEventListener('focus', function() {
+                if (window.availableUsers && window.availableUsers.length > 0) {
+                    const searchTerm = this.value.trim();
+                    if (searchTerm.length > 0) {
+                        filterAndShowEditSuggestions(searchTerm);
+                    } else {
+                        filterAndShowEditSuggestions('');
+                    }
+                }
+            });
+
+            editUserSearchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.trim();
+                if (searchTerm.length > 1) {
+                    filterAndShowEditSuggestions(searchTerm);
+                } else if (searchTerm.length === 0) {
+                    filterAndShowEditSuggestions('');
+                } else {
+                    editUserSuggestionsContainer.style.display = 'none';
+                }
+            });
+        } else {
+            console.warn('Search input element not found. Check the ID in your HTML - should be "userSearchInput"');
+        }
+
+        document.addEventListener('click', function(e) {
+            if (editUserSearchInput && !editUserSearchInput.contains(e.target) &&
+                !editUserSuggestionsContainer.contains(e.target)) {
+                editUserSuggestionsContainer.style.display = 'none';
+            }
+        });
+
+    $('#editProjectModal').on('show.bs.modal', function(event) {
+        try {
+            const button = $(event.relatedTarget);
+            const projectId = button.data('project-id');
+
+            console.log('Modal opened with project ID:', projectId);
+
+            if (!projectId) {
+                console.error('No project ID found on button');
+                return;
+            }
+
+            $('#editProjectId').val(projectId);
+
+            $(this).data('project-id', projectId);
+
+            editSelectedMembers = [];
+            editSelectedMembersContainer.innerHTML = '';
+
+
+            if (projectId) {
+                loadEditAvailableUsers(projectId);
+
+                $.ajax({
+                    url: `/ProjectMembership/GetProjectMembers?projectId=${projectId}`,
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.success && response.members && response.members.length > 0) {
+                            response.members.forEach(member => {
+                                addEditSelectedUser({
+                                    id: member.id,
+                                    name: member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim(),
+                                    email: member.email,
+                                    avatarUrl: member.avatarUrl || '/images/default-avatar.png'
+                                });
+                            });
+                        }
+                        updateMembersDisplay();
+                    },
+                    error: function(error) {
+                        console.error('Error loading project members:', error);
+                        showNotification("Failed to load team members", "danger");
+                        updateMembersDisplay();
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error in modal show event:', error);
+        }
+    });
+
+        if (editDropArea) {
+            editDropArea.addEventListener('mouseover', function() {
+                editCameraOverlay.style.opacity = '1';
+            });
+
+            editDropArea.addEventListener('mouseout', function() {
+                editCameraOverlay.style.opacity = '0';
+            });
+
+            editDropArea.addEventListener('click', function() {
+                editProjectImage.click();
+            });
+
+            editProjectImage.addEventListener('change', function() {
+                handleEditImageFile(this.files[0]);
+            });
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                editDropArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                editDropArea.addEventListener(eventName, function() {
+                    editCameraOverlay.style.opacity = '1';
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                editDropArea.addEventListener(eventName, function() {
+                    editCameraOverlay.style.opacity = '0';
+                }, false);
+            });
+
+            editDropArea.addEventListener('drop', function(e) {
+                const dt = e.dataTransfer;
+                const file = dt.files[0];
+                handleEditImageFile(file);
+            }, false);
+        }
+    });
+</script>

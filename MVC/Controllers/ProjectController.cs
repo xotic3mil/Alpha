@@ -161,7 +161,7 @@ public class ProjectController(
             return View("Index", model);
         }
 
-        model.Form.ImageUrl = "/images/project-template-1.svg";  // Default image
+        model.Form.ImageUrl = "/images/project-template-1.svg";  
 
         if (ProjectImage != null && ProjectImage.Length > 0)
         {

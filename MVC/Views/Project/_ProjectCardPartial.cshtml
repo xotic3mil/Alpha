@@ -71,8 +71,8 @@
                             <li>
                                 @if (User.IsInRole("Admin") || User.IsInRole("ProjectManager"))
                                 {
-                                    <a class="dropdown-item" href="#" onclick="event.stopPropagation(); openAddTeamMemberModal('@project.Id')">
-                                        <i class="bi bi-person-plus me-2"></i>Add Member
+                                    <a class="dropdown-item" href="#" onclick="event.stopPropagation(); openProjectDetails('@project.Id')">
+                                        <i class="bi bi-briefcase me-2"></i>Manage Project
                                     </a>
                                 }
                             </li>
