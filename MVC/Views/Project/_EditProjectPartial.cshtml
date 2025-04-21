@@ -607,7 +607,7 @@
     $('#editProjectModal').on('show.bs.modal', function(event) {
         try {
             const button = $(event.relatedTarget);
-            const projectId = button.data('project-id');
+            const projectId = button.data('project-id') || $('#editProjectId').val();
 
             console.log('Modal opened with project ID:', projectId);
 
@@ -617,39 +617,38 @@
             }
 
             $('#editProjectId').val(projectId);
-
             $(this).data('project-id', projectId);
 
             editSelectedMembers = [];
             editSelectedMembersContainer.innerHTML = '';
 
+            loadEditAvailableUsers(projectId);
 
-            if (projectId) {
-                loadEditAvailableUsers(projectId);
+            $.ajax({
+                url: `/ProjectMembership/GetProjectMembers?projectId=${projectId}`,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    console.log('Project members loaded:', response);
 
-                $.ajax({
-                    url: `/ProjectMembership/GetProjectMembers?projectId=${projectId}`,
-                    type: 'GET',
-                    success: function(response) {
-                        if (response.success && response.members && response.members.length > 0) {
-                            response.members.forEach(member => {
-                                addEditSelectedUser({
-                                    id: member.id,
-                                    name: member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim(),
-                                    email: member.email,
-                                    avatarUrl: member.avatarUrl || '/images/default-avatar.png'
-                                });
+                    if (response.success && response.members && response.members.length > 0) {
+                        response.members.forEach(member => {
+                            addEditSelectedUser({
+                                id: member.id || member.userId,
+                                name: member.name || member.userName || `${member.firstName || ''} ${member.lastName || ''}`.trim(),
+                                email: member.email || '',
+                                avatarUrl: member.avatarUrl || member.profilePicture || '/images/default-avatar.png'
                             });
-                        }
-                        updateMembersDisplay();
-                    },
-                    error: function(error) {
-                        console.error('Error loading project members:', error);
-                        showNotification("Failed to load team members", "danger");
-                        updateMembersDisplay();
+                        });
                     }
-                });
-            }
+                    updateMembersDisplay();
+                },
+                error: function(error) {
+                    console.error('Error loading project members:', error);
+                    showNotification("Failed to load team members", "danger");
+                    updateMembersDisplay();
+                }
+            });
         } catch (error) {
             console.error('Error in modal show event:', error);
         }
