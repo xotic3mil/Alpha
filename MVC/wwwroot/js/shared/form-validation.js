@@ -1,7 +1,8 @@
 ﻿function validateForm(formId, customValidators = {}) {
     const form = document.getElementById(formId);
     if (!form) return false;
-    
+
+    ensureQuillEditorsInitialized(form);
 
     clearValidationErrors(form);
     
@@ -202,7 +203,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    if (typeof initAllQuillEditors === 'function') {
-        initAllQuillEditors();
-    }
 });

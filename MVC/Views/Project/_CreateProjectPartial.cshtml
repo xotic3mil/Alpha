@@ -4,13 +4,12 @@
     ViewData["Title"] = "Create Project";
 }
 
-
 <div class="modal fade"
      id="addProjectModal"
      tabindex="-1"
      aria-labelledby="addProjectModalLabel"
      aria-hidden="true"
-     data-bs-backdrop="static" 
+     data-bs-backdrop="static"
      data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -22,8 +21,7 @@
             </div>
             <div class="modal-body">
                 <div class="container-fluid px-3">
-                    <form id="createProjectForm" method="post" enctype="multipart/form-data" asp-action="Create" asp-controller="Project"
-                          onsubmit="return validateProjectForm(event)">
+                    <form id="createProjectForm" method="post" enctype="multipart/form-data" asp-action="Create" asp-controller="Project" data-validate="true">
                         <div asp-validation-summary="ModelOnly" class="text-danger" id="validation-summary"></div>
                         @Html.AntiForgeryToken()
                         <div class="mb-4">
@@ -53,13 +51,15 @@
                         </div>
                         <div class="mb-3">
                             <label asp-for="Form.Name" class="form-label"></label>
-                            <input asp-for="Form.Name" id="createProjectName" class="form-control formBorder" placeholder="Project name" required="required" />
+                            <input asp-for="Form.Name" id="Form_Name" class="form-control formBorder" placeholder="Project name"
+                                   required data-val="true" data-val-required="Project name is required" />
                             <span asp-validation-for="Form.Name" class="text-danger field-validation-error" id="nameError"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="Form.StatusId" class="form-label"></label>
-                            <select asp-for="Form.StatusId" id="createProjectStatusId" asp-items="@(new SelectList(Model.Statuses, "Id", "StatusName"))" class="form-control formBorder" required="required">
+                            <select asp-for="Form.StatusId" id="Form_StatusId" asp-items="@(new SelectList(Model.Statuses, "Id", "StatusName"))"
+                                    class="form-control formBorder" required data-val="true" data-val-required="Status is required">
                                 <option value="">Select Status</option>
                             </select>
                             <span asp-validation-for="Form.StatusId" class="text-danger field-validation-error" id="statusError"></span>
@@ -67,7 +67,9 @@
 
                         <div class="mb-3">
                             <label asp-for="Form.Description" class="form-label"></label>
-                            <textarea asp-for="Form.Description" id="createProjectDescription" class="form-control formBorder" placeholder="Brief description of the project" required="required" data-quill-editor></textarea>
+                            <textarea asp-for="Form.Description" id="Form_Description" class="form-control formBorder"
+                                      placeholder="Brief description of the project" required data-val="true"
+                                      data-val-required="Description is required" data-quill-editor></textarea>
                             <span asp-validation-for="Form.Description" class="text-danger field-validation-error" id="descriptionError"></span>
                         </div>
 
@@ -93,7 +95,8 @@
 
                         <div class="mb-3">
                             <label asp-for="Form.ServiceId" class="form-label"></label>
-                            <select asp-for="Form.ServiceId" id="createProjectServiceId" asp-items="@(new SelectList(Model.Services, "Id", "ServiceName"))" class="form-control formBorder" required="required">
+                            <select asp-for="Form.ServiceId" id="Form_ServiceId" asp-items="@(new SelectList(Model.Services, "Id", "ServiceName"))"
+                                    class="form-control formBorder" required data-val="true" data-val-required="Service is required">
                                 <option value="">Select Service</option>
                             </select>
                             <span asp-validation-for="Form.ServiceId" class="text-danger field-validation-error" id="serviceError"></span>
@@ -101,7 +104,8 @@
 
                         <div class="mb-3">
                             <label asp-for="Form.CustomerId" class="form-label"></label>
-                            <select asp-for="Form.CustomerId" id="createProjectCustomerId" asp-items="@(new SelectList(Model.Customers, "Id", "CompanyName"))" class="form-control formBorder" required="required">
+                            <select asp-for="Form.CustomerId" id="Form_CustomerId" asp-items="@(new SelectList(Model.Customers, "Id", "CompanyName"))"
+                                    class="form-control formBorder" required data-val="true" data-val-required="Customer is required">
                                 <option value="">Select Customer</option>
                             </select>
                             <span asp-validation-for="Form.CustomerId" class="text-danger field-validation-error" id="customerError"></span>
@@ -111,12 +115,14 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <label asp-for="Form.StartDate" class="form-label"></label>
-                                    <input asp-for="Form.StartDate" id="createProjectStartDate" type="date" class="form-control formBorder" required="required" />
+                                    <input asp-for="Form.StartDate" id="Form_StartDate" type="date" class="form-control formBorder"
+                                           required data-val="true" data-val-required="Start date is required" />
                                     <span asp-validation-for="Form.StartDate" class="text-danger field-validation-error" id="startDateError"></span>
                                 </div>
                                 <div class="col-md-6">
                                     <label asp-for="Form.EndDate" class="form-label"></label>
-                                    <input asp-for="Form.EndDate" id="createProjectEndDate" type="date" class="form-control formBorder" required="required" />
+                                    <input asp-for="Form.EndDate" id="Form_EndDate" type="date" class="form-control formBorder"
+                                           required data-val="true" data-val-required="End date is required" />
                                     <span asp-validation-for="Form.EndDate" class="text-danger field-validation-error" id="endDateError"></span>
                                 </div>
                             </div>
@@ -181,92 +187,17 @@
 </style>
 
 <script>
-
-    function validateProjectForm(event) {
-        clearValidationErrors();
-        let isValid = true;
-
-        const nameField = document.getElementById('Form_Name');
-        if (!nameField.value.trim()) {
-            document.getElementById('nameError').textContent = 'Project name is required.';
-            nameField.classList.add('is-invalid');
-            isValid = false;
+    document.addEventListener('DOMContentLoaded', function() {
+        const createForm = document.getElementById('createProjectForm');
+        if (createForm) {
+            createForm.addEventListener('submit', function(e) {
+                const projectImageInput = document.getElementById('projectImage');
+                if (projectImageInput && projectImageInput.files.length === 0) {
+                    projectImageInput.removeAttribute('name');
+                }
+            });
         }
-
-        const statusField = document.getElementById('Form_StatusId');
-        if (!statusField.value || statusField.value === '') {
-            document.getElementById('statusError').textContent = 'Status is required.';
-            statusField.classList.add('is-invalid');
-            isValid = false;
-        }
-
-        const descriptionField = document.getElementById('Form_Description');
-        if (!descriptionField.value.trim()) {
-            document.getElementById('descriptionError').textContent = 'Description is required.';
-            descriptionField.classList.add('is-invalid');
-            isValid = false;
-        }
-
-        const serviceField = document.getElementById('Form_ServiceId');
-        if (!serviceField.value || serviceField.value === '') {
-            document.getElementById('serviceError').textContent = 'Service is required.';
-            serviceField.classList.add('is-invalid');
-            isValid = false;
-        }
-
-        const customerField = document.getElementById('Form_CustomerId');
-        if (!customerField.value || customerField.value === '') {
-            document.getElementById('customerError').textContent = 'Customer is required.';
-            customerField.classList.add('is-invalid');
-            isValid = false;
-        }
-
-        const startDateField = document.getElementById('Form_StartDate');
-        if (!startDateField.value) {
-            document.getElementById('startDateError').textContent = 'Start date is required.';
-            startDateField.classList.add('is-invalid');
-            isValid = false;
-        }
-
-        const endDateField = document.getElementById('Form_EndDate');
-        if (!endDateField.value) {
-            document.getElementById('endDateError').textContent = 'End date is required.';
-            endDateField.classList.add('is-invalid');
-            isValid = false;
-        }
-
-        if (startDateField.value && endDateField.value) {
-            const startDate = new Date(startDateField.value);
-            const endDate = new Date(endDateField.value);
-
-            if (endDate < startDate) {
-                document.getElementById('endDateError').textContent = 'End date must be after start date.';
-                endDateField.classList.add('is-invalid');
-                isValid = false;
-            }
-        }
-
-        const projectImageInput = document.getElementById('projectImage');
-        if (projectImageInput && projectImageInput.files.length === 0) {
-            projectImageInput.removeAttribute('name');
-        }
-
-          $('#ProjectMembers').trigger('change');
-
-        return isValid;
-    }
-
-    function clearValidationErrors() {
-        const errorElements = document.querySelectorAll('.field-validation-error');
-        errorElements.forEach(el => {
-            el.textContent = '';
-        });
-
-        const invalidInputs = document.querySelectorAll('.is-invalid');
-        invalidInputs.forEach(input => {
-            input.classList.remove('is-invalid');
-        });
-    }
+    });
 
     function handleImageFile(file) {
         if (file) {
@@ -442,7 +373,10 @@
         const suggestionsContainer = document.getElementById('userSuggestionsContainer');
         if (suggestionsContainer) suggestionsContainer.style.display = 'none';
 
-        clearValidationErrors();
+        if (typeof clearValidationErrors === 'function') {
+            clearValidationErrors(form);
+        }
+
         const defaultImg = document.getElementById('defaultProjectImage');
         const previewImg = document.getElementById('imagePreview');
 
@@ -456,35 +390,21 @@
     document.addEventListener('DOMContentLoaded', function() {
        loadAvailableUsers();
 
-        const formInputs = document.querySelectorAll('#createProjectForm input:not(#projectImage), #createProjectForm select, #createProjectForm textarea');
-        formInputs.forEach(input => {
-            input.addEventListener('input', function() {
-                if (this.classList.contains('is-invalid')) {
-                    this.classList.remove('is-invalid');
-                    const fieldId = this.id.replace('Form_', '').toLowerCase();
-                    const errorSpan = document.getElementById(fieldId + 'Error');
-                    if (errorSpan) {
-                        errorSpan.textContent = '';
-                    }
-                }
-            });
-        });
-
         const projectModal = document.getElementById('addProjectModal');
         const dropArea = document.getElementById('dropArea');
         const cameraOverlay = document.getElementById('cameraOverlay');
         const projectImageInput = document.getElementById('projectImage');
 
-    if (projectModal) {
-        projectModal.addEventListener('hidden.bs.modal', function() {
-            try {
-                const suggestionsContainer = document.getElementById('userSuggestionsContainer');
-                if (suggestionsContainer) suggestionsContainer.style.display = 'none';
-                resetModalForm();
-            } catch (error) {
-                console.error('Error resetting modal form:', error);
-            }
-        });
+        if (projectModal) {
+            projectModal.addEventListener('hidden.bs.modal', function() {
+                try {
+                    const suggestionsContainer = document.getElementById('userSuggestionsContainer');
+                    if (suggestionsContainer) suggestionsContainer.style.display = 'none';
+                    resetModalForm();
+                } catch (error) {
+                    console.error('Error resetting modal form:', error);
+                }
+            });
 
             projectModal.addEventListener('show.bs.modal', function() {
                 resetModalForm();
@@ -539,16 +459,5 @@
                 }
             });
         }
-
-        const createForm = document.getElementById('createProjectForm');
-        if (createForm) {
-            createForm.addEventListener('submit', function(e) {
-                const projectImageInput = document.getElementById('projectImage');
-                if (projectImageInput && projectImageInput.files.length === 0) {
-                    projectImageInput.removeAttribute('name');
-                }
-            });
-        }
     });
- 
 </script>

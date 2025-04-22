@@ -326,7 +326,7 @@ public class ProjectController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(ProjectViewModel model, IFormFile? ProjectImage)
+    public async Task<IActionResult> Edit(ProjectViewModel model, IFormFile? ProjectImage, List<Guid> SelectedMemberIds)
     {
         if (!ModelState.IsValid)
         {
@@ -396,16 +396,48 @@ public class ProjectController(
 
         var result = await _projectService.UpdateProjectAsync(model.Form);
 
-        if (result.Succeeded)
+        if (!result.Succeeded)
         {
-            ViewBag.SuccessMessage = "Project updated successfully.";
-            return RedirectToAction(nameof(Index));
+            ModelState.AddModelError(string.Empty, result.Error ?? "Failed to update project");
+            await PopulateViewModelAsync(model);
+            ViewBag.OpenEditModal = true;
+            return PartialView("_EditProjectPartial", model);
         }
 
-        ModelState.AddModelError(string.Empty, result.Error ?? "Failed to update project");
-        await PopulateViewModelAsync(model);
-        ViewBag.OpenEditModal = true;
-        return PartialView("_EditProjectPartial", model);
+        if (SelectedMemberIds != null)
+        {
+            var currentMembersResult = await _projectMembershipService.GetProjectMembersAsync(model.Form.Id);
+            if (currentMembersResult.Succeeded)
+            {
+                var currentMemberIds = currentMembersResult.Result.Select(m => m.Id).ToList();
+
+                foreach (var existingMemberId in currentMemberIds)
+                {
+                    if (!SelectedMemberIds.Contains(existingMemberId))
+                    {
+                        await _projectMembershipService.RemoveUserFromProjectAsync(model.Form.Id, existingMemberId);
+                    }
+                }
+
+                foreach (var selectedMemberId in SelectedMemberIds)
+                {
+                    if (!currentMemberIds.Contains(selectedMemberId))
+                    {
+                        await _projectMembershipService.AddUserToProjectAsync(model.Form.Id, selectedMemberId);
+
+                        await _notificationService.CreateUserNotificationAsync(
+                            selectedMemberId,
+                            "Added to Project",
+                            $"You've been added to project \"{model.Form.Name}\"",
+                            "ProjectMemberAdded",
+                            model.Form.Id);
+                    }
+                }
+            }
+        }
+
+        ViewBag.SuccessMessage = "Project updated successfully.";
+        return RedirectToAction(nameof(Index));
     }
 
 

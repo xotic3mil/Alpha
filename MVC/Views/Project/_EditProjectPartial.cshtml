@@ -17,11 +17,10 @@
             </div>
             <div class="modal-body">
                 <div class="container-fluid px-3">
-                    <form id="editProjectForm" method="post" enctype="multipart/form-data" asp-action="Edit" asp-controller="Project"
-                          onsubmit="return validateEditProjectForm(event)">
+                    <form id="editProjectForm" method="post" enctype="multipart/form-data" asp-action="Edit" asp-controller="Project" data-validate="true">
                         <div asp-validation-summary="ModelOnly" class="text-danger" id="edit-validation-summary"></div>
                         @Html.AntiForgeryToken()
-                        <input type="hidden" id="editProjectId" asp-for="Form.Id" />
+                        <input type="hidden" id="editProjectId" name="Form.Id" asp-for="Form.Id" />
                         <div class="mb-4">
                             <div class="d-flex flex-column align-items-center">
                                 <div class="flex-grow-1 text-center">
@@ -43,26 +42,35 @@
                                     </div>
                                     <input type="file" id="editProjectImage" name="ProjectImage" class="d-none" accept="image/*" />
                                     <input type="hidden" id="editImageSelected" name="EditImageSelected" value="false" />
-                                    <input type="hidden" asp-for="Form.ImageUrl" />
+                                    <input type="hidden" id="editCurrentImageUrl" name="Form.ImageUrl" asp-for="Form.ImageUrl" />
                                     <p class="text-muted small">Click to change project image</p>
                                 </div>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label asp-for="Form.Name" class="form-label"></label>
-                            <input asp-for="Form.Name" id="editProjectName" class="form-control formBorder" placeholder="Project name" required="required" />
+                            <input asp-for="Form.Name" id="editProjectName" name="Form.Name"
+                                   class="form-control formBorder"
+                                   placeholder="Project name" required
+                                   data-val="true" data-val-required="Project name is required" />
                             <span asp-validation-for="Form.Name" class="text-danger field-validation-error" id="editNameError"></span>
                         </div>
                         <div class="mb-3">
                             <label asp-for="Form.StatusId" class="form-label"></label>
-                            <select asp-for="Form.StatusId" id="editProjectStatusId" asp-items="@(new SelectList(Model.Statuses, "Id", "StatusName", Model.Form.StatusId))" class="form-control formBorder" required="required">
+                            <select asp-for="Form.StatusId" id="editProjectStatusId" name="Form.StatusId"
+                                    class="form-control formBorder"
+                                    asp-items="@(new SelectList(Model.Statuses, "Id", "StatusName", Model.Form.StatusId))"
+                                    required data-val="true" data-val-required="Status is required">
                                 <option value="">Select Status</option>
                             </select>
                             <span asp-validation-for="Form.StatusId" class="text-danger field-validation-error" id="editStatusError"></span>
                         </div>
                         <div class="mb-3">
                             <label asp-for="Form.Description" class="form-label"></label>
-                            <textarea asp-for="Form.Description" id="editProjectDescription" class="form-control formBorder" placeholder="Brief description of the project" required="required" data-quill-editor></textarea>
+                            <textarea asp-for="Form.Description" id="editProjectDescription" name="Form.Description"
+                                      class="form-control formBorder"
+                                      placeholder="Brief description of the project" required data-val="true"
+                                      data-val-required="Description is required" data-quill-editor></textarea>
                             <span asp-validation-for="Form.Description" class="text-danger field-validation-error" id="editDescriptionError"></span>
                         </div>
 
@@ -77,7 +85,7 @@
                                 </div>
                                 <div id="editSelectedMembersContainer" class="d-flex flex-wrap gap-1 mb-2">
                                 </div>
-                                <div id="editUserSuggestionsContainer" 
+                                <div id="editUserSuggestionsContainer"
                                      class="border rounded p-2 formBorder"
                                      style="max-height: 200px; overflow-y: auto; display: none; position: absolute; width: 100%; background: white; z-index: 1050; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
                                 </div>
@@ -89,14 +97,20 @@
 
                         <div class="mb-3">
                             <label asp-for="Form.ServiceId" class="form-label"></label>
-                            <select asp-for="Form.ServiceId" id="editProjectServiceId" asp-items="@(new SelectList(Model.Services, "Id", "ServiceName", Model.Form.ServiceId))" class="form-control formBorder" required="required">
+                            <select asp-for="Form.ServiceId" id="editProjectServiceId" name="Form.ServiceId"
+                                    class="form-control formBorder"
+                                    asp-items="@(new SelectList(Model.Services, "Id", "ServiceName", Model.Form.ServiceId))"
+                                    required data-val="true" data-val-required="Service is required">
                                 <option value="">Select Service</option>
                             </select>
                             <span asp-validation-for="Form.ServiceId" class="text-danger field-validation-error" id="editServiceError"></span>
                         </div>
                         <div class="mb-3">
                             <label asp-for="Form.CustomerId" class="form-label"></label>
-                            <select asp-for="Form.CustomerId" id="editProjectCustomerId" asp-items="@(new SelectList(Model.Customers, "Id", "CompanyName", Model.Form.CustomerId))" class="form-control formBorder" required="required">
+                            <select asp-for="Form.CustomerId" id="editProjectCustomerId" name="Form.CustomerId"
+                                    class="form-control formBorder"
+                                    asp-items="@(new SelectList(Model.Customers, "Id", "CompanyName", Model.Form.CustomerId))"
+                                    required data-val="true" data-val-required="Customer is required">
                                 <option value="">Select Customer</option>
                             </select>
                             <span asp-validation-for="Form.CustomerId" class="text-danger field-validation-error" id="editCustomerError"></span>
@@ -105,12 +119,16 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <label asp-for="Form.StartDate" class="form-label"></label>
-                                    <input asp-for="Form.StartDate" id="editProjectStartDate" type="date" class="form-control formBorder" required="required" />
+                                    <input asp-for="Form.StartDate" id="editProjectStartDate" name="Form.StartDate"
+                                           type="date" class="form-control formBorder"
+                                           required data-val="true" data-val-required="Start date is required" />
                                     <span asp-validation-for="Form.StartDate" class="text-danger field-validation-error" id="editStartDateError"></span>
                                 </div>
                                 <div class="col-md-6">
                                     <label asp-for="Form.EndDate" class="form-label"></label>
-                                    <input asp-for="Form.EndDate" id="editProjectEndDate" type="date" class="form-control formBorder" required="required" />
+                                    <input asp-for="Form.EndDate" id="editProjectEndDate" name="Form.EndDate"
+                                           type="date" class="form-control formBorder"
+                                           required data-val="true" data-val-required="End date is required" />
                                     <span asp-validation-for="Form.EndDate" class="text-danger field-validation-error" id="editEndDateError"></span>
                                 </div>
                             </div>
@@ -187,6 +205,27 @@
         const editImageSelected = document.getElementById('editImageSelected');
 
         let editSelectedMembers = [];
+        let originalMemberIds = [];
+
+        document.getElementById('editProjectForm').addEventListener('submit', function(e) {
+            const projectImageInput = document.getElementById('editProjectImage');
+            if (projectImageInput && projectImageInput.files.length === 0) {
+                projectImageInput.removeAttribute('name');
+            }
+    
+            const membersContainer = document.getElementById('editSelectedMembersInputs');
+            membersContainer.innerHTML = '';
+    
+            editSelectedMembers.forEach(member => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'SelectedMemberIds';
+                input.value = member.id;
+                membersContainer.appendChild(input);
+            });
+    
+            console.log(`Submitting form with ${editSelectedMembers.length} team members`);
+        });
 
         function showNotification(message, type) {
             if (typeof showSnackbar === 'function') {
@@ -235,78 +274,14 @@
                 return;
             }
 
-            if (projectId && user.id) {
-                const loadingIndicator = document.createElement('div');
-                loadingIndicator.className = 'text-center my-2';
-                loadingIndicator.innerHTML = '<div class="spinner-border spinner-border-sm text-primary"></div>';
-                editSelectedMembersContainer.appendChild(loadingIndicator);
-
-                $.ajax({
-                    url: '/ProjectMembership/AddUserToProject',
-                    type: 'POST',
-                    data: {
-                        projectId: projectId,
-                        userId: user.id,
-                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                    },
-                    success: function(response) {
-                        loadingIndicator.remove();
-
-                        if (response.success) {
-                            addEditSelectedUser(user);
-                            showNotification("Team member added successfully", "success");
-                        } else {
-                            console.error(`Failed to add user: ${response.message || 'Unknown error'}`);
-                            showNotification(response.message || "Failed to add team member", "danger");
-                        }
-                    },
-                    error: function(error) {
-                        loadingIndicator.remove();
-
-                        console.error('Error adding user to project:', error);
-                        showNotification("An error occurred while adding the team member", "danger");
-                    }
-                });
-            } else {
-                addEditSelectedUser(user);
-            }
+            addEditSelectedUser(user);
         }
 
         function confirmRemoveMember(userId, userName, memberTag) {
-            if (confirm(`Are you sure you want to remove ${userName} from the project?`)) {
-                const projectId = $('#editProjectId').val();
-
-                if (projectId) {
-                    $.ajax({
-                        url: '/ProjectMembership/RemoveUserFromProject',
-                        type: 'POST',
-                        data: {
-                            projectId: projectId,
-                            userId: userId,
-                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                console.log(`Successfully removed user ${userId} from project`);
-                                editSelectedMembers = editSelectedMembers.filter(member => member.id !== userId);
-                                memberTag.remove();
-                                updateMembersDisplay();
-                                showNotification("Team member removed successfully", "success");
-                            } else {
-                                console.error(`Failed to remove user: ${response.error || 'Unknown error'}`);
-                                showNotification(response.error || "Failed to remove team member", "danger");
-                            }
-                        },
-                        error: function(error) {
-                            console.error('Error removing user from project:', error);
-                            showNotification("An error occurred while removing the team member", "danger");
-                        }
-                    });
-                } else {
-                    editSelectedMembers = editSelectedMembers.filter(member => member.id !== userId);
-                    memberTag.remove();
-                    updateMembersDisplay();
-                }
+            if (confirm(`Are you sure you want to remove ${userName} from the team?`)) {
+                editSelectedMembers = editSelectedMembers.filter(member => member.id !== userId);
+                memberTag.remove();
+                updateMembersDisplay();
             }
         }
 
@@ -334,7 +309,6 @@
                 <img src="${userAvatar}" class="avatar" alt="${userName}">
                 <span>${userName}</span>
                 <span class="remove-tag">&times;</span>
-                <input type="hidden" name="SelectedMemberIds" value="${userId}">
             `;
 
             const removeButton = memberTag.querySelector('.remove-tag');
@@ -468,103 +442,6 @@
             e.stopPropagation();
         }
 
-        window.validateEditProjectForm = function(event) {
-            if ($.data($("#editProjectForm")[0], "validator")) {
-                $.data($("#editProjectForm")[0], "validator").cancelSubmit = true;
-            }
-
-            clearEditValidationErrors();
-            let isValid = true;
-
-            const nameField = document.getElementById('editProjectName');
-            if (!nameField.value.trim()) {
-                showEditValidationError('editNameError', 'Project name is required');
-                nameField.classList.add('is-invalid');
-                isValid = false;
-            }
-
-            const statusField = document.getElementById('editProjectStatusId');
-            if (!statusField.value || statusField.value === '') {
-                showEditValidationError('editStatusError', 'Status is required');
-                statusField.classList.add('is-invalid');
-                isValid = false;
-            }
-
-            const descriptionField = document.getElementById('editProjectDescription');
-            if (!descriptionField.value.trim()) {
-                showEditValidationError('editDescriptionError', 'Description is required');
-                descriptionField.classList.add('is-invalid');
-                isValid = false;
-            }
-
-            const serviceField = document.getElementById('editProjectServiceId');
-            if (!serviceField.value || serviceField.value === '') {
-                showEditValidationError('editServiceError', 'Service is required');
-                serviceField.classList.add('is-invalid');
-                isValid = false;
-            }
-
-            const customerField = document.getElementById('editProjectCustomerId');
-            if (!customerField.value || customerField.value === '') {
-                showEditValidationError('editCustomerError', 'Customer is required');
-                customerField.classList.add('is-invalid');
-                isValid = false;
-            }
-
-            const startDateField = document.getElementById('editProjectStartDate');
-            if (!startDateField.value) {
-                showEditValidationError('editStartDateError', 'Start date is required');
-                startDateField.classList.add('is-invalid');
-                isValid = false;
-            }
-
-            const endDateField = document.getElementById('editProjectEndDate');
-            if (!endDateField.value) {
-                showEditValidationError('editEndDateError', 'End date is required');
-                endDateField.classList.add('is-invalid');
-                isValid = false;
-            }
-
-            if (startDateField.value && endDateField.value) {
-                const startDate = new Date(startDateField.value);
-                const endDate = new Date(endDateField.value);
-
-                if (endDate < startDate) {
-                    showEditValidationError('editEndDateError', 'End date must be after start date');
-                    endDateField.classList.add('is-invalid');
-                    isValid = false;
-                }
-            }
-
-            return isValid;
-        };
-
-        function showEditValidationError(elementId, message) {
-            const element = document.getElementById(elementId);
-            if (element) {
-                element.textContent = message;
-            }
-        }
-
-        function clearEditValidationErrors() {
-            const errorElements = document.querySelectorAll('.field-validation-error');
-            errorElements.forEach(el => {
-                el.textContent = '';
-            });
-
-            const invalidInputs = document.querySelectorAll('.is-invalid');
-            invalidInputs.forEach(input => {
-                input.classList.remove('is-invalid');
-            });
-        }
-
-        $('#editProjectForm').on('submit', function(e) {
-            if (!validateEditProjectForm()) {
-                e.preventDefault();
-                return false;
-            }
-        });
-
         if (editUserSearchInput) {
             console.log('User search input found:', editUserSearchInput);
             $('#editProjectModal').on('shown.bs.modal', function() {
@@ -593,8 +470,6 @@
                     editUserSuggestionsContainer.style.display = 'none';
                 }
             });
-        } else {
-            console.warn('Search input element not found. Check the ID in your HTML - should be "userSearchInput"');
         }
 
         document.addEventListener('click', function(e) {
@@ -604,53 +479,124 @@
             }
         });
 
-    $('#editProjectModal').on('show.bs.modal', function(event) {
-        try {
-            const button = $(event.relatedTarget);
-            const projectId = button.data('project-id') || $('#editProjectId').val();
+        $('#editProjectModal').on('show.bs.modal', function(event) {
+            try {
+                const projectId = sessionStorage.getItem('editProjectId') ||
+                                 (event.relatedTarget ? $(event.relatedTarget).data('project-id') : null);
 
-            console.log('Modal opened with project ID:', projectId);
+                console.log('Modal opened with project ID:', projectId);
 
-            if (!projectId) {
-                console.error('No project ID found on button');
-                return;
-            }
-
-            $('#editProjectId').val(projectId);
-            $(this).data('project-id', projectId);
-            editSelectedMembers = [];
-            editSelectedMembersContainer.innerHTML = '';
-            loadEditAvailableUsers(projectId);
-
-            $.ajax({
-                url: `/ProjectMembership/GetProjectMembers?projectId=${projectId}`,
-                type: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    console.log('Project members loaded:', response);
-
-                    if (response.success && response.members && response.members.length > 0) {
-                        response.members.forEach(member => {
-                            addEditSelectedUser({
-                                id: member.id || member.userId,
-                                name: member.name || member.userName || `${member.firstName || ''} ${member.lastName || ''}`.trim(),
-                                email: member.email || '',
-                                avatarUrl: member.avatarUrl || member.profilePicture || '/images/default-avatar.png'
-                            });
-                        });
-                    }
-                    updateMembersDisplay();
-                },
-                error: function(error) {
-                    console.error('Error loading project members:', error);
-                    showNotification("Failed to load team members", "danger");
-                    updateMembersDisplay();
+                if (!projectId) {
+                    console.error('No project ID found');
+                    return;
                 }
-            });
-        } catch (error) {
-            console.error('Error in modal show event:', error);
-        }
-    });
+                $('#editProjectId').val(projectId);
+                $(this).data('project-id', projectId);
+
+                editSelectedMembers = [];
+                originalMemberIds = [];
+                editSelectedMembersContainer.innerHTML = '';
+                loadEditAvailableUsers(projectId);
+
+                $.ajax({
+                    url: `/Project/GetProjectById?id=${projectId}`,
+                    type: 'GET',
+                    success: function(project) {
+                        document.getElementById('editProjectName').value = project.name || '';
+
+                    if (project.description) {
+                        const descriptionField = document.getElementById('editProjectDescription');
+                        if (descriptionField) {
+
+                            descriptionField.value = project.description;
+
+                            ensureQuillEditorsInitialized(document.getElementById('editProjectForm'));
+
+                            setTimeout(() => {
+                                if (descriptionField.quill) {
+                                    descriptionField.quill.clipboard.dangerouslyPasteHTML(project.description);
+                                } else {
+                                    const editor = document.querySelector(`#editProjectDescription + .ql-container .ql-editor`);
+                                    if (editor) {
+                                        editor.innerHTML = project.description;
+                                    }
+
+                                    if (window.Quill) {
+                                        const quillInstance = Quill.find(document.querySelector(`#editProjectDescription + .ql-container`));
+                                        if (quillInstance) {
+                                            quillInstance.clipboard.dangerouslyPasteHTML(project.description);
+                                        }
+                                    }
+                                }
+                            }); 
+                        }
+                    }
+
+                        if (project.statusId) {
+                            $('#editProjectStatusId').val(project.statusId).trigger('change');
+                        }
+
+                        if (project.serviceId) {
+                            $('#editProjectServiceId').val(project.serviceId).trigger('change');
+                        }
+
+                        if (project.customerId) {
+                            $('#editProjectCustomerId').val(project.customerId).trigger('change');
+                        }
+
+                        if (project.startDate) {
+                            $('#editProjectStartDate').val(formatDateForInput(project.startDate));
+                        }
+
+                        if (project.endDate) {
+                            $('#editProjectEndDate').val(formatDateForInput(project.endDate));
+                        }
+
+                        if (project.imageUrl) {
+                            $('#editCurrentImageUrl').val(project.imageUrl);
+                            editImagePreview.src = project.imageUrl;
+                            editImagePreview.classList.remove('d-none');
+                            editDefaultProjectImage.classList.add('d-none');
+                        }
+                    },
+                    error: function(error) {
+                        console.error('Error loading project details:', error);
+                        showNotification('Failed to load project details', 'danger');
+                    }
+                });
+
+                $.ajax({
+                    url: `/ProjectMembership/GetProjectMembers?projectId=${projectId}`,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        console.log('Project members loaded:', response);
+
+                        if (response.success && response.members && response.members.length > 0) {
+                            response.members.forEach(member => {
+                                const memberId = member.id || member.userId;
+                                originalMemberIds.push(memberId);
+
+                                addEditSelectedUser({
+                                    id: memberId,
+                                    name: member.name || member.userName || `${member.firstName || ''} ${member.lastName || ''}`.trim(),
+                                    email: member.email || '',
+                                    avatarUrl: member.avatarUrl || member.profilePicture || '/images/default-avatar.png'
+                                });
+                            });
+                        }
+                        updateMembersDisplay();
+                    },
+                    error: function(error) {
+                        console.error('Error loading project members:', error);
+                        showNotification("Failed to load team members", "danger");
+                        updateMembersDisplay();
+                    }
+                });
+            } catch (error) {
+                console.error('Error in modal show event:', error);
+            }
+        });
 
         if (editDropArea) {
             editDropArea.addEventListener('mouseover', function() {
@@ -690,6 +636,24 @@
                 const file = dt.files[0];
                 handleEditImageFile(file);
             }, false);
+        }
+
+        function formatDateForInput(dateString) {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function ensureQuillEditorsInitialized(form) {
+            if (typeof window.initQuillEditor === 'function') {
+                const editors = form.querySelectorAll('[data-quill-editor]:not(.quill-initialized)');
+                editors.forEach(editor => {
+                    window.initQuillEditor(editor.id);
+                    editor.classList.add('quill-initialized');
+                });
+            }
         }
     });
 </script>

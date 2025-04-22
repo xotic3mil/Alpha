@@ -13,11 +13,7 @@ const quillDefaultConfig = {
     placeholder: 'Enter description...'
 };
 
-/**
- * @param {string} textareaId 
- * @param {object} options 
- * @returns {Quill} 
- */
+
 function initQuillEditor(textareaId, options = {}) {
     const textarea = document.getElementById(textareaId);
     if (!textarea) {
@@ -57,9 +53,11 @@ function initQuillEditor(textareaId, options = {}) {
     return quill;
 }
 
-function initAllQuillEditors() {
-    document.querySelectorAll('[data-quill-editor]').forEach(textarea => {
+function initAllQuillEditors(editorsToInitialize = null) {
+    const editors = editorsToInitialize || document.querySelectorAll('[data-quill-editor]:not(.quill-initialized)');
+    editors.forEach(textarea => {
         initQuillEditor(textarea.id);
+        textarea.classList.add('quill-initialized');
     });
 }
 

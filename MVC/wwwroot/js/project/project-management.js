@@ -1,12 +1,9 @@
-﻿
-if (typeof commentConnection === 'undefined') {
+﻿if (typeof commentConnection === 'undefined') {
     var commentConnection = null;
 }
 
 function initializeCommentSignalR(projectId) {
     if (typeof signalR === 'undefined') {
-
-
         const script = document.createElement('script');
         script.src = "https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/dist/browser/signalr.min.js";
 
@@ -39,7 +36,6 @@ function initializeSignalRConnection(projectId) {
     });
 
     commentConnection.on("CommentDeleted", function (commentId) {
-
         let commentElement = $(`#comment-${commentId}`);
         if (commentElement.length === 0) {
             commentElement = $(`#${commentId}`);
@@ -115,7 +111,6 @@ function openProjectDetails(id) {
         success: function (project) {
             $('#projectDetailDeleteId').val(project.id);
             $('#projectDetailId').val(project.id);
-
 
             $('#taskProjectId').val(project.id);
             $('#timeEntryProjectId').val(project.id);
@@ -195,48 +190,27 @@ function openProjectDetails(id) {
                     initializeCommentSignalR(id);
                 }, 500);
             });
-
         },
         error: function (error) {
             snackbar.error('Failed to load project details. Please try again.');
         }
-
     });
 }
 
 function openEditProjectModal(projectId) {
-    window.blockEditFormReset = true;
+    if (!projectId) {
+        console.error("Missing project ID");
+        return;
+    }
 
-    $.ajax({
-        url: `/Project/Edit?id=${projectId}`,
-        type: 'GET',
-        success: function (response) {
-            console.log("Using primary method: replacing edit modal content");
-            $('#editProjectModal').replaceWith($(response));
-            $('#editProjectModal').modal('show');
+    console.log("Opening edit modal for project ID:", projectId);
 
-            initializeEditModalEventHandlers();
-            if (typeof initQuillEditor === 'function') {
-                setTimeout(() => {
-                    initQuillEditor('editProjectDescription');
-                }, 100);
-            }
+    sessionStorage.setItem('editProjectId', projectId);
 
-            setTimeout(() => {
-                window.blockEditFormReset = false;
-            }, 500);
-        },
-        error: function (error) {
-            console.error('Error loading project edit form:', error);
-
-            populateEditModalFields(projectId);
-        }
-    });
+    $('#editProjectModal').modal('show');
 }
 
 function populateEditModalFields(projectId) {
-    clearEditValidationErrors();
-
     fetch(`/Project/GetProjectById?id=${projectId}`)
         .then(response => {
             if (!response.ok) {
@@ -313,9 +287,6 @@ function initializeEditModalEventHandlers() {
     $('#editProjectForm').off('submit').on('submit', function (e) {
         e.preventDefault();
 
-        if (!validateEditProjectForm()) {
-            return false;
-        }
 
         const formData = new FormData(this);
 
@@ -385,18 +356,6 @@ function initializeEditModalEventHandlers() {
             }
         });
     }
-}
-
-function clearEditValidationErrors() {
-    const errorElements = document.querySelectorAll('#editProjectForm .field-validation-error');
-    errorElements.forEach(el => {
-        el.textContent = '';
-    });
-
-    const invalidInputs = document.querySelectorAll('#editProjectForm .is-invalid');
-    invalidInputs.forEach(input => {
-        input.classList.remove('is-invalid');
-    });
 }
 
 function ensureSignalRLoaded() {
@@ -776,7 +735,6 @@ function loadComments(projectId) {
 }
 
 function appendComment(comment) {
-
     if ($('#commentsContainer .text-center.text-muted').length > 0) {
         $('#commentsContainer').empty();
     }
@@ -939,7 +897,6 @@ $(document).off('submit', '#commentForm').on('submit', '#commentForm', function 
                 refreshSingleProjectCard(projectId);
             } else {
                 loadComments(projectId);
-
                 refreshSingleProjectCard(projectId);
             }
         },
@@ -982,3 +939,38 @@ $(document).ready(function () {
         `);
     }
 });
+
+function ensureQuillEditorsInitialized(form) {
+    if (typeof window.initQuillEditor === 'function') {
+        const editors = form.querySelectorAll('[data-quill-editor]:not(.quill-initialized)');
+        editors.forEach(editor => {
+            window.initQuillEditor(editor.id);
+            editor.classList.add('quill-initialized');
+        });
+    }
+}
+
+function handleEditImageFile(file) {
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const imagePreview = document.getElementById('editImagePreview');
+            const defaultImage = document.getElementById('editDefaultProjectImage');
+            const imageSelected = document.getElementById('editImageSelected');
+
+            if (imagePreview) {
+                imagePreview.src = e.target.result;
+                imagePreview.classList.remove('d-none');
+            }
+
+            if (defaultImage) {
+                defaultImage.style.display = 'none';
+            }
+
+            if (imageSelected) {
+                imageSelected.value = 'true';
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
