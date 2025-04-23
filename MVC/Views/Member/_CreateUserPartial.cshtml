@@ -20,7 +20,7 @@
                 <div id="form-errors-container" class="alert alert-danger d-none">
                     <ul id="form-errors-list" class="mb-0"></ul>
                 </div>
-                <form id="createUserForm" asp-action="Create" method="post" enctype="multipart/form-data">
+                <form id="createUserForm" asp-action="Create" method="post" enctype="multipart/form-data" data-validate="true">
                     <div class="mb-4">
                         <div class="d-flex flex-column align-items-center">
                             <div class="flex-grow-1 text-center">
@@ -46,37 +46,48 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label for="Form_FirstName" class="form-label">First Name *</label>
-                            <input type="text" id="Form_FirstName" name="FirstName" class="form-control" placeholder="Enter first name" />
+                            <input type="text" id="Form_FirstName" name="FirstName" class="form-control"
+                                   placeholder="Enter first name" required
+                                   data-val="true" data-val-required="First name is required" />
                             <span class="field-validation-error text-danger"></span>
                         </div>
                         <div class="col-md-6">
                             <label for="Form_LastName" class="form-label">Last Name *</label>
-                            <input type="text" id="Form_LastName" name="LastName" class="form-control" placeholder="Enter last name" />
+                            <input type="text" id="Form_LastName" name="LastName" class="form-control"
+                                   placeholder="Enter last name" required
+                                   data-val="true" data-val-required="Last name is required" />
                             <span class="field-validation-error text-danger"></span>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label for="Form_Email" class="form-label">Email Address *</label>
-                        <input type="email" id="Form_Email" name="Email" class="form-control" placeholder="Enter email address" />
+                        <input type="email" id="Form_Email" name="Email" class="form-control"
+                               placeholder="Enter email address" required
+                               data-val="true" data-val-required="Email is required"
+                               data-val-email="Please enter a valid email address" />
                         <span class="field-validation-error text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label for="Form_PhoneNumber" class="form-label">Phone Number *</label>
-                        <input type="tel" id="Form_PhoneNumber" name="PhoneNumber" class="form-control" placeholder="Enter phone number" />
+                        <input type="tel" id="Form_PhoneNumber" name="PhoneNumber" class="form-control"
+                               placeholder="Enter phone number" required
+                               data-val="true" data-val-required="Phone number is required" />
                         <span class="field-validation-error text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label for="Form_Title" class="form-label">Job Title</label>
-                        <input type="text" id="Form_Title" name="Title" class="form-control" placeholder="Enter job title" />
+                        <input type="text" id="Form_Title" name="Title" class="form-control"
+                               placeholder="Enter job title" />
                         <span class="field-validation-error text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label for="Form_Role" class="form-label">Role *</label>
-                        <select id="Form_Role" name="selectedRole" class="form-select">
+                        <select id="Form_Role" name="selectedRole" class="form-select" required
+                                data-val="true" data-val-required="Role is required">
                             @foreach (var role in Model.Roles)
                             {
                                 <option value="@role.Name">@role.Name</option>
@@ -87,12 +98,20 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label for="Form_Password" class="form-label">Password *</label>
-                            <input type="password" id="Form_Password" name="Password" class="form-control" placeholder="Enter password" />
+                            <input type="password" id="Form_Password" name="Password" class="form-control"
+                                   placeholder="Enter password" required
+                                   data-val="true" data-val-required="Password is required"
+                                   data-val-length="Password must be at least 8 characters"
+                                   data-val-length-min="8" />
                             <span class="field-validation-error text-danger"></span>
                         </div>
                         <div class="col-md-6">
                             <label for="Form_ConfirmPassword" class="form-label">Confirm Password *</label>
-                            <input type="password" id="Form_ConfirmPassword" name="ConfirmPassword" class="form-control" placeholder="Confirm password" />
+                            <input type="password" id="Form_ConfirmPassword" name="ConfirmPassword" class="form-control"
+                                   placeholder="Confirm password" required
+                                   data-val="true" data-val-required="Confirm password is required"
+                                   data-val-equalto="Passwords do not match"
+                                   data-val-equalto-other="Password" />
                             <span class="field-validation-error text-danger"></span>
                         </div>
                     </div>
@@ -112,7 +131,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const dropArea = document.getElementById('dropArea');
         const userImageInput = document.getElementById('userImage');
-        
+
         if (dropArea) {
             ['dragenter', 'dragover'].forEach(eventName => {
                 dropArea.addEventListener(eventName, highlight, false);
@@ -139,11 +158,10 @@
         $('#addUserModal').on('hidden.bs.modal', function () {
             resetModalForm();
         });
-
         $('#createUserForm').on('submit', function(e) {
-            e.preventDefault(); 
+            e.preventDefault();
 
-            if (!validateUserForm()) {
+            if (!validateForm('createUserForm')) {
                 return false;
             }
 
@@ -158,21 +176,19 @@
                 success: function(response) {
                     if (response.success) {
                         $('#addUserModal').modal('hide');
-                        
- 
                         showToast('Success', 'Team member created successfully', 'success');
                         setTimeout(function() {
                             window.location.href = response.redirectUrl || '/Member/Index';
                         }, 1000);
                     } else {
-                        displayValidationErrors(response.errors);
+                        displayServerValidationErrors(response.errors);
                     }
                 },
                 error: function(xhr) {
                     try {
                         const response = JSON.parse(xhr.responseText);
                         if (response.errors) {
-                            displayValidationErrors(response.errors);
+                            displayServerValidationErrors(response.errors);
                         } else {
                             showToast('Error', 'Failed to create team member', 'error');
                         }
@@ -184,126 +200,53 @@
         });
     });
 
-    function displayValidationErrors(errors) {
-        clearValidationErrors();
-        
+    function displayServerValidationErrors(errors) {
         if (!errors || Object.keys(errors).length === 0) {
             return;
         }
-        
+
+        const form = document.getElementById('createUserForm');
+
+        if (typeof clearValidationErrors === 'function') {
+            clearValidationErrors(form);
+        }
+
         const errorContainer = document.getElementById('form-errors-container');
         const errorList = document.getElementById('form-errors-list');
-        errorContainer.classList.remove('d-none');
-        
-        Object.keys(errors).forEach(function(key) {
-            const errorMessages = errors[key];
 
-            let fieldName = key;
-            if (key.includes('.')) {
-                fieldName = key.split('.').join('_');
-            }
-            
-            const inputElement = document.getElementById(fieldName);
-            
-            if (inputElement) {
-                inputElement.classList.add('is-invalid');
-                const errorSpan = inputElement.nextElementSibling;
-                if (errorSpan && errorSpan.classList.contains('field-validation-error')) {
-                    errorSpan.textContent = errorMessages[0];
+        if (errorContainer && errorList) {
+            errorContainer.classList.remove('d-none');
+            errorList.innerHTML = '';
+
+            Object.keys(errors).forEach(function(key) {
+                const errorMessages = errors[key];
+
+                let fieldName = key;
+                if (key.includes('.')) {
+                    fieldName = key.split('.').join('_');
                 }
-            }
-            
-            errorMessages.forEach(message => {
-                const li = document.createElement('li');
-                li.textContent = message;
-                errorList.appendChild(li);
+
+                const inputElement = document.getElementById(fieldName);
+
+                if (inputElement) {
+                    if (typeof showValidationError === 'function') {
+                        showValidationError(inputElement, errorMessages[0]);
+                    } else {
+                        inputElement.classList.add('is-invalid');
+                        const errorSpan = inputElement.nextElementSibling;
+                        if (errorSpan && errorSpan.classList.contains('field-validation-error')) {
+                            errorSpan.textContent = errorMessages[0];
+                        }
+                    }
+                }
+
+                errorMessages.forEach(message => {
+                    const li = document.createElement('li');
+                    li.textContent = message;
+                    errorList.appendChild(li);
+                });
             });
-        });
-    }
-
-    function validateUserForm() {
-        clearValidationErrors();
-        let isValid = true;
-
-        const firstNameField = document.getElementById('Form_FirstName');
-        if (!firstNameField.value.trim()) {
-            showError(firstNameField, "First name is required");
-            isValid = false;
         }
-
-        const lastNameField = document.getElementById('Form_LastName');
-        if (!lastNameField.value.trim()) {
-            showError(lastNameField, "Last name is required");
-            isValid = false;
-        }
-
-        const emailField = document.getElementById('Form_Email');
-        if (!emailField.value.trim()) {
-            showError(emailField, "Email is required");
-            isValid = false;
-        } else if (!emailField.validity.valid) {
-
-            showError(emailField, "Please enter a valid email address");
-            isValid = false;
-        }
-
-        const phoneField = document.getElementById('Form_PhoneNumber');
-        if (!phoneField.value.trim()) {
-            showError(phoneField, "Phone number is required");
-            isValid = false;
-        }
-
-        const roleField = document.getElementById('Form_Role');
-         if (!roleField.value) {
-            showError(roleField, "Role is required");
-            isValid = false;
-        }
-
-        const passwordField = document.getElementById('Form_Password');
-        if (!passwordField.value.trim()) {
-            showError(passwordField, "Password is required");
-            isValid = false;
-        } else if (passwordField.value.length < 8) {
-            showError(passwordField, "Password must be at least 8 characters");
-            isValid = false;
-        }
-
-        const confirmField = document.getElementById('Form_ConfirmPassword');
-        if (!confirmField.value.trim()) {
-            showError(confirmField, "Confirm password is required");
-            isValid = false;
-        } else if (confirmField.value !== passwordField.value) {
-            showError(confirmField, "Passwords do not match");
-            isValid = false;
-        }
-
-        return isValid;
-    }
-
-
-    function showError(inputElement, message) {
-        inputElement.classList.add('is-invalid');
-        const errorSpan = inputElement.nextElementSibling;
-        if (errorSpan && errorSpan.classList.contains('field-validation-error')) {
-            errorSpan.textContent = message;
-        }
-    }
-
-    function clearValidationErrors() {
-        const errorContainer = document.getElementById('form-errors-container');
-        const errorList = document.getElementById('form-errors-list');
-        errorContainer.classList.add('d-none');
-        errorList.innerHTML = '';
-        
-        const errorElements = document.querySelectorAll('#createUserForm .field-validation-error');
-        errorElements.forEach(el => {
-            el.textContent = '';
-        });
-
-        const invalidInputs = document.querySelectorAll('#createUserForm .is-invalid');
-        invalidInputs.forEach(input => {
-            input.classList.remove('is-invalid');
-        });
     }
 
     function handleImageFile(file) {
@@ -321,7 +264,7 @@
                 if (defaultImg) defaultImg.style.display = 'none';
                 if (previewImg) {
                     previewImg.src = e.target.result;
-                    previewImg.classList.remove('d-none'); 
+                    previewImg.classList.remove('d-none');
                 }
             };
             reader.readAsDataURL(file);
@@ -330,15 +273,25 @@
 
     function resetModalForm() {
         const form = document.getElementById('createUserForm');
-        if (form) form.reset();
+        if (form) {
+            form.reset();
 
-        clearValidationErrors();
+            if (typeof clearValidationErrors === 'function') {
+                clearValidationErrors(form);
+            }
+        }
+
+        const errorContainer = document.getElementById('form-errors-container');
+        const errorList = document.getElementById('form-errors-list');
+        if (errorContainer) errorContainer.classList.add('d-none');
+        if (errorList) errorList.innerHTML = '';
+
         const defaultImg = document.getElementById('defaultUserImage');
         const previewImg = document.getElementById('imagePreview');
 
         if (defaultImg) defaultImg.style.display = 'block';
         if (previewImg) {
-            previewImg.style.display = 'none';
+            previewImg.classList.add('d-none');
             previewImg.src = '';
         }
     }
@@ -373,7 +326,6 @@
             document.getElementById('userImage').files = files;
         }
     }
-    
 
     function showToast(title, message, type) {
         if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
@@ -387,19 +339,19 @@
                     </div>
                 </div>
             `;
-            
+
             const toastContainer = document.getElementById('toast-container') || document.createElement('div');
             if (!document.getElementById('toast-container')) {
                 toastContainer.id = 'toast-container';
                 toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
                 document.body.appendChild(toastContainer);
             }
-            
+
             toastContainer.insertAdjacentHTML('beforeend', toastHtml);
             const toastElement = toastContainer.lastElementChild;
             const toast = new bootstrap.Toast(toastElement);
             toast.show();
-            
+
             toastElement.addEventListener('hidden.bs.toast', function() {
                 toastElement.remove();
             });

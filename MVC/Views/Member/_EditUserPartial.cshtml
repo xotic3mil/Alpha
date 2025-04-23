@@ -16,8 +16,7 @@
                 <button type="button"
                         class="btn-close"
                         data-bs-dismiss="modal"
-                        aria-label="Close"
-                        onclick="resetEditModalForm()"></button>
+                        aria-label="Close"></button>
             </div>
             <div class="text-center my-5 px-3">
                 <h1 class="modal-title px-3 text-center" id="editUserModalLabel">
@@ -26,10 +25,11 @@
             </div>
             <div class="modal-body">
                 <div class="container-fluid px-4">
-                    <form asp-action="Edit" asp-controller="Member" method="post" id="editUserForm" enctype="multipart/form-data">
+                    <form asp-action="Edit" asp-controller="Member" method="post" id="editUserForm" enctype="multipart/form-data" data-validate="true">
+                        <div asp-validation-summary="ModelOnly" class="text-danger" id="edit-validation-summary"></div>
                         @Html.AntiForgeryToken()
-                        <input type="hidden" id="editUserId" name="Form.Id" />
-                        
+                        <input type="hidden" id="editUserId" name="userId" />
+
                         <div class="mb-4 text-center">
                             <div class="position-relative d-inline-block" id="editDropArea">
                                 <div class="rounded-circle bg-light d-flex align-items-center justify-content-center"
@@ -54,7 +54,10 @@
                                        name="Form.FirstName"
                                        class="form-control formBorder"
                                        id="editFirstName"
-                                       placeholder="Enter first name" />
+                                       placeholder="Enter first name"
+                                       required
+                                       data-val="true"
+                                       data-val-required="First name is required" />
                                 <span class="text-danger field-validation-error" id="editFirstNameError"></span>
                             </div>
                             <div class="col">
@@ -63,7 +66,10 @@
                                        name="Form.LastName"
                                        class="form-control formBorder"
                                        id="editLastName"
-                                       placeholder="Enter last name" />
+                                       placeholder="Enter last name"
+                                       required
+                                       data-val="true"
+                                       data-val-required="Last name is required" />
                                 <span class="text-danger field-validation-error" id="editLastNameError"></span>
                             </div>
                         </div>
@@ -74,7 +80,11 @@
                                    name="Form.Email"
                                    class="form-control formBorder"
                                    id="editEmail"
-                                   placeholder="Enter email address" />
+                                   placeholder="Enter email address"
+                                   required
+                                   data-val="true"
+                                   data-val-required="Email address is required"
+                                   data-val-email="Please enter a valid email address" />
                             <span class="text-danger field-validation-error" id="editEmailError"></span>
                         </div>
 
@@ -84,8 +94,37 @@
                                    name="Form.PhoneNumber"
                                    class="form-control formBorder"
                                    id="editPhoneNumber"
-                                   placeholder="Enter phone number" />
+                                   placeholder="Enter phone number"
+                                   required
+                                   data-val="true"
+                                   data-val-required="Phone number is required" />
                             <span class="text-danger field-validation-error" id="editPhoneError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editTitle" class="form-label">Job Title</label>
+                            <input type="text"
+                                   name="Form.Title"
+                                   class="form-control formBorder"
+                                   id="editTitle"
+                                   placeholder="Enter job title" />
+                            <span class="text-danger field-validation-error" id="editTitleError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editRole" class="form-label">Role *</label>
+                            <select id="editRole"
+                                    name="selectedRole"
+                                    class="form-select formBorder"
+                                    required
+                                    data-val="true"
+                                    data-val-required="Role is required">
+                                @foreach (var role in Model.Roles)
+                                {
+                                    <option value="@role.Name">@role.Name</option>
+                                }
+                            </select>
+                            <span class="text-danger field-validation-error" id="editRoleError"></span>
                         </div>
 
                         <div class="mb-3">
@@ -94,7 +133,10 @@
                                    name="Form.Password"
                                    class="form-control formBorder"
                                    id="editPassword"
-                                   placeholder="Enter password" />
+                                   placeholder="Enter password"
+                                   data-val="true"
+                                   data-val-length="Password must be at least 8 characters"
+                                   data-val-length-min="8" />
                             <span class="text-danger field-validation-error" id="editPasswordError"></span>
                         </div>
 
@@ -104,7 +146,10 @@
                                    name="Form.ConfirmPassword"
                                    class="form-control formBorder"
                                    id="editConfirmPassword"
-                                   placeholder="Confirm password" />
+                                   placeholder="Confirm password"
+                                   data-val="true"
+                                   data-val-equalto="Passwords do not match"
+                                   data-val-equalto-other="Form.Password" />
                             <span class="text-danger field-validation-error" id="editConfirmPasswordError"></span>
                         </div>
 
@@ -125,8 +170,18 @@
     document.addEventListener('DOMContentLoaded', function() {
         const editDropArea = document.getElementById('editDropArea');
         const editUserImageInput = document.getElementById('editUserImage');
-        
+        const editImagePreview = document.getElementById('editImagePreview');
+        const editDefaultUserImage = document.getElementById('editDefaultUserImage');
+        const editCameraOverlay = document.getElementById('editCameraOverlay');
         if (editDropArea) {
+            editDropArea.addEventListener('mouseover', function() {
+                editCameraOverlay.style.opacity = '1';
+            });
+
+            editDropArea.addEventListener('mouseout', function() {
+                editCameraOverlay.style.opacity = '0';
+            });
+
             ['dragenter', 'dragover'].forEach(eventName => {
                 editDropArea.addEventListener(eventName, highlightEdit, false);
             });
@@ -149,89 +204,58 @@
             });
         }
 
+        const editUserForm = document.getElementById('editUserForm');
+        if (editUserForm) {
+            editUserForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw errorData;
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    showNotification('User updated successfully', 'success');
+
+                    $('#editUserModal').modal('hide');
+
+                    setTimeout(() => {
+                        window.location.href = '/Member/Index';
+                    }, 1000);
+                })
+                .catch(error => {
+                    console.error('Error updating user:', error);
+
+                    if (error.errors) {
+                        displayServerValidationErrors(error.errors);
+                    } else {
+                        showNotification('Failed to update user. Please try again.', 'danger');
+                    }
+                });
+            });
+        }
+
         $('#editUserModal').on('hidden.bs.modal', function () {
             resetEditModalForm();
         });
-
-        $('#editUserForm').on('submit', function(e) {
-            if (!validateEditUserForm()) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
     });
-
-    function validateEditUserForm() {
-        clearEditValidationErrors();
-        let isValid = true;
-
-        const firstNameField = document.getElementById('editFirstName');
-        if (!firstNameField.value.trim()) {
-            showEditError(firstNameField, 'First name is required');
-            isValid = false;
-        }
-
-        const lastNameField = document.getElementById('editLastName');
-        if (!lastNameField.value.trim()) {
-            showEditError(lastNameField, 'Last name is required');
-            isValid = false;
-        }
-
-        const emailField = document.getElementById('editEmail');
-        if (!emailField.value.trim()) {
-            showEditError(emailField, 'Email address is required');
-            isValid = false;
-        } else if (!isValidEmail(emailField.value)) {
-            showEditError(emailField, 'Please enter a valid email address');
-            isValid = false;
-        }
-
-        const phoneField = document.getElementById('editPhoneNumber');
-        if (!phoneField.value.trim()) {
-            showEditError(phoneField, 'Phone number is required');
-            isValid = false;
-        }
-
-        const passwordField = document.getElementById('editPassword');
-        if (passwordField.value.trim() && passwordField.value.length < 8) {
-            showEditError(passwordField, 'Password must be at least 8 characters');
-            isValid = false;
-        }
-
-        const confirmField = document.getElementById('editConfirmPassword');
-        if (passwordField.value.trim() && confirmField.value !== passwordField.value) {
-            showEditError(confirmField, 'Passwords do not match');
-            isValid = false;
-        }
-
-        return isValid;
-    }
-
-    function showEditError(inputElement, message) {
-        inputElement.classList.add('is-invalid');
-        const errorSpan = inputElement.nextElementSibling;
-        if (errorSpan && errorSpan.classList.contains('field-validation-error')) {
-            errorSpan.textContent = message;
-        }
-    }
-
-    function clearEditValidationErrors() {
-        const errorElements = document.querySelectorAll('#editUserForm .field-validation-error');
-        errorElements.forEach(el => {
-            el.textContent = '';
-        });
-
-        const invalidInputs = document.querySelectorAll('#editUserForm .is-invalid');
-        invalidInputs.forEach(input => {
-            input.classList.remove('is-invalid');
-        });
-    }
 
     function handleEditImageFile(file) {
         console.log('handleEditImageFile called with file:', file ? file.name : 'no file');
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
-                alert('File size should not exceed 5MB');
+                showNotification('File size should not exceed 5MB', 'danger');
                 return;
             }
 
@@ -239,7 +263,7 @@
             reader.onload = function(e) {
                 const defaultImg = document.getElementById('editDefaultUserImage');
                 const previewImg = document.getElementById('editImagePreview');
-                
+
                 if (defaultImg) defaultImg.style.display = 'none';
                 if (previewImg) {
                     previewImg.classList.remove('d-none');
@@ -252,9 +276,14 @@
 
     function resetEditModalForm() {
         const form = document.getElementById('editUserForm');
-        if (form) form.reset();
+        if (form) {
+            form.reset();
 
-        clearEditValidationErrors();
+            if (typeof clearValidationErrors === 'function') {
+                clearValidationErrors(form);
+            }
+        }
+
         const defaultImg = document.getElementById('editDefaultUserImage');
         const previewImg = document.getElementById('editImagePreview');
 
@@ -267,7 +296,7 @@
         console.log('Edit form reset complete');
     }
 
-    function preventEditDefaults(e) {
+    function preventDefaults(e) {
         e.preventDefault();
         e.stopPropagation();
     }
@@ -289,12 +318,78 @@
     }
 
     function handleEditDrop(e) {
-        preventEditDefaults(e);
+        preventDefaults(e);
         const dt = e.dataTransfer;
         const files = dt.files;
         if (files.length && files[0].type.startsWith('image/')) {
             handleEditImageFile(files[0]);
             document.getElementById('editUserImage').files = files;
+        }
+    }
+
+    function displayServerValidationErrors(errors) {
+        if (!errors || Object.keys(errors).length === 0) {
+            return;
+        }
+
+        const form = document.getElementById('editUserForm');
+
+        if (typeof clearValidationErrors === 'function') {
+            clearValidationErrors(form);
+        }
+
+        const errorSummary = document.getElementById('edit-validation-summary');
+        if (errorSummary) {
+            errorSummary.innerHTML = '';
+            const errorList = document.createElement('ul');
+
+            Object.keys(errors).forEach(function(key) {
+                const errorMessages = errors[key];
+
+                let fieldName = key;
+                if (key.includes('.')) {
+                    fieldName = key.split('.').pop();
+                }
+
+                let inputId = 'edit' + fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+                const inputElement = document.getElementById(inputId);
+
+                if (inputElement) {
+                    inputElement.classList.add('input-validation-error');
+                    const errorSpan = document.getElementById(inputId + 'Error');
+                    if (errorSpan) {
+                        errorSpan.textContent = errorMessages[0];
+                    }
+                }
+
+                errorMessages.forEach(message => {
+                    const li = document.createElement('li');
+                    li.textContent = message;
+                    errorList.appendChild(li);
+                });
+            });
+
+            errorSummary.classList.remove('d-none');
+            errorSummary.appendChild(errorList);
+        }
+    }
+
+    function showNotification(message, type) {
+        if (typeof showSnackbar === 'function') {
+            showSnackbar(message, type);
+        } else {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+
+            const notification = document.createElement('div');
+            notification.className = `alert ${alertClass} position-fixed top-0 start-50 translate-middle-x mt-3`;
+            notification.style.zIndex = 1060;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
         }
     }
 
@@ -312,7 +407,18 @@
                 document.getElementById('editLastName').value = user.lastName || '';
                 document.getElementById('editEmail').value = user.email || '';
                 document.getElementById('editPhoneNumber').value = user.phoneNumber || '';
+                document.getElementById('editTitle').value = user.title || '';
                 document.getElementById('editCurrentAvatarUrl').value = user.avatarUrl || '';
+
+                const roleSelect = document.getElementById('editRole');
+                if (roleSelect && user.roleName) {
+                    for (let i = 0; i < roleSelect.options.length; i++) {
+                        if (roleSelect.options[i].value === user.roleName) {
+                            roleSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
 
                 const defaultImg = document.getElementById('editDefaultUserImage');
                 const previewImg = document.getElementById('editImagePreview');
@@ -335,7 +441,7 @@
             })
             .catch(error => {
                 console.error('Error fetching user details:', error);
-                alert('Failed to load user details. Please try again.');
+                showNotification('Failed to load user details. Please try again.', 'danger');
             });
     }
 </script>
