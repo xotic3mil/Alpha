@@ -60,6 +60,13 @@
                                     Security Settings
                                 </button>
                             </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="theme-tab" data-bs-toggle="tab"
+                                        data-bs-target="#theme-pane" type="button" role="tab"
+                                        aria-controls="theme-pane" aria-selected="false">
+                                    Theme Settings
+                                </button>
+                            </li>
                         </ul>
 
                         <div class="tab-content pt-4" id="profileTabsContent">
@@ -68,7 +75,7 @@
                                 <form id="profileForm" enctype="multipart/form-data" data-validate="true">
                                     @Html.AntiForgeryToken()
                                     <div class="validation-summary-errors d-none" data-valmsg-summary="true"></div>
-                                    
+
                                     <input type="hidden" name="Id" value="@Model.Id" />
                                     <input type="hidden" name="Email" value="@Model.Email" />
                                     <input type="hidden" name="UserName" value="@Model.UserName" />
@@ -80,15 +87,15 @@
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label for="FirstName" class="form-label">First Name</label>
-                                            <input type="text" id="FirstName" name="FirstName" value="@Model.FirstName" 
-                                                   class="form-control formBorder" required 
+                                            <input type="text" id="FirstName" name="FirstName" value="@Model.FirstName"
+                                                   class="form-control formBorder" required
                                                    data-val="true" data-val-required="First name is required" />
                                             <span class="text-danger field-validation-error" data-valmsg-for="FirstName" data-valmsg-replace="true"></span>
                                         </div>
                                         <div class="col-md-6">
                                             <label for="LastName" class="form-label">Last Name</label>
-                                            <input type="text" id="LastName" name="LastName" value="@Model.LastName" 
-                                                   class="form-control formBorder" required 
+                                            <input type="text" id="LastName" name="LastName" value="@Model.LastName"
+                                                   class="form-control formBorder" required
                                                    data-val="true" data-val-required="Last name is required" />
                                             <span class="text-danger field-validation-error" data-valmsg-for="LastName" data-valmsg-replace="true"></span>
                                         </div>
@@ -102,8 +109,8 @@
                                         </div>
                                         <div class="col-md-6">
                                             <label for="PhoneNumber" class="form-label">Phone Number</label>
-                                            <input type="text" id="PhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber" 
-                                                   class="form-control formBorder" 
+                                            <input type="text" id="PhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber"
+                                                   class="form-control formBorder"
                                                    data-val="true" data-val-phone="Please enter a valid phone number" />
                                             <span class="text-danger field-validation-error" data-valmsg-for="PhoneNumber" data-valmsg-replace="true"></span>
                                         </div>
@@ -130,26 +137,26 @@
                                 <form id="changePasswordForm" data-validate="true">
                                     @Html.AntiForgeryToken()
                                     <div class="validation-summary-errors d-none" data-valmsg-summary="true"></div>
-                                    
+
                                     <div class="mb-4">
                                         <label for="currentPassword" class="form-label">Current Password</label>
-                                        <input type="password" class="form-control formBorder" id="currentPassword" 
-                                               name="currentPassword" required 
+                                        <input type="password" class="form-control formBorder" id="currentPassword"
+                                               name="currentPassword" required
                                                data-val="true" data-val-required="Current password is required" />
                                         <span class="text-danger field-validation-error" data-valmsg-for="currentPassword" data-valmsg-replace="true"></span>
                                     </div>
                                     <div class="mb-4">
                                         <label for="newPassword" class="form-label">New Password</label>
-                                        <input type="password" class="form-control formBorder" id="newPassword" 
-                                               name="newPassword" required 
+                                        <input type="password" class="form-control formBorder" id="newPassword"
+                                               name="newPassword" required
                                                data-val="true" data-val-required="New password is required" />
                                         <span class="text-danger field-validation-error" data-valmsg-for="newPassword" data-valmsg-replace="true"></span>
                                     </div>
                                     <div class="mb-4">
                                         <label for="confirmPassword" class="form-label">Confirm New Password</label>
-                                        <input type="password" class="form-control formBorder" id="confirmPassword" 
-                                               name="confirmPassword" required 
-                                               data-val="true" data-val-required="Confirm password is required" 
+                                        <input type="password" class="form-control formBorder" id="confirmPassword"
+                                               name="confirmPassword" required
+                                               data-val="true" data-val-required="Confirm password is required"
                                                data-val-equalto="Passwords must match" data-val-equalto-other="newPassword" />
                                         <span class="text-danger field-validation-error" data-valmsg-for="confirmPassword" data-valmsg-replace="true"></span>
                                     </div>
@@ -159,6 +166,106 @@
                                         <button type="submit" class="btn btn-primary">Change Password</button>
                                     </div>
                                 </form>
+                            </div>
+
+                            <div class="tab-pane fade" id="theme-pane" role="tabpanel" aria-labelledby="theme-tab">
+                                <h4 class="mb-4 fw-bold">Appearance Settings</h4>
+
+                                <div class="card border-0 bg-light rounded-4 mb-4">
+                                    <div class="card-body p-4">
+                                        <h5 class="fw-medium mb-3">Choose Theme</h5>
+                                        <div class="theme-selector">
+                                            <div class="row g-3">
+                                                <div class="col-6 col-md-3">
+                                                    <div class="theme-option" data-theme="light">
+                                                        <div class="theme-preview light-preview">
+                                                            <div class="preview-sidebar"></div>
+                                                            <div class="preview-content">
+                                                                <div class="preview-header"></div>
+                                                                <div class="preview-card"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="theme-label d-flex align-items-center mt-2">
+                                                            <input type="radio" name="theme" id="theme-light" value="light" class="form-check-input me-2">
+                                                            <label for="theme-light" class="form-check-label">Light</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-md-3">
+                                                    <div class="theme-option" data-theme="dark">
+                                                        <div class="theme-preview dark-preview">
+                                                            <div class="preview-sidebar"></div>
+                                                            <div class="preview-content">
+                                                                <div class="preview-header"></div>
+                                                                <div class="preview-card"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="theme-label d-flex align-items-center mt-2">
+                                                            <input type="radio" name="theme" id="theme-dark" value="dark" class="form-check-input me-2">
+                                                            <label for="theme-dark" class="form-check-label">Dark</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-md-3">
+                                                    <div class="theme-option" data-theme="blue">
+                                                        <div class="theme-preview blue-preview">
+                                                            <div class="preview-sidebar"></div>
+                                                            <div class="preview-content">
+                                                                <div class="preview-header"></div>
+                                                                <div class="preview-card"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="theme-label d-flex align-items-center mt-2">
+                                                            <input type="radio" name="theme" id="theme-blue" value="blue" class="form-check-input me-2">
+                                                            <label for="theme-blue" class="form-check-label">Blue</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-md-3">
+                                                    <div class="theme-option" data-theme="green">
+                                                        <div class="theme-preview green-preview">
+                                                            <div class="preview-sidebar"></div>
+                                                            <div class="preview-content">
+                                                                <div class="preview-header"></div>
+                                                                <div class="preview-card"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="theme-label d-flex align-items-center mt-2">
+                                                            <input type="radio" name="theme" id="theme-green" value="green" class="form-check-input me-2">
+                                                            <label for="theme-green" class="form-check-label">Green</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card border-0 bg-light rounded-4 mb-4">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <h5 class="fw-medium mb-1">Reduced Motion</h5>
+                                                <p class="text-muted mb-0">Minimize animations throughout the interface</p>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="reduceMotionToggle">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card border-0 bg-light rounded-4">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex align-items-start">
+                                            <i class="bi bi-info-circle text-primary me-3 fs-4"></i>
+                                            <div>
+                                                <h6 class="fw-medium mb-2">About Theme Settings</h6>
+                                                <p class="text-muted mb-0">Theme preferences are saved to your browser and will be applied whenever you use this application. These settings don't affect other users or devices.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -206,7 +313,6 @@
 
             $("#profileForm").on("submit", function(e) {
                 e.preventDefault();
-
                 if (!validateForm('profileForm')) {
                     return false;
                 }
@@ -272,12 +378,12 @@
 
             $("#changePasswordForm").on("submit", function(e) {
                 e.preventDefault();
-                
+
                 if (!validateForm('changePasswordForm', {
                     'confirmPassword': function(field) {
                         const newPassword = document.getElementById('newPassword').value;
                         const confirmPassword = field.value;
-                        
+
                         if (newPassword !== confirmPassword) {
                             return { valid: false, message: 'Passwords do not match' };
                         }
@@ -286,6 +392,10 @@
                 })) {
                     return false;
                 }
+
+                            if (window.location.hash === '#theme-settings') {
+                $('#theme-tab').tab('show');
+            }
 
                 const token = $('input[name="__RequestVerificationToken"]').val();
 
@@ -320,6 +430,56 @@
                     }
                 });
             });
+
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const reduceMotionToggle = document.getElementById('reduceMotionToggle');
+
+            if (darkModeToggle) {
+                darkModeToggle.checked = localStorage.getItem('darkMode') === 'true';
+
+                darkModeToggle.addEventListener('change', function() {
+                    document.body.classList.add('theme-transition');
+
+                    if (this.checked) {
+                        enableDarkMode();
+                    } else {
+                        disableDarkMode();
+                    }
+
+                    setTimeout(() => {
+                        document.body.classList.remove('theme-transition');
+                    }, 1000);
+                });
+            }
+
+            if (reduceMotionToggle) {
+                reduceMotionToggle.checked = localStorage.getItem('reduceMotion') === 'true';
+
+                reduceMotionToggle.addEventListener('change', function() {
+                    if (this.checked) {
+                        document.body.classList.add('reduce-motion');
+                        localStorage.setItem('reduceMotion', 'true');
+                    } else {
+                        document.body.classList.remove('reduce-motion');
+                        localStorage.setItem('reduceMotion', 'false');
+                    }
+                    snackbar.info('Motion preference updated');
+                });
+            }
+
+            if (window.location.hash === '#theme-settings') {
+                $('#theme-tab').tab('show');
+            }
+
+            function enableDarkMode() {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'true');
+            }
+
+            function disableDarkMode() {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'false');
+            }
         });
     </script>
 }
