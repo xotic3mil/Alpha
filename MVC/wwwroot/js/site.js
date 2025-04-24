@@ -1,6 +1,4 @@
-﻿// Time & Task Global Navigation Functions
-
-function openRecentTimeEntries() {
+﻿function openRecentTimeEntries() {
     // Get the most recent project the user has access to
     $.ajax({
         url: '/Project/GetMostRecentProject',
@@ -41,7 +39,6 @@ function openLogTime() {
         }
     });
 }
-
 
 function openMyTasks() {
     $.ajax({
@@ -102,23 +99,20 @@ function openProjectDetails(id) {
             $('#projectDetailDeleteId').val(project.id);
             $('#projectDetailId').val(project.id);
 
-            // Fill in project details
             $('#projectDetailImage').attr('src', project.imageUrl || '/images/project-template-1.svg');
             $('#projectDetailName').text(project.name || 'Unnamed Project');
             $('#projectDetailDescription').text(project.description || 'No description available');
 
-            // Service details
             $('#projectDetailServiceName').text(project.service?.serviceName || 'No Service');
             $('#projectDetailServiceDescription').text(project.service?.serviceDescription || 'No description available');
             $('#projectDetailBudget').text(project.service?.budget ? `$${project.service.budget.toLocaleString()}` : 'N/A');
 
-            // Status details
             $('#projectDetailStatus').text(project.status?.statusName || 'No Status');
             const statusColor = project.status?.colorCode || '#4caf50';
             $('#projectDetailStatusIndicator').css('background-color', statusColor);
             $('#projectDetailHeader').css('background-color', statusColor + '15');
 
-            // Timeline
+
             $('#projectDetailStartDate').text(formatDateString(project.startDate) || 'Not set');
             $('#projectDetailEndDate').text(formatDateString(project.endDate) || 'Not set');
 
@@ -131,7 +125,6 @@ function openProjectDetails(id) {
                 $('#projectDetailTimeRemaining').text('-');
             }
 
-            // Customer details
             if (project.customer) {
                 $('#projectDetailCustomerName').text(project.customer.companyName || '-');
                 $('#projectDetailCustomerContact').text(project.customer.contactName || '-');
@@ -147,7 +140,6 @@ function openProjectDetails(id) {
                 $('#viewCustomerLink').attr('href', `/Customer/Details/${project.customer.id}`);
             }
 
-            // Load all the related data
             loadProjectMembers(project.id);
             loadPendingRequests(project.id);
             loadComments(project.id);
@@ -170,7 +162,6 @@ function openProjectDetails(id) {
         }
     });
 }
-
 
 function formatDateString(dateString) {
     if (!dateString) return null;

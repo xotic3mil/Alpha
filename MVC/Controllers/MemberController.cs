@@ -13,24 +13,16 @@ using System.Diagnostics;
 namespace MVC.Controllers
 {
     [Authorize]
-    public class MemberController : Controller
+    public class MemberController(
+        UserManager<UserEntity> userManager,
+        IUserService userService,
+        IWebHostEnvironment hostEnvironment,
+        RoleManager<RoleEntity> roleManager) : Controller
     {
-        private readonly UserManager<UserEntity> _userManager;
-        private readonly IUserService _userService;
-        private readonly RoleManager<RoleEntity> _roleManager;
-        private readonly IWebHostEnvironment _hostEnvironment;
-
-        public MemberController(
-            UserManager<UserEntity> userManager,
-            IUserService userService,
-            IWebHostEnvironment hostEnvironment,
-            RoleManager<RoleEntity> roleManager)
-        {
-            _userManager = userManager;
-            _userService = userService;
-            _roleManager = roleManager;
-            _hostEnvironment = hostEnvironment;
-        }
+        private readonly UserManager<UserEntity> _userManager = userManager;
+        private readonly IUserService _userService = userService;
+        private readonly RoleManager<RoleEntity> _roleManager = roleManager;
+        private readonly IWebHostEnvironment _hostEnvironment = hostEnvironment;
 
         [HttpGet]
         public async Task<IActionResult> Index()
