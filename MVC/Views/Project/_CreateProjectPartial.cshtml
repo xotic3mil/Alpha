@@ -77,16 +77,16 @@
                             <label class="form-label">Team Members</label>
                             <div class="position-relative">
                                 <div class="input-group mb-2">
-                                    <span class="input-group-text">
+                                    <span class="input-group-text search">
                                         <i class="bi bi-search"></i>
                                     </span>
-                                    <input type="text" id="userSearchInput" class="form-control formBorder" placeholder="Add team members...">
+                                    <input type="text" id="userSearchInput" class="form-control formBorder search" placeholder="Add team members...">
                                 </div>
                                 <div id="selectedMembersContainer" class="d-flex flex-wrap gap-1 mb-2">
                                 </div>
                                 <div class="border rounded p-2 formBorder"
                                      id="userSuggestionsContainer"
-                                     style="max-height: 200px; overflow-y: auto; display: none; position: absolute; width: 100%; background: white; z-index: 1050; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                                     style="max-height: 200px; overflow-y: auto; display: none; position: absolute; width: 100%; z-index: 1050;">
                                 </div>
                             </div>
                             <span class="text-danger field-validation-error" id="membersError"></span>

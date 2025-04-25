@@ -1,7 +1,4 @@
-﻿/**
- * Task management functionality
- */
-
+﻿
 function loadProjectTasks(projectId) {
     if (!projectId) {
         console.error("Missing project ID when loading tasks");
@@ -212,12 +209,9 @@ function loadTaskAssignees(projectId, dropdownId) {
 function toggleTaskCompletion(taskId, taskProjectId) {
     event.preventDefault();
 
-    console.log("Toggling task completion for task:", taskId);
-
     const projectId = taskProjectId || getProjectId();
 
     if (!projectId) {
-        console.error("Missing project ID when toggling task completion");
         snackbar.error("Error: Project ID is missing");
         return;
     }
@@ -235,15 +229,12 @@ function toggleTaskCompletion(taskId, taskProjectId) {
             'X-Requested-With': 'XMLHttpRequest'
         },
         success: function (response) {
-            console.log("Task completion toggle response:", response);
 
             if (!response.succeeded) {
-                console.error("Failed to update task status:", response.error);
                 snackbar.error('Failed to update task status: ' + (response.error || 'Unknown error'));
                 return;
             }
 
-            console.log("Refreshing tasks after status change with project ID:", projectId);
 
             refreshSingleProjectCard(projectId);
 
@@ -252,11 +243,8 @@ function toggleTaskCompletion(taskId, taskProjectId) {
                 loadTaskSummary(projectId);
             }, 300);
 
-            console.log("Task status updated successfully");
         },
         error: function (xhr, status, error) {
-            console.error('Error updating task completion status:', error);
-            console.error('Response text:', xhr.responseText);
             snackbar.error('Failed to update task status. Please try again.');
         }
     });
@@ -280,7 +268,6 @@ function editTask(taskId) {
             }
 
             const task = response.result;
-
             sessionStorage.setItem('currentProjectId', task.projectId);
 
             $('#editTaskId').val(task.id);
@@ -311,7 +298,6 @@ function editTask(taskId) {
             }, 500);
         },
         error: function (error) {
-            console.error('Error loading task details:', error);
             snackbar.error('Failed to load task details. Please try again.');
         }
     });
@@ -327,7 +313,6 @@ function deleteTask(taskId, entryProjectId) {
     }
 
     if (!projectId) {
-        console.error("Cannot delete: Missing project ID");
         snackbar.error("Error: Project ID is missing");
         return;
     }
@@ -350,8 +335,6 @@ function deleteTask(taskId, entryProjectId) {
                 return;
             }
 
-            console.log("Task deleted successfully, refreshing with project ID:", projectId);
-
             setTimeout(() => {
                 loadProjectTasks(projectId);
                 loadTaskSummary(projectId);
@@ -361,8 +344,7 @@ function deleteTask(taskId, entryProjectId) {
             snackbar.success('Task deleted successfully');
         },
         error: function (xhr, status, error) {
-            console.error('Error deleting task:', error);
-            console.error('Response text:', xhr.responseText);
+
             snackbar.error('Failed to delete task. Please try again.');
         }
     });
@@ -372,7 +354,6 @@ function saveTask() {
     const form = $('#createTaskForm');
 
     if (form.data('submitting')) {
-        console.log("Form already submitting, ignoring duplicate request");
         return;
     }
 
@@ -388,7 +369,6 @@ function saveTask() {
     }
 
     if (!projectId || projectId === '') {
-        console.error("ProjectId is missing");
         snackbar.error("Error: Project ID is missing");
         return;
     }
@@ -400,7 +380,6 @@ function saveTask() {
     const token = $('input[name="__RequestVerificationToken"]').first().val();
     const formData = new FormData(form[0]);
 
-    console.log("Form data being submitted:");
     for (let pair of formData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
     }
@@ -417,10 +396,7 @@ function saveTask() {
         success: function (response) {
             form.data('submitting', false);
 
-            console.log("Task creation response:", response);
-
             if (!response.succeeded) {
-                console.error("Error creating task:", response.error);
                 snackbar.error('Failed to create task: ' + (response.error || 'Unknown error'));
                 return;
             }

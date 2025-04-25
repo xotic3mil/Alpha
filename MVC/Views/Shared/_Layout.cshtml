@@ -212,9 +212,9 @@
                                 @if (SignInManager.IsSignedIn(User))
                                 {
                                     <li>
-                                        <form asp-action="Logout" asp-controller="Auth" method="post" class="d-inline">
+                                        <form asp-action="Logout" asp-controller="Auth" method="post">
                                             @Html.AntiForgeryToken()
-                                            <button type="submit" class="dropdown-item border-0 bg-transparent">Sign Out</button>
+                                            <button type="submit" class="dropdown-item border-0" style="color: var(--text-color);">Sign Out</button>
                                         </form>
                                     </li>
                                 }
@@ -266,11 +266,14 @@
                 sidebarToggler.addEventListener('click', function() {
                     sidebar.classList.toggle('show');
                     overlay.classList.toggle('d-none');
+                    document.body.classList.toggle('sidebar-open');
                 });
 
                 overlay.addEventListener('click', function() {
                     sidebar.classList.remove('show');
                     overlay.classList.add('d-none');
+
+                    document.body.classList.remove('sidebar-open');
                 });
             }
 

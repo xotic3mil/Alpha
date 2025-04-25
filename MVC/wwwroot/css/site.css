@@ -361,8 +361,47 @@ input:checked + .slider .day-icon {
         border-radius: 50%;
     }
 
-body.dark-mode .slider:before {
-    background-color: #2c2c2e;
+#userSuggestionsContainer {
+    background-color: var(--surface) !important;
+    color: var(--text-color) !important;
+    border-color: var(--border-100) !important;
+    box-shadow: var(--card-shadow) !important;
+}
+
+    #userSuggestionsContainer .suggestion-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+        #userSuggestionsContainer .suggestion-item:hover {
+            background-color: var(--surface-hover);
+        }
+
+#selectedMembersContainer .member-badge {
+    background-color: var(--grey-100);
+    color: var(--text-color);
+    border-radius: 50px;
+    padding: 4px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.875rem;
+}
+
+    #selectedMembersContainer .member-badge .remove-member {
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+
+        #selectedMembersContainer .member-badge .remove-member:hover {
+            opacity: 1;
+        }
+
+[data-theme="dark"] .form-control {
+    background-color: var(--input-bg) !important;
+    color: var(--text-color) !important;
 }
 
 .theme-transition {
@@ -490,18 +529,6 @@ body.dark-mode .slider:before {
     color: var(--body) !important;
 }
 
-
-body.dark-mode .notification-icon:hover {
-    background-color: var(--surface-hover);
-}
-
-body.dark-mode .notification-badge {
-    border-color: var(--sidebar-bg);
-}
-
-body.dark-mode .notification-item.unread {
-    background-color: rgba(45, 153, 255, 0.15);
-}
 
 
 @media (max-width: 576px) {
@@ -826,15 +853,7 @@ h1 {
     color: var(--text-color) !important;
 }
 
-body.dark-mode .form-control {
-    background-color: var(--input-bg) !important;
-    color: var(--text-color) !important;
-}
 
-body.dark-mode .formBorder {
-    border: 1px solid var(--border-100) !important;
-    border-radius: 0.25rem;
-}
 
 @media (max-width: 768px) {
     .search {
@@ -1158,8 +1177,32 @@ iframe {
     }
 }
 
-#sidebar-overlay {
-    background-color: rgba(0, 0, 0, 0.5);
+@media (max-width: 767.98px) {
+    #sidebarMenu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 250px !important;
+        z-index: 1050;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        overflow-y: auto;
+    }
+
+        #sidebarMenu.show {
+            transform: translateX(0);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+
+    #sidebar-overlay {
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1045;
+    }
+
+    body.sidebar-open {
+        overflow: hidden;
+    }
 }
 
 .main-content .card,
