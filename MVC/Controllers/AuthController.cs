@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 using Business.Dtos;
 using Data.Entities;
 using Business.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Business.Services;
+using System.Security.Claims;
 
 namespace MVC.Controllers;
 
@@ -226,4 +229,100 @@ public class AuthController(
             isInPMRole = User.IsInRole("ProjectManager")
         });
     }
+
+
+    [AllowAnonymous]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult ExternalLogin(string provider, string returnUrl = null)
+    {
+        var redirectUrl = Url.Action("ExternalLoginCallback", "Auth",
+                            new { ReturnUrl = returnUrl });
+
+        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+        return Challenge(properties, provider);
+    }
+
+    [AllowAnonymous]
+    public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+    {
+        returnUrl ??= Url.Content("~/");
+
+        if (remoteError != null)
+        {
+            _logger.LogError($"Error from external provider: {remoteError}");
+            TempData["ErrorMessage"] = $"Error from external provider: {remoteError}";
+            return RedirectToAction("Login");
+        }
+
+        var info = await _signInManager.GetExternalLoginInfoAsync();
+        if (info == null)
+        {
+            _logger.LogWarning("Error loading external login information.");
+            TempData["ErrorMessage"] = "Error loading external login information.";
+            return RedirectToAction("Login");
+        }
+        var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey,
+            isPersistent: false, bypassTwoFactor: true);
+
+        if (result.Succeeded)
+        {
+            _logger.LogInformation("User logged in with {LoginProvider}", info.LoginProvider);
+            return LocalRedirect(returnUrl);
+        }
+
+        if (result.IsNotAllowed || result.IsLockedOut || !result.Succeeded)
+        {
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            var firstName = info.Principal.FindFirstValue(ClaimTypes.GivenName) ?? "";
+            var lastName = info.Principal.FindFirstValue(ClaimTypes.Surname) ?? "";
+
+            if (string.IsNullOrEmpty(email))
+            {
+                TempData["ErrorMessage"] = "Error: Email information not provided by external provider.";
+                return RedirectToAction("Login");
+            }
+
+            var user = new UserEntity
+            {
+                UserName = email,
+                Email = email,
+                FirstName = firstName,
+                LastName = lastName,
+                EmailConfirmed = true
+            };
+
+            var createResult = await _userManager.CreateAsync(user);
+            if (createResult.Succeeded)
+            {
+                bool isFirstUser = !await _dbInitService.IsDatabaseInitializedAsync();
+                if (isFirstUser)
+                {
+                    await _userManager.AddToRoleAsync(user, "Admin");
+                    _logger.LogInformation("First user created with Admin role via external provider: {Email}", email);
+                }
+                else
+                {
+                    await _userManager.AddToRoleAsync(user, "User");
+                }
+
+                var addLoginResult = await _userManager.AddLoginAsync(user, info);
+                if (addLoginResult.Succeeded)
+                {
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
+                    return LocalRedirect(returnUrl);
+                }
+            }
+
+            foreach (var error in createResult.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            return RedirectToAction("Login");
+        }
+        return RedirectToAction("Login");
+    }
+
+
 }

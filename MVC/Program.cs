@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Domain.Models;
 using MVC.Hubs;
 using Domain.Interfaces;
 
@@ -81,6 +80,15 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
 });
 
+builder.Services.AddAuthentication()
+   .AddGoogleOpenIdConnect(options =>
+   {
+       IConfigurationSection googleAuthNSection =
+       builder.Configuration.GetSection("Authentication:Google");
+       options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+       options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+       options.CallbackPath = "/signin-google";
+   });
 
 builder.Services.AddAuthorization(options =>
 {
