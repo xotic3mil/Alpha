@@ -42,6 +42,12 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
                   .IsRequired(false);
         });
 
+        modelBuilder.Entity<NotificationEntity>()
+        .HasOne(n => n.Recipient)
+        .WithMany()
+        .HasForeignKey(n => n.RecipientId)
+        .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<ProjectTaskEntity>()
             .HasOne(t => t.Project)
             .WithMany(p => p.Tasks)

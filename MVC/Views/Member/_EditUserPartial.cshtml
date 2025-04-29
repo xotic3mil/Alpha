@@ -128,15 +128,15 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="editPassword" class="form-label">Password</label>
+                            <label for="editPassword" class="form-label">Password (leave blank to keep unchanged)</label>
                             <input type="password"
                                    name="Form.Password"
                                    class="form-control formBorder"
                                    id="editPassword"
-                                   placeholder="Enter password"
+                                   placeholder="Enter new password only if changing"
                                    data-val="true"
-                                   data-val-length="Password must be at least 8 characters"
-                                   data-val-length-min="8" />
+                                   data-val-length-min="8"
+                                   data-val-length="Password must be at least 8 characters when provided" />
                             <span class="text-danger field-validation-error" id="editPasswordError"></span>
                         </div>
 
@@ -146,7 +146,7 @@
                                    name="Form.ConfirmPassword"
                                    class="form-control formBorder"
                                    id="editConfirmPassword"
-                                   placeholder="Confirm password"
+                                   placeholder="Confirm new password"
                                    data-val="true"
                                    data-val-equalto="Passwords do not match"
                                    data-val-equalto-other="Form.Password" />
@@ -204,19 +204,23 @@
             });
         }
 
-        const editUserForm = document.getElementById('editUserForm');
-        if (editUserForm) {
-            editUserForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+    const editUserForm = document.getElementById('editUserForm');
+    if (editUserForm) {
+        editUserForm.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-                const formData = new FormData(this);
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
+            if (!validateEditUserForm()) {
+                return;
+            }
+
+            const formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
                 .then(response => {
                     if (!response.ok) {
                         return response.json().then(errorData => {
@@ -250,6 +254,30 @@
             resetEditModalForm();
         });
     });
+
+    function validateEditUserForm() {
+    const password = document.getElementById('editPassword').value;
+    const confirmPassword = document.getElementById('editConfirmPassword').value;
+
+    if (!password && confirmPassword) {
+        document.getElementById('editConfirmPasswordError').textContent =
+            "Please leave confirm password empty if not changing password";
+        return false;
+    }
+
+    if (password && password.length < 8) {
+        document.getElementById('editPasswordError').textContent =
+            "Password must be at least 8 characters";
+        return false;
+    }
+    if (password && password !== confirmPassword) {
+        document.getElementById('editConfirmPasswordError').textContent =
+            "Passwords do not match";
+        return false;
+    }
+
+    return true;
+}
 
     function handleEditImageFile(file) {
         console.log('handleEditImageFile called with file:', file ? file.name : 'no file');

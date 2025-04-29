@@ -92,8 +92,6 @@
     
     return isValid;
 }
-
-
 function showValidationError(field, errorMessage) {
     field.classList.add('is-invalid');
     
@@ -117,7 +115,6 @@ function showValidationError(field, errorMessage) {
     field.setAttribute('aria-describedby', `${field.id}-error`);
     errorContainer.id = `${field.id}-error`;
 }
-
 function showValidationSummary(form) {
     const summaryContainer = form.querySelector('.validation-summary-errors, [data-valmsg-summary="true"]');
     
@@ -163,15 +160,10 @@ function clearValidationErrors(form) {
         }
     }
 }
-
-
-
 function isValidEmail(email) {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
 }
-
-
 function sanitizeHtml(html) {
     if (!html) return '';
     

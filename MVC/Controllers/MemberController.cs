@@ -168,6 +168,14 @@ namespace MVC.Controllers
         {
             ModelState.Remove("UserImage");
 
+            if (string.IsNullOrEmpty(Form.Password) && string.IsNullOrEmpty(Form.ConfirmPassword))
+            {
+                ModelState.Remove("Form.Password");
+                ModelState.Remove("Password");
+                ModelState.Remove("Form.ConfirmPassword");
+                ModelState.Remove("ConfirmPassword");
+            }
+
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.ToDictionary(
