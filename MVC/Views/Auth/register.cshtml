@@ -2,7 +2,8 @@
 
 @{
     Layout = "_AuthLayout";
-    ViewData["Title"] = "Register";
+    bool isFirstUser = ViewBag.FirstUser == true;
+    ViewData["Title"] = isFirstUser ? "Initialize System" : "Register";
 }
 
 <div class="modal fade show d-block align-content-center"
@@ -11,102 +12,149 @@
      aria-labelledby="registerModalLabel"
      aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content bg-white">
-            <div class="text-center my-5 bg-white">
+        <div class="modal-content">
+            <div class="text-center my-5 ">
+                <img src="~/images/Logo.svg" alt="Logo" height="56" class="mb-3" />
                 <h1 class="modal-title fs-3" id="registerModalLabel">
-                    Create Account
+                    @(isFirstUser ? "Initialize System" : "Create Account")
                 </h1>
+                @if (isFirstUser)
+                {
+                    <div class="position-relative">
+                        <p class="text-muted">Create your admin account to get started</p>
+                        <div class="admin-info-tooltip position-relative d-inline-block ms-1">
+                            <i class="bi bi-info-circle text-primary"
+                               data-bs-toggle="tooltip"
+                               data-bs-placement="right"
+                               data-bs-html="true"
+                               title="As the first user, you'll automatically be registered as an <strong>Administrator</strong> with full system access."></i>
+                        </div>
+                    </div>
+                }
             </div>
-            <div>
+
+            @if (!isFirstUser)
+            {
                 <div class="d-flex justify-content-center mb-5">
-                    <div class="btnGoogle">
-                        <img src="~/images/google.svg" alt="Google" width="15" height="16" />
-                        <button type="button" class="btn">Register with Google</button>
+                    <form asp-controller="Auth" asp-action="ExternalLogin" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="provider" value="GoogleOpenIdConnect" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Query["ReturnUrl"]" />
+                        <button type="submit" class="btnGoogle">
+                            <img src="~/images/google.svg" alt="Google" width="15" height="16" />
+                            <span>Register with Google</span>
+                        </button>
+                    </form>
+                </div>
+                <div class="px-5 mb-4">
+                    <div class="d-flex align-items-center">
+                        <hr class="flex-grow-1 text-muted" />
+                        <div class="px-3 text-muted small">OR</div>
+                        <hr class="flex-grow-1 text-muted" />
                     </div>
                 </div>
-            </div>
-            <div class="px-5 mb-4">
-                <div class="position-relative">
-                    <hr class="text-muted" />
-                    <div class="position-absolute top-50 start-50 translate-middle px-3 bg-white text-muted small">
-                        OR
-                    </div>
-                </div>
-            </div>
-            <div class="modal-body bg-white">
-                <div class="container-fluid px-5 bg-white">
+            }
+
+            <div class="modal-body ">
+                <div class="container-fluid px-5 ">
                     <form asp-action="Register" asp-controller="Auth" method="post">
                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-                        <div class="mb-3">
-                            <label asp-for="FirstName" class="form-label"></label>
-                            <input asp-for="FirstName" class="form-control formBorder" placeholder="Your first name" />
-                            @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger" })
-                        </div>
-
-                        
-                        <div class="mb-3">
-                            <label asp-for="LastName" class="form-label"></label>
-                            <input asp-for="LastName" class="form-control formBorder" placeholder="Your last name" />
-                            @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger" })
-                        </div>
-
-                        
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label"></label>
-                            <input asp-for="Email" class="form-control formBorder" placeholder="Your email address" />
-                            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
-                        </div>
-
-                        
-                        <div class="mb-3">
-                            <label asp-for="PhoneNumber" class="form-label"></label>
-                            <input asp-for="PhoneNumber" class="form-control formBorder" placeholder="Your phone number" />
-                            @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
-                        </div>
-
-                       
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label"></label>
-                            <input asp-for="Password" class="form-control formBorder" placeholder="Enter your password" />
-                            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
-                        </div>
-
-                        
-                        <div class="mb-3">
-                            <label asp-for="ConfirmPassword" class="form-label"></label>
-                            <input asp-for="ConfirmPassword" class="form-control formBorder" placeholder="Confirm your password" />
-                            @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
-                        </div>
-
-                        <div class="container-fluid bg-white">
-                            <div class="form-check">
-                                <input asp-for="TermsAndCondition" class="form-check-input" id="termsCheckbox" />
-                                <label class="form-check-label" for="termsCheckbox">
-                                    I accept
-                                </label>
-                                <a href="/Home/Privacy" class="text-decoration-none ms-1">
-                                    Terms and Conditions.
-                                </a>
-                                @Html.ValidationMessageFor(m => m.TermsAndCondition, "", new { @class = "text-danger" })
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label asp-for="FirstName" class="form-label">First Name</label>
+                                <input asp-for="FirstName" class="form-control formBorder" placeholder="Your first name" required />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+                            <div class="col">
+                                <label asp-for="LastName" class="form-label">Last Name</label>
+                                <input asp-for="LastName" class="form-control formBorder" placeholder="Your last name" required />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-center mb-5 bg-white">
-                            <button type="submit" class="btnAuth">Create Account</button>
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email Address</label>
+                            <input asp-for="Email" class="form-control formBorder" placeholder="Your email address" required />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+                            <input asp-for="PhoneNumber" class="form-control formBorder" placeholder="Your phone number" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">Password</label>
+                            <input asp-for="Password" class="form-control formBorder" placeholder="Enter your password" required />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                            <input asp-for="ConfirmPassword" class="form-control formBorder" placeholder="Confirm your password" required />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        @if (isFirstUser)
+                        {
+                            <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+                                <i class="bi bi-shield-lock me-2"></i>
+                                <div>
+                                    This account will be assigned <strong>Administrator</strong> rights
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="container-fluid  mb-4">
+                                <div class="form-check">
+                                    <input asp-for="TermsAndCondition" class="form-check-input" id="termsCheckbox" required />
+                                    <label class="form-check-label" for="termsCheckbox">
+                                        I accept
+                                    </label>
+                                    <a href="/Home/Privacy" class="text-decoration-none ms-1">
+                                        Terms and Conditions.
+                                    </a>
+                                    <span asp-validation-for="TermsAndCondition" class="text-danger"></span>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-center mb-5 ">
+                            <button type="submit" class="btnAuth">
+                                @(isFirstUser ? "Initialize System" : "Create Account")
+                            </button>
                         </div>
                     </form>
-
                 </div>
             </div>
-            <div class="d-flex justify-content-center mb-3 bg-white">
-                <span>
-                    Already have an account?
-                    <a href="/auth/login" class="text-decoration-none">
-                        Login
-                    </a>
-                </span>
-            </div>
+
+            @if (!isFirstUser)
+            {
+                <div class="d-flex justify-content-center mb-3 ">
+                    <span>
+                        Already have an account?
+                        <a href="/auth/login" class="text-decoration-none">
+                            Login
+                        </a>
+                    </span>
+                </div>
+            }
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Bootstrap tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+}

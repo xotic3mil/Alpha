@@ -1,1 +1,313 @@
-﻿
+﻿@model HomeViewModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="pt-3">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3">
+        <h1 class="h2">Dashboard</h1>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-lg-3 col-xl-2">
+            <div class="card shadow-sm h-100 rounded-4">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <div class="rounded-4 p-3 mb-3" style="background-color: rgba(45, 153, 255, 0.1);">
+                        <i class="bi bi-folder text-primary" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1">@Model.ProjectCount</h3>
+                    <p class="text-muted">Active Project(s)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3 col-xl-2">
+            <div class="card shadow-sm rounded-4">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <div class="rounded-4 p-3 mb-3" style="background-color: rgba(46, 204, 113, 0.1);">
+                        <i class="bi bi-people text-success" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1">@Model.UserCount</h3>
+                    <p>Team Member(s)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3 col-xl-2">
+            <div class="card shadow-sm rounded-4">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <div class="rounded-4 p-3 mb-3" style="background-color: rgba(231, 76, 60, 0.1);">
+                        <i class="bi bi-building text-danger" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1">@Model.CustomerCount</h3>
+                    <p>Customer(s)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3 col-xl-2">
+            <div class="card shadow-sm rounded-4">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <div class="rounded-4 p-3 mb-3" style="background-color: rgba(52, 152, 219, 0.1);">
+                        <i class="bi bi-briefcase text-info" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1">@Model.ServiceCount</h3>
+                    <p class="text-muted">Service(s)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3 col-xl-2">
+            <div class="card shadow-sm rounded-4">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <div class="rounded-4 p-3 mb-3" style="background-color: rgba(241, 196, 15, 0.1);">
+                        <i class="bi bi-bar-chart text-warning" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1 me-1">@Model.StatusCount</h3>
+                    <p class="text-muted">Status(es)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3 col-xl-2">
+            <div class="card shadow-sm rounded-4">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <div class="rounded-4 p-3 mb-3" style="background-color: rgba(155, 89, 182, 0.1);">
+                        <i class="bi bi-shield-lock text-purple" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1">@Model.RoleCount</h3>
+                    <p class="text-muted">User Role(s)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm rounded-4 h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title mb-0">Projects by Status</h5>
+                    </div>
+
+                    <div class="chart-container flex-grow-1" style="min-height: 300px; position: relative;">
+                        <canvas id="projectsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card shadow-sm rounded-4 h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title mb-0">Recent Activities</h5>
+                        <a href="#" class="btn btn-sm btn-link text-decoration-none">View All</a>
+                    </div>
+
+                    <div class="activity-stream flex-grow-1 overflow-auto" style="max-height: 300px;">
+                        @foreach (var activity in Model.RecentActivities)
+                        {
+                            <div class="activity-item d-flex mb-3">
+                                <div class="me-3">
+                                    <div class="avatar-wrapper">
+                                        <img src="@activity.UserAvatarUrl" alt="User" class="rounded-circle" width="40" height="40">
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="mb-0"><strong>@activity.UserName</strong> @activity.Action</p>
+                                    <p class="text-muted small mb-0">@activity.TimeAgo</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm rounded-4 h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title mb-0">Top Customers</h5>
+                        <a href="/customer/index" class="btn btn-sm btn-link text-decoration-none">View All</a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Projects</th>
+                                    <th>Budget</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.TopCustomers != null && Model.TopCustomers.Any())
+                                {
+                                    @foreach (var customer in Model.TopCustomers)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                        <i class="bi bi-building text-primary" style="font-size: 16px;"></i>
+                                                    </div>
+                                                    <div>
+                                                        <span class="fw-medium">@customer.CompanyName</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>@customer.ProjectCount</td>
+                                            <td>$@customer.TotalBudget.ToString("N0")</td>
+                                            <td>
+                                                <span class="badge @customer.StatusClass">@customer.Status</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center">No customers available</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm rounded-4 h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title mb-0">Recent Services</h5>
+                        <a href="/service/index" class="btn btn-sm btn-link text-decoration-none">View All</a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Description</th>
+                                    <th>Budget</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.RecentServices != null && Model.RecentServices.Any())
+                                {
+                                    @foreach (var service in Model.RecentServices)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                        <i class="bi bi-briefcase text-info" style="font-size: 16px;"></i>
+                                                    </div>
+                                                    <div>
+                                                        <span class="fw-medium">@service.ServiceName</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-muted">@(service.ServiceDescription.Length > 30 ? service.ServiceDescription.Substring(0, 30) + "..." : service.ServiceDescription)</td>
+                                            <td>$@service.Budget.ToString("N0")</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-center">No services available</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var ctx = document.getElementById('projectsChart').getContext('2d');
+            var projectsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(Model.ProjectStatusLabels)),
+                    datasets: [{
+                        label: 'Projects',
+                        data: @Html.Raw(Json.Serialize(Model.ProjectStatusCounts)),
+                        backgroundColor: [
+                            'rgba(46, 204, 113, 0.6)',
+                            'rgba(45, 153, 255, 0.6)',
+                            'rgba(241, 196, 15, 0.6)',
+                            'rgba(231, 76, 60, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(46, 204, 113, 1)',
+                            'rgba(45, 153, 255, 1)',
+                            'rgba(241, 196, 15, 1)',
+                            'rgba(231, 76, 60, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false,
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            window.addEventListener('resize', function() {
+                projectsChart.resize();
+            });
+
+            const buttons = document.querySelectorAll(".btnAdd, .btn-outline-secondary");
+            buttons.forEach((button) => {
+                button.classList.add("ripple-button");
+                button.addEventListener("mousedown", createRipple);
+            });
+
+            function createRipple(event) {
+                const button = event.currentTarget;
+                const ripple = button.querySelector(".ripple");
+                if (ripple) {
+                    ripple.remove();
+                }
+
+                const circle = document.createElement("span");
+                const diameter = Math.max(button.clientWidth, button.clientHeight);
+                const radius = diameter / 2;
+
+                const rect = button.getBoundingClientRect();
+                circle.style.width = circle.style.height = `${diameter}px`;
+                circle.style.left = `${event.clientX - rect.left - radius}px`;
+                circle.style.top = `${event.clientY - rect.top - radius}px`;
+                circle.classList.add("ripple");
+
+                button.appendChild(circle);
+            }
+        });
+    </script>
+}

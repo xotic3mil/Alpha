@@ -1,0 +1,130 @@
+﻿@model IEnumerable<ProjectRequest>
+@{
+    ViewData["Title"] = "Manage Project Requests";
+}
+
+<div class="pt-4">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-4">
+        <h1 class="h2">Project Join Requests</h1>
+    </div>
+
+    @if (TempData["StatusMessage"] != null)
+    {
+        <div class="alert @(TempData["StatusMessage"].ToString().StartsWith("Error") ? "alert-danger" : "alert-success") alert-dismissible fade show" role="alert">
+            @TempData["StatusMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <ul>
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="card rounded-4 shadow-sm">
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Project</th>
+                                <th>Request Date</th>
+                                <th>Message</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var request in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="@(string.IsNullOrEmpty(request.User?.AvatarUrl) ? "/images/avatar-template-1.svg" : request.User.AvatarUrl)"
+                                                 alt="@request.User?.FirstName @request.User?.LastName"
+                                                 class="rounded-circle me-2"
+                                                 style="width: 32px; height: 32px; object-fit: cover;">
+                                            <div>
+                                                <div>@(request.User?.FirstName ?? "") @(request.User?.LastName ?? "")</div>
+                                                <small class="text-muted">@(request.User?.Email ?? "")</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>@(request.Project?.Name ?? "")</div>
+                                        <small class="text-muted">@(request.Project?.Customer?.CompanyName ?? "")</small>
+                                    </td>
+                                    <td>@request.RequestDate.ToString("MMM d, yyyy HH:mm")</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(request.Message))
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                    data-bs-toggle="popover"
+                                                    data-bs-placement="top"
+                                                    data-bs-content="@request.Message">
+                                                View Message
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No message</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group">
+                                            <form asp-action="ApproveRequest" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="requestId" value="@request.Id" />
+                                                <button type="submit" class="btn btn-sm btn-success me-2"
+                                                        onclick="return confirm('Are you sure you want to approve this request?')">
+                                                    <i class="bi bi-check-lg me-1"></i> Approve
+                                                </button>
+                                            </form>
+                                            <form asp-action="RejectRequest" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="requestId" value="@request.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                        onclick="return confirm('Are you sure you want to reject this request?')">
+                                                    <i class="bi bi-x-lg me-1"></i> Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-clipboard-check mb-3" style="font-size: 3rem; color: #ccc;"></i>
+                    <h4>No pending requests</h4>
+                    <p class="text-muted">There are currently no pending project join requests to review.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            // Initialize popovers
+            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+            var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl)
+            })
+        });
+    </script>
+}

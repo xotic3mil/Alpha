@@ -1,0 +1,52 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<div class="modal fade"
+     id="addRoleModal"
+     tabindex="-1"
+     aria-labelledby="addRoleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0 position-absolute w-100">
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="text-center my-5 px-3">
+                <h1 class="modal-title px-3 text-center" id="addProjectModal">
+                    Add Roles
+                </h1>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid px-4">
+                    <form>
+                        <div class="mb-3">
+                            <label for="RoleName" class="form-label">Role Name</label>
+                            <div class="input-group">
+                                <input type="text"
+                                       class="form-control formBorder"
+                                       id="RoleName"
+                                       placeholder="Enter Role name" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="RoleDescription" class="form-label">Description</label>
+                            <textarea class="form-control formBorder"
+                                      id="RoleDescription"
+                                      rows="3"
+                                      placeholder="Describe what this Role means"></textarea>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="d-flex justify-content-center mb-4 ">
+                <button type="button" class="btnAuth">Save Role</button>
+            </div>
+        </div>
+    </div>
+</div>

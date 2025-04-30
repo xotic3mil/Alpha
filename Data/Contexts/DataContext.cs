@@ -9,23 +9,29 @@ namespace Data.Contexts;
 public class DataContext(DbContextOptions<DataContext> options) : IdentityDbContext<UserEntity, RoleEntity, Guid>(options)
 {
     public DbSet<ProjectEntity> Projects { get; set; }
-    public DbSet<StatusTypesEntity> StatusTypes { get; set; }
+    public DbSet<StatusEntity> StatusTypes { get; set; }
     public DbSet<CustomerEntity> Customers { get; set; }
     public DbSet<ServiceEntity> Services { get; set; }
+    public DbSet<CommentEntity> Comments { get; set; }
+    public DbSet<ProjectTaskEntity> ProjectTasks { get; set; }
+    public DbSet<TimeEntryEntity> TimeEntries { get; set; }
     public DbSet<UserEntity> Users { get; set; }
     public DbSet<RoleEntity> Roles { get; set; }
+    public DbSet<ProjectRequestEntity> ProjectRequests { get; set; }
+    public DbSet<NotificationEntity> Notifications { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Use static GUID values for seeding roles
         var adminRoleId = new Guid("e57c9438-1b01-4944-a5a5-db46e76fdae8");
         var userRoleId = new Guid("62507571-ab9a-4860-b424-38992e129bd3");
+        var projectManagerRoleId = new Guid("02711297-d556-4867-99a0-281eca550915");
 
         modelBuilder.Entity<RoleEntity>().HasData(
             new RoleEntity { Id = adminRoleId, Name = "Admin", NormalizedName = "ADMIN" },
+            new RoleEntity { Id = projectManagerRoleId, Name = "Project Manager", NormalizedName = "PROJECT MANAGER" },
             new RoleEntity { Id = userRoleId, Name = "User", NormalizedName = "USER" }
         );
 
@@ -35,6 +41,43 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
                   .HasColumnType("varchar(2083)")
                   .IsRequired(false);
         });
+
+        modelBuilder.Entity<NotificationEntity>()
+        .HasOne(n => n.Recipient)
+        .WithMany()
+        .HasForeignKey(n => n.RecipientId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ProjectTaskEntity>()
+            .HasOne(t => t.Project)
+            .WithMany(p => p.Tasks)
+            .HasForeignKey(t => t.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TimeEntryEntity>()
+            .HasOne(t => t.Project)
+            .WithMany(p => p.TimeEntries)
+            .HasForeignKey(t => t.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TimeEntryEntity>()
+            .HasOne(t => t.Task)
+            .WithMany(pt => pt.TimeEntries)
+            .HasForeignKey(t => t.TaskId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+
+        modelBuilder.Entity<CommentEntity>()
+            .HasOne(c => c.Project)
+            .WithMany()
+            .HasForeignKey(c => c.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CommentEntity>()
+            .HasOne(c => c.User)
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<ProjectEntity>()
             .HasOne(p => p.Status)
@@ -101,9 +144,8 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
         modelBuilder.Entity<IdentityUserToken<Guid>>(entity => {
             entity.ToTable("UserTokens");
         });
+
     }
-
-
 }
 
 

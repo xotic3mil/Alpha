@@ -1,0 +1,104 @@
+﻿.quill-editor {
+    background-color: var(--input-bg);
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+/* Toolbar styling to match the attached image */
+.ql-toolbar.ql-snow {
+    border-color: #f0f0f0;
+    background-color: white;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.ql-formats {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 15px !important;
+}
+
+
+.ql-container.ql-snow {
+    border-color: #f0f0f0;
+    border-top: 0;
+    border-bottom-left-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+    background-color: white;
+    color: var(--text-color);
+}
+
+
+.ql-editor {
+    min-height: 120px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    padding: 15px;
+}
+
+.ql-editor.ql-blank::before {
+    color: #6c757d;
+    font-style: normal;
+    opacity: 0.7;
+}
+
+.ql-snow .ql-stroke {
+    stroke: #212529;
+}
+
+.ql-snow .ql-fill,
+.ql-snow .ql-stroke.ql-fill {
+    fill: #212529;
+}
+
+.ql-snow .ql-picker-label {
+    color: #212529;
+}
+
+.ql-container.ql-snow:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
+}
+
+
+.ql-snow .ql-toolbar button:hover,
+.ql-snow .ql-toolbar button.ql-active {
+    color: var(--primary);
+}
+
+.ql-snow .ql-toolbar button:hover .ql-stroke,
+.ql-snow .ql-toolbar button.ql-active .ql-stroke {
+    stroke: var(--primary);
+}
+
+.ql-snow .ql-toolbar button:hover .ql-fill,
+.ql-snow .ql-toolbar button.ql-active .ql-fill {
+    fill: var(--primary);
+}
+
+body.dark-mode .ql-snow .ql-stroke {
+    stroke: var(--text-color);
+}
+
+body.dark-mode .ql-snow .ql-fill,
+body.dark-mode .ql-snow .ql-stroke.ql-fill {
+    fill: var(--text-color);
+}
+
+body.dark-mode .ql-toolbar.ql-snow {
+    background-color: var(--grey-800);
+}
+
+body.dark-mode .ql-picker-label {
+    color: var(--text-color);
+}
+
+body.dark-mode .ql-picker-options {
+    background-color: var(--surface);
+    border-color: var(--border-200);
+}

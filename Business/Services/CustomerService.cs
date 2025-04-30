@@ -2,7 +2,10 @@
 using Business.Interfaces;
 using Data.Entities;
 using Data.Interfaces;
+using Data.Repositories;
+using Domain.Extensions;
 using Domain.Models;
+using System.Diagnostics;
 
 
 
@@ -39,18 +42,54 @@ public class CustomerService(ICustomerRepository customerRepository) : ICustomer
     }
 
 
-    public async Task<CustomerResult> CreateCustomer(CustomerRegForm form)
+    public async Task<CustomerResult> CreateCustomerAsync(CustomerRegForm form)
     {
-        var existingCustomer = await _customerRepository.ExistsAsync(x => x.CompanyName == form.CompanyName);
-        if (existingCustomer.Result)
-            return new CustomerResult { Succeeded = false, StatusCode = 409, Error = "Status already exists." };
+        if (form == null)
+            return new CustomerResult { Succeeded = false, StatusCode = 400, Error = "Not all required fields are supplied." };
+        var projectEntity = form.MapTo<CustomerEntity>();
 
-        var CustomerEntity = new CustomerEntity { CompanyName = form.CompanyName };
-        var result = await _customerRepository.CreateAsync(CustomerEntity);
+        var result = await _customerRepository.CreateAsync(projectEntity);
 
         return result.Succeeded
             ? new CustomerResult { Succeeded = true, StatusCode = 201 }
-            : new CustomerResult { Succeeded = false, StatusCode = 500, Error = "Failed to create status." };
+            : new CustomerResult { Succeeded = false, StatusCode = 500, Error = result.Error };
+    }
+
+    public async Task<CustomerResult<Customer>> DeleteCustomerAsync(Guid id)
+    {
+        var CustomerResponse = await _customerRepository.GetAsync(x => x.Id == id);
+
+        if (!CustomerResponse.Succeeded || CustomerResponse.Result == null)
+        {
+            return new CustomerResult<Customer> { Succeeded = false, StatusCode = 404, Error = $"customer with ID '{id}' not found." };
+        }
+
+        var customerEntity = CustomerResponse.Result.MapTo<CustomerEntity>();
+        var deleteResponse = await _customerRepository.DeleteAsync(customerEntity);
+
+        return deleteResponse.Succeeded
+            ? new CustomerResult<Customer> { Succeeded = true, StatusCode = 200 }
+            : new CustomerResult<Customer> { Succeeded = false, StatusCode = 500, Error = "Failed to delete customer." };
+    }
+
+    public async Task<CustomerResult> UpdateCustomerAsync(CustomerRegForm form)
+    {
+        if (form == null || form.Id == Guid.Empty)
+            return new CustomerResult { Succeeded = false, StatusCode = 400, Error = "Invalid customer data" };
+
+        try
+        {
+            var result = await _customerRepository.UpdateAsync(form, p => p.Id == form.Id);
+
+            return result.Succeeded
+                ? new CustomerResult { Succeeded = true, StatusCode = 200 }
+                : new CustomerResult { Succeeded = false, StatusCode = result.StatusCode, Error = result.Error };
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error updating project: {ex.Message}");
+            return new CustomerResult { Succeeded = false, StatusCode = 500, Error = $"An error occurred: {ex.Message}" };
+        }
     }
 
 

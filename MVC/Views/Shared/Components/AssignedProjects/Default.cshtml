@@ -1,0 +1,45 @@
+﻿@using Domain.Models;
+@model IEnumerable<Project>
+
+@if (Model != null && Model.Any())
+{
+    <li class="nav-item">
+        <a class="nav-link py-2 px-3 rounded-3 d-flex align-items-center justify-content-between"
+           href="#"
+           data-bs-toggle="collapse"
+           data-bs-target="#assignedProjectsSubmenu"
+           aria-expanded="false">
+            <div>
+                <i class="bi bi-briefcase me-2"></i>
+                Assigned Projects
+            </div>
+            <i class="bi bi-chevron-down small"></i>
+        </a>
+
+        <div class="collapse" id="assignedProjectsSubmenu">
+            <ul class="nav flex-column ms-3">
+                @foreach (var project in Model)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link py-1 px-3 rounded-3" href="#" onclick="openProjectDetails('@project.Id'); return false;">
+                            <div class="d-flex align-items-center">
+                                <div class="color-indicator me-2" style="width: 8px; height: 8px; border-radius: 50%; background-color: @(project.Status?.ColorCode ?? "#6c757d")"></div>
+                                <span class="text-truncate">@project.Name</span>
+                            </div>
+                        </a>
+                    </li>
+                }
+
+                @if (Model.Count() > 5)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link py-1 px-3 rounded-3 d-flex align-items-center text-primary" href="/project/assigned">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            <span>View All (@Model.Count())</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </li>
+}

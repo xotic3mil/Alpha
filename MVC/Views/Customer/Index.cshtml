@@ -1,0 +1,144 @@
+﻿@model CustomerViewModel
+
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<div class="pt-3">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3">
+        <h1 class="h2">Customers</h1>
+        <div class="btn-toolbar">
+        @if (User.IsInRole("Admin"))
+        {
+            <button href="#"
+            data-bs-toggle="modal"
+            data-bs-target="#addCustomerModal"
+            type="button"
+            class="btn btnAdd me-2 w-100">
+                + Customer
+            </button>
+        }
+        </div>
+    </div>
+
+    @if (ViewBag.SuccessMessage != null)
+    {
+        <div class="alert alert-success">
+            @ViewBag.SuccessMessage
+        </div>
+    }
+
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger">
+            @ViewBag.ErrorMessage
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <ul>
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="row g-3">
+        @if (Model.Customers != null && Model.Customers.Any())
+        {
+            foreach (var customer in Model.Customers)
+            {
+                @await Html.PartialAsync("_CustomerCardPartial", customer)
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="card shadow-sm rounded-4 text-center p-5">
+                    <div class="card-body">
+                        <i class="bi bi-building display-4 text-muted mb-3"></i>
+                        <h3>No Customers Found</h3>
+                        <p class="text-muted">Start by adding your first customer</p>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <button data-bs-toggle="modal" data-bs-target="#addCustomerModal"
+                            class="btn btnAdd mt-3">
+                                + Add Customer
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@await Html.PartialAsync("_CreateCustomerPartial", Model)
+@await Html.PartialAsync("_EditCustomerPartial", Model)
+
+@section Scripts {
+    <script>
+        function openEditCustomerModal(id) {
+            $.ajax({
+                url: `/Customer/GetCustomerById?id=${id}`,
+                type: 'GET',
+                dataType: 'json',
+                success: function (customer) {
+                    $('#Edit_Form_Id').val(customer.id);
+                    $('#Edit_Form_CompanyName').val(customer.companyName);
+                    $('#Edit_Form_ContactName').val(customer.contactName);
+                    $('#Edit_Form_Email').val(customer.email);
+                    $('#Edit_Form_PhoneNumber').val(customer.phoneNumber);
+                    $('#Edit_Form_Address').val(customer.address);
+                    $('#Edit_Form_City').val(customer.city);
+                    $('#Edit_Form_Country').val(customer.country);
+                    $('#editCustomerModal').modal('show');
+                },
+                error: function (error) {
+                    console.error('Error fetching customer:', error);
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const buttons = document.querySelectorAll(
+                ".btnAuth, .btnAdd, .btnGoogle, .btn-editor, .btn"
+            );
+
+            buttons.forEach((button) => {
+                button.classList.add("ripple-button");
+                button.addEventListener("mousedown", createRipple);
+            });
+
+        @if (ViewBag.OpenEditModal == true)
+        {
+            <text>$('#editCustomerModal').modal('show');</text>
+        }
+        });
+
+        function createRipple(event) {
+            const button = event.currentTarget;
+
+            const ripple = button.querySelector(".ripple");
+            if (ripple) {
+                ripple.remove();
+            }
+
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+
+            const rect = button.getBoundingClientRect();
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.classList.add("ripple");
+
+            button.appendChild(circle);
+        }
+    </script>
+}

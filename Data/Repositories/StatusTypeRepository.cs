@@ -5,7 +5,7 @@ using Domain.Models;
 
 namespace Data.Repositories;
 
-public class StatusTypeRepository(DataContext context) : BaseRepository<StatusTypesEntity, Status>(context), IStatusTypeRepository
+public class StatusTypeRepository(DataContext context) : BaseRepository<StatusEntity, Status>(context), IStatusTypeRepository
 {
      private readonly DataContext _context = context;
 

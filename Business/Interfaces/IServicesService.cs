@@ -1,8 +1,5 @@
 ﻿using Business.Dtos;
-using Business.Models;
-using Business.Services;
 using Domain.Models;
-using System.Threading.Tasks;
 
 namespace Business.Interfaces;
 
@@ -13,6 +10,10 @@ public interface IServicesService
 
     public Task<ServiceResult<Service>> GetServiceByIdAsync(Guid id);
 
-    public Task<ServiceResult> CreateService(ServiceRegForm form);
+    public Task<ServiceResult> CreateServiceAsync(ServiceRegForm form);
+
+    public Task<ServiceResult> UpdateServiceAsync(ServiceRegForm form);
+
+    public Task<ServiceResult<Service>> DeleteServiceAsync(Guid id);
 
 }

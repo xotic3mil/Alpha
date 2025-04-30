@@ -1,0 +1,115 @@
+﻿.snackbar-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 380px;
+    width: auto;
+}
+
+.snackbar {
+    min-width: 280px;
+    margin-top: 6px;
+    padding: 14px 20px;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+    animation: slide-in 0.5s ease-out forwards;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+}
+
+    .snackbar.show {
+        opacity: 1;
+    }
+
+    .snackbar.success {
+        background-color: #4caf50;
+        border-left: 5px solid #2e7d32;
+    }
+
+    .snackbar.error {
+        background-color: #f44336;
+        border-left: 5px solid #c62828;
+    }
+
+    .snackbar.info {
+        background-color: #2196f3;
+        border-left: 5px solid #1565c0;
+    }
+
+    .snackbar.warning {
+        background-color: #ff9800;
+        border-left: 5px solid #ef6c00;
+    }
+
+.snackbar-content {
+    flex-grow: 1;
+    margin-right: 15px;
+    line-height: 1.4;
+}
+
+.snackbar-close {
+    background: none;
+    border: none;
+    color: white;
+    opacity: 0.7;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    width: 20px;
+    height: 20px;
+}
+
+    .snackbar-close:hover {
+        opacity: 1;
+    }
+
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.snackbar.fade-out {
+    animation: fade-out 0.5s ease-out forwards;
+}
+
+@keyframes fade-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+body.dark-mode .snackbar {
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 576px) {
+    .snackbar-container {
+        left: 20px;
+        right: 20px;
+        max-width: calc(100% - 40px);
+    }
+
+    .snackbar {
+        min-width: auto;
+        width: 100%;
+    }
+}

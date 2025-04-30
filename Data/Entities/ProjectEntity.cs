@@ -27,7 +27,7 @@ public class ProjectEntity
     [Required]
     [ForeignKey(nameof(StatusId))]
     public Guid StatusId { get; set; }
-    public virtual StatusTypesEntity Status { get; set; } = null!;
+    public virtual StatusEntity Status { get; set; } = null!;
 
     [Required]
     [ForeignKey(nameof(Service))]
@@ -39,6 +39,11 @@ public class ProjectEntity
     public Guid CustomerId { get; set; }
     public virtual CustomerEntity Customer { get; set; } = null!;
 
+    [Column(TypeName = "varchar(2083)")]
+    public string? ImageUrl { get; set; }
+
+    public virtual ICollection<ProjectTaskEntity> Tasks { get; set; }
+    public virtual ICollection<TimeEntryEntity> TimeEntries { get; set; }
     public virtual ICollection<UserEntity>? Users { get; set; } = new List<UserEntity>();
 
 }

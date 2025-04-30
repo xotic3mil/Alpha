@@ -12,6 +12,7 @@ namespace Business.Dtos
         public bool Succeeded { get; set; }
         public int StatusCode { get; set; }
         public string? Error { get; set; }
-    
+        public string? Message { get; set; }
+
     }
 }

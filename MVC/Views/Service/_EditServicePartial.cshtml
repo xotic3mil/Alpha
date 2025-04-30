@@ -1,0 +1,65 @@
+﻿@model ServiceViewModel
+@{
+    ViewData["Title"] = "Edit Service";
+}
+
+<div class="modal fade"
+     id="editServiceModal"
+     tabindex="-1"
+     aria-labelledby="editServiceModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0 position-absolute w-100">
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="text-center my-5 px-3">
+                <h1 class="modal-title px-3 text-center" id="editServiceModalLabel">
+                    Edit Service
+                </h1>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid px-4">
+                    <form asp-action="Edit" method="post" id="editServiceForm" data-validate="true">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="Form_Id" name="Form.Id" />
+                        <div class="mb-3">
+                            <label for="Form_ServiceName" class="form-label">Service Name</label>
+                            <input type="text"
+                                   name="Form.ServiceName"
+                                   class="form-control formBorder"
+                                   id="Form_ServiceName"
+                                   placeholder="Enter service name" />
+                            <span class="text-danger" asp-validation-for="Form.ServiceName"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Form_ServiceDescription" class="form-label">Description</label>
+                            <textarea class="form-control formBorder"
+                                      id="Form_ServiceDescription"
+                                      name="Form.ServiceDescription"
+                                      rows="3"
+                                      placeholder="Describe this service"></textarea>
+                            <span class="text-danger" asp-validation-for="Form.ServiceDescription"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Form_Budget" class="form-label">Budget ($)</label>
+                            <input type="number"
+                                   step="0.01"
+                                   class="form-control formBorder"
+                                   id="Form_Budget"
+                                   name="Form.Budget"
+                                   placeholder="Enter budget amount" />
+                            <span class="text-danger" asp-validation-for="Form.Budget"></span>
+                        </div>
+                        <div class="d-flex justify-content-center mb-4 ">
+                            <button type="submit" class="btnAuth">Update Service</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

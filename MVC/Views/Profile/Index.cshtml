@@ -1,0 +1,485 @@
+﻿@model Data.Entities.UserEntity
+@{
+    ViewData["Title"] = "My Profile - ";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="row">
+                    <div class="col-md-4 col-lg-3 mb-4 mb-md-0 border-end">
+                        <div class="d-flex flex-column align-items-center">
+                            <div class="mb-4 position-relative">
+                                <div id="avatarContainer" class="position-relative" style="width: 180px; height: 180px;">
+                                    <img id="currentAvatar" src="@(string.IsNullOrEmpty(Model.AvatarUrl) ? "/images/member-template-1.svg" : Model.AvatarUrl)"
+                                         class="rounded-circle img-thumbnail shadow-sm"
+                                         style="width: 180px; height: 180px; object-fit: cover;" />
+                                    <div id="avatarOverlay" class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 rounded-circle d-flex justify-content-center align-items-center opacity-0"
+                                         style="transition: opacity 0.3s; cursor: pointer;">
+                                        <div class="text-white text-center">
+                                            <i class="bi bi-camera fs-3"></i>
+                                            <p class="mb-0 mt-1">Change Photo</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="fw-bold mb-1">@Model.FirstName @Model.LastName</h4>
+                            @if (!string.IsNullOrEmpty(Model.Title))
+                            {
+                                <div class="badge bg-light text-dark py-2 px-3 fs-6 fw-normal mb-3">@Model.Title</div>
+                            }
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-envelope-fill text-muted me-2"></i>
+                                <span>@Model.Email</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                            {
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bi bi-telephone-fill text-muted me-2"></i>
+                                    <span>@Model.PhoneNumber</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-8 col-lg-9">
+                        <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="profile-tab" data-bs-toggle="tab"
+                                        data-bs-target="#profile-pane" type="button" role="tab"
+                                        aria-controls="profile-pane" aria-selected="true">
+                                    Profile Details
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="password-tab" data-bs-toggle="tab"
+                                        data-bs-target="#password-pane" type="button" role="tab"
+                                        aria-controls="password-pane" aria-selected="false">
+                                    Security Settings
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="theme-tab" data-bs-toggle="tab"
+                                        data-bs-target="#theme-pane" type="button" role="tab"
+                                        aria-controls="theme-pane" aria-selected="false">
+                                    Theme Settings
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content pt-4" id="profileTabsContent">
+                            <div class="tab-pane fade show active" id="profile-pane" role="tabpanel" aria-labelledby="profile-tab">
+                                <h4 class="mb-4 fw-bold">Edit Profile</h4>
+                                <form id="profileForm" enctype="multipart/form-data" data-validate="true">
+                                    @Html.AntiForgeryToken()
+                                    <div class="validation-summary-errors d-none" data-valmsg-summary="true"></div>
+
+                                    <input type="hidden" name="Id" value="@Model.Id" />
+                                    <input type="hidden" name="Email" value="@Model.Email" />
+                                    <input type="hidden" name="UserName" value="@Model.UserName" />
+                                    <input type="hidden" name="AvatarUrl" value="@Model.AvatarUrl" />
+                                    <input type="hidden" name="Title" value="@Model.Title" />
+
+                                    <input type="file" id="avatarInput" name="avatarImage" accept="image/*" class="d-none" />
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="FirstName" class="form-label">First Name</label>
+                                            <input type="text" id="FirstName" name="FirstName" value="@Model.FirstName"
+                                                   class="form-control formBorder" required
+                                                   data-val="true" data-val-required="First name is required" />
+                                            <span class="text-danger field-validation-error" data-valmsg-for="FirstName" data-valmsg-replace="true"></span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="LastName" class="form-label">Last Name</label>
+                                            <input type="text" id="LastName" name="LastName" value="@Model.LastName"
+                                                   class="form-control formBorder" required
+                                                   data-val="true" data-val-required="Last name is required" />
+                                            <span class="text-danger field-validation-error" data-valmsg-for="LastName" data-valmsg-replace="true"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="displayEmail" class="form-label">Email Address</label>
+                                            <input type="email" id="displayEmail" value="@Model.Email" class="form-control formBorder" disabled />
+                                            <small class="text-muted">Contact an administrator to change your email address</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="PhoneNumber" class="form-label">Phone Number</label>
+                                            <input type="text" id="PhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber"
+                                                   class="form-control formBorder"
+                                                   data-val="true" data-val-phone="Please enter a valid phone number" />
+                                            <span class="text-danger field-validation-error" data-valmsg-for="PhoneNumber" data-valmsg-replace="true"></span>
+                                        </div>
+                                    </div>
+
+                                    @if (!string.IsNullOrEmpty(Model.Title))
+                                    {
+                                        <div class="mb-3">
+                                            <label class="form-label">Job Title</label>
+                                            <input type="text" value="@Model.Title" class="form-control formBorder" disabled />
+                                            <small class="text-muted">Contact an administrator to change your job title</small>
+                                        </div>
+                                    }
+
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-outline-secondary me-2" onclick="window.location.href='/home'">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="tab-pane fade" id="password-pane" role="tabpanel" aria-labelledby="password-tab">
+                                <h4 class="mb-4 fw-bold">Change Password</h4>
+                                <form id="changePasswordForm" data-validate="true">
+                                    @Html.AntiForgeryToken()
+                                    <div class="validation-summary-errors d-none" data-valmsg-summary="true"></div>
+
+                                    <div class="mb-4">
+                                        <label for="currentPassword" class="form-label">Current Password</label>
+                                        <input type="password" class="form-control formBorder" id="currentPassword"
+                                               name="currentPassword" required
+                                               data-val="true" data-val-required="Current password is required" />
+                                        <span class="text-danger field-validation-error" data-valmsg-for="currentPassword" data-valmsg-replace="true"></span>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="newPassword" class="form-label">New Password</label>
+                                        <input type="password" class="form-control formBorder" id="newPassword"
+                                               name="newPassword" required
+                                               data-val="true" data-val-required="New password is required" />
+                                        <span class="text-danger field-validation-error" data-valmsg-for="newPassword" data-valmsg-replace="true"></span>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                        <input type="password" class="form-control formBorder" id="confirmPassword"
+                                               name="confirmPassword" required
+                                               data-val="true" data-val-required="Confirm password is required"
+                                               data-val-equalto="Passwords must match" data-val-equalto-other="newPassword" />
+                                        <span class="text-danger field-validation-error" data-valmsg-for="confirmPassword" data-valmsg-replace="true"></span>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-outline-secondary me-2" id="cancelPasswordChange">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Change Password</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="tab-pane fade" id="theme-pane" role="tabpanel" aria-labelledby="theme-tab">
+                                <h4 class="mb-4 fw-bold">Appearance Settings</h4>
+
+                                <div class="card border-0 bg-light rounded-4 mb-4">
+                                    <div class="card-body p-4">
+                                        <h5 class="fw-medium mb-3">Choose Theme</h5>
+                                        <div class="theme-selector">
+                                            <div class="row g-3">
+                                                <div class="col-6 col-md-3">
+                                                    <div class="theme-option" data-theme="light">
+                                                        <div class="theme-preview light-preview">
+                                                            <div class="preview-sidebar"></div>
+                                                            <div class="preview-content">
+                                                                <div class="preview-header"></div>
+                                                                <div class="preview-card"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="theme-label d-flex align-items-center mt-2">
+                                                            <input type="radio" name="theme" id="theme-light" value="light" class="form-check-input me-2">
+                                                            <label for="theme-light" class="form-check-label">Light</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-md-3">
+                                                    <div class="theme-option" data-theme="dark">
+                                                        <div class="theme-preview dark-preview">
+                                                            <div class="preview-sidebar"></div>
+                                                            <div class="preview-content">
+                                                                <div class="preview-header"></div>
+                                                                <div class="preview-card"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="theme-label d-flex align-items-center mt-2">
+                                                            <input type="radio" name="theme" id="theme-dark" value="dark" class="form-check-input me-2">
+                                                            <label for="theme-dark" class="form-check-label">Dark</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-md-3">
+                                                    <div class="theme-option" data-theme="blue">
+                                                        <div class="theme-preview blue-preview">
+                                                            <div class="preview-sidebar"></div>
+                                                            <div class="preview-content">
+                                                                <div class="preview-header"></div>
+                                                                <div class="preview-card"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="theme-label d-flex align-items-center mt-2">
+                                                            <input type="radio" name="theme" id="theme-blue" value="blue" class="form-check-input me-2">
+                                                            <label for="theme-blue" class="form-check-label">Blue</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-md-3">
+                                                    <div class="theme-option" data-theme="green">
+                                                        <div class="theme-preview green-preview">
+                                                            <div class="preview-sidebar"></div>
+                                                            <div class="preview-content">
+                                                                <div class="preview-header"></div>
+                                                                <div class="preview-card"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="theme-label d-flex align-items-center mt-2">
+                                                            <input type="radio" name="theme" id="theme-green" value="green" class="form-check-input me-2">
+                                                            <label for="theme-green" class="form-check-label">Green</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card border-0 bg-light rounded-4 mb-4">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <h5 class="fw-medium mb-1">Reduced Motion</h5>
+                                                <p class="text-muted mb-0">Minimize animations throughout the interface</p>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="reduceMotionToggle">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card border-0 bg-light rounded-4">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex align-items-start">
+                                            <i class="bi bi-info-circle text-primary me-3 fs-4"></i>
+                                            <div>
+                                                <h6 class="fw-medium mb-2">About Theme Settings</h6>
+                                                <p class="text-muted mb-0">Theme preferences are saved to your browser and will be applied whenever you use this application. These settings don't affect other users or devices.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            const avatarContainer = document.getElementById('avatarContainer');
+            const avatarOverlay = document.getElementById('avatarOverlay');
+            const avatarInput = document.getElementById('avatarInput');
+            const currentAvatar = document.getElementById('currentAvatar');
+
+            if (avatarContainer && avatarOverlay) {
+                avatarContainer.addEventListener('mouseenter', () => {
+                    avatarOverlay.style.opacity = '1';
+                });
+
+                avatarContainer.addEventListener('mouseleave', () => {
+                    avatarOverlay.style.opacity = '0';
+                });
+
+                avatarOverlay.addEventListener('click', () => {
+                    avatarInput.click();
+                });
+            }
+
+            if (avatarInput && currentAvatar) {
+                avatarInput.addEventListener('change', (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                        const reader = new FileReader();
+
+                        reader.onload = function(e) {
+                            currentAvatar.src = e.target.result;
+                        }
+
+                        reader.readAsDataURL(e.target.files[0]);
+                    }
+                });
+            }
+
+            $("#profileForm").on("submit", function(e) {
+                e.preventDefault();
+                if (!validateForm('profileForm')) {
+                    return false;
+                }
+
+                const formData = new FormData(this);
+
+                console.log("Submitting form with data:");
+                for (let pair of formData.entries()) {
+                    console.log(pair[0] + ': ' + (pair[0] === 'avatarImage' ? 'File' : pair[1]));
+                }
+
+                $.ajax({
+                    url: '/Profile/Update',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            snackbar.success(response.message);
+                            const firstName = $('#FirstName').val();
+                            const lastName = $('#LastName').val();
+                            const phoneNumber = $('#PhoneNumber').val();
+
+                            $('.fw-bold.mb-1').text(`${firstName} ${lastName}`);
+
+                            const phoneDisplay = $('.bi-telephone-fill').parent();
+                            if (phoneNumber) {
+                                if (phoneDisplay.length) {
+                                    phoneDisplay.find('span').text(phoneNumber);
+                                } else {
+                                    $('.bi-envelope-fill').parent().after(`
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="bi bi-telephone-fill text-muted me-2"></i>
+                                            <span>${phoneNumber}</span>
+                                        </div>
+                                    `);
+                                }
+                            } else {
+                                phoneDisplay.remove();
+                            }
+                        } else {
+                            snackbar.error(response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error("Profile update error:", xhr);
+
+                        let errorMessage = 'An error occurred while updating your profile.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        snackbar.error(errorMessage);
+                    }
+                });
+            });
+
+            $("#cancelPasswordChange").click(function() {
+                $("#changePasswordForm")[0].reset();
+                clearValidationErrors(document.getElementById('changePasswordForm'));
+                $("#profile-tab").tab("show");
+            });
+
+            $("#changePasswordForm").on("submit", function(e) {
+                e.preventDefault();
+
+                if (!validateForm('changePasswordForm', {
+                    'confirmPassword': function(field) {
+                        const newPassword = document.getElementById('newPassword').value;
+                        const confirmPassword = field.value;
+
+                        if (newPassword !== confirmPassword) {
+                            return { valid: false, message: 'Passwords do not match' };
+                        }
+                        return { valid: true };
+                    }
+                })) {
+                    return false;
+                }
+
+                            if (window.location.hash === '#theme-settings') {
+                $('#theme-tab').tab('show');
+            }
+
+                const token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '/Profile/ChangePassword',
+                    type: 'POST',
+                    data: {
+                        currentPassword: $("#currentPassword").val(),
+                        newPassword: $("#newPassword").val(),
+                        confirmPassword: $("#confirmPassword").val(),
+                        __RequestVerificationToken: token
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            snackbar.success(response.message);
+                            $("#changePasswordForm")[0].reset();
+                            clearValidationErrors(document.getElementById('changePasswordForm'));
+
+                            setTimeout(() => {
+                                $("#profile-tab").tab("show");
+                            }, 1000);
+                        } else {
+                            snackbar.error(response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMessage = 'An error occurred while changing your password.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        snackbar.error(errorMessage);
+                    }
+                });
+            });
+
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const reduceMotionToggle = document.getElementById('reduceMotionToggle');
+
+            if (darkModeToggle) {
+                darkModeToggle.checked = localStorage.getItem('darkMode') === 'true';
+
+                darkModeToggle.addEventListener('change', function() {
+                    document.body.classList.add('theme-transition');
+
+                    if (this.checked) {
+                        enableDarkMode();
+                    } else {
+                        disableDarkMode();
+                    }
+
+                    setTimeout(() => {
+                        document.body.classList.remove('theme-transition');
+                    }, 1000);
+                });
+            }
+
+            if (reduceMotionToggle) {
+                reduceMotionToggle.checked = localStorage.getItem('reduceMotion') === 'true';
+
+                reduceMotionToggle.addEventListener('change', function() {
+                    if (this.checked) {
+                        document.body.classList.add('reduce-motion');
+                        localStorage.setItem('reduceMotion', 'true');
+                    } else {
+                        document.body.classList.remove('reduce-motion');
+                        localStorage.setItem('reduceMotion', 'false');
+                    }
+                    snackbar.info('Motion preference updated');
+                });
+            }
+
+            if (window.location.hash === '#theme-settings') {
+                $('#theme-tab').tab('show');
+            }
+
+            function enableDarkMode() {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'true');
+            }
+
+            function disableDarkMode() {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'false');
+            }
+        });
+    </script>
+}

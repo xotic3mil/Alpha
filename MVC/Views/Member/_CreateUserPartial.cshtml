@@ -1,0 +1,369 @@
+﻿@model MemberViewModel
+@{
+    ViewData["Title"] = "Create Team Member";
+}
+
+<div class="modal fade"
+     id="addUserModal"
+     tabindex="-1"
+     aria-labelledby="addUserModalLabel"
+     aria-hidden="true"
+     data-bs-backdrop="static"
+     data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0 position-absolute w-100">
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="text-center my-5 px-3">
+                <h1 class="modal-title px-3 text-center" id="editUserModalLabel">
+                    Create Team Member
+                </h1>
+            </div>
+            <div class="modal-body p-4">
+                <div id="form-errors-container" class="alert alert-danger d-none">
+                    <ul id="form-errors-list" class="mb-0"></ul>
+                </div>
+                <form id="createUserForm" asp-action="Create" method="post" enctype="multipart/form-data" data-validate="true">
+                    <div class="mb-4">
+                        <div class="d-flex flex-column align-items-center">
+                            <div class="flex-grow-1 text-center">
+                                <div id="dropArea" class="position-relative d-flex flex-column justify-content-center align-items-center mb-3"
+                                     style="cursor: pointer; width: 150px; height: 150px; border-radius: 30px !important; overflow: hidden;">
+                                    <img id="defaultUserImage" src="/images/member-template-1.svg" alt="Default user image"
+                                         style="width: 150px; height: 150px; object-fit: cover;" />
+                                    <img id="imagePreview" src="#" class="position-absolute top-0 left-0 d-none" alt="User image preview"
+                                         style="width: 150px; height: 150px; object-fit: cover;" />
+                                    <div id="cameraOverlay" class="position-absolute w-100 h-100 d-flex flex-column justify-content-center align-items-center bg-dark bg-opacity-50 text-white opacity-0"
+                                         style="top: 0; left: 0; transition: opacity 0.3s ease;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="white" class="bi bi-camera mb-2" viewBox="0 0 16 16">
+                                            <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.83A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z" />
+                                            <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z" />
+                                        </svg>
+                                        <span class="small">Upload Photo</span>
+                                    </div>
+                                </div>
+                                <input type="file" id="userImage" name="UserImage" accept="image/*" class="d-none" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="Form_FirstName" class="form-label">First Name *</label>
+                            <input type="text" id="Form_FirstName" name="FirstName" class="form-control"
+                                   placeholder="Enter first name" required
+                                   data-val="true" data-val-required="First name is required" />
+                            <span class="field-validation-error text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Form_LastName" class="form-label">Last Name *</label>
+                            <input type="text" id="Form_LastName" name="LastName" class="form-control"
+                                   placeholder="Enter last name" required
+                                   data-val="true" data-val-required="Last name is required" />
+                            <span class="field-validation-error text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Form_Email" class="form-label">Email Address *</label>
+                        <input type="email" id="Form_Email" name="Email" class="form-control"
+                               placeholder="Enter email address" required
+                               data-val="true" data-val-required="Email is required"
+                               data-val-email="Please enter a valid email address" />
+                        <span class="field-validation-error text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Form_PhoneNumber" class="form-label">Phone Number *</label>
+                        <input type="tel" id="Form_PhoneNumber" name="PhoneNumber" class="form-control"
+                               placeholder="Enter phone number" required
+                               data-val="true" data-val-required="Phone number is required" />
+                        <span class="field-validation-error text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Form_Title" class="form-label">Job Title</label>
+                        <input type="text" id="Form_Title" name="Title" class="form-control"
+                               placeholder="Enter job title" />
+                        <span class="field-validation-error text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Form_Role" class="form-label">Role *</label>
+                        <select id="Form_Role" name="selectedRole" class="form-select" required
+                                data-val="true" data-val-required="Role is required">
+                            @foreach (var role in Model.Roles)
+                            {
+                                <option value="@role.Name">@role.Name</option>
+                            }
+                        </select>
+                        <span class="field-validation-error text-danger"></span>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="Form_Password" class="form-label">Password *</label>
+                            <input type="password" id="Form_Password" name="Password" class="form-control"
+                                   placeholder="Enter password" required
+                                   data-val="true" data-val-required="Password is required"
+                                   data-val-length="Password must be at least 8 characters"
+                                   data-val-length-min="8" />
+                            <span class="field-validation-error text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Form_ConfirmPassword" class="form-label">Confirm Password *</label>
+                            <input type="password" id="Form_ConfirmPassword" name="ConfirmPassword" class="form-control"
+                                   placeholder="Confirm password" required
+                                   data-val="true" data-val-required="Confirm password is required"
+                                   data-val-equalto="Passwords do not match"
+                                   data-val-equalto-other="Password" />
+                            <span class="field-validation-error text-danger"></span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="TermsAndCondition" value="true" />
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <button type="button" class="btn btn-outline-secondary me-md-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropArea = document.getElementById('dropArea');
+        const userImageInput = document.getElementById('userImage');
+
+        if (dropArea) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            dropArea.addEventListener('drop', handleDrop, false);
+            dropArea.addEventListener('click', function() {
+                userImageInput.click();
+            });
+        }
+
+        if (userImageInput) {
+            userImageInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    handleImageFile(this.files[0]);
+                }
+            });
+        }
+
+        $('#addUserModal').on('hidden.bs.modal', function () {
+            resetModalForm();
+        });
+        $('#createUserForm').on('submit', function(e) {
+            e.preventDefault();
+
+            if (!validateForm('createUserForm')) {
+                return false;
+            }
+
+            const formData = new FormData(this);
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        $('#addUserModal').modal('hide');
+                        showToast('Success', 'Team member created successfully', 'success');
+                        setTimeout(function() {
+                            window.location.href = response.redirectUrl || '/Member/Index';
+                        }, 1000);
+                    } else {
+                        displayServerValidationErrors(response.errors);
+                    }
+                },
+                error: function(xhr) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.errors) {
+                            displayServerValidationErrors(response.errors);
+                        } else {
+                            showToast('Error', 'Failed to create team member', 'error');
+                        }
+                    } catch (e) {
+                        showToast('Error', 'An error occurred. Please try again.', 'error');
+                    }
+                }
+            });
+        });
+    });
+
+    function displayServerValidationErrors(errors) {
+        if (!errors || Object.keys(errors).length === 0) {
+            return;
+        }
+
+        const form = document.getElementById('createUserForm');
+
+        if (typeof clearValidationErrors === 'function') {
+            clearValidationErrors(form);
+        }
+
+        const errorContainer = document.getElementById('form-errors-container');
+        const errorList = document.getElementById('form-errors-list');
+
+        if (errorContainer && errorList) {
+            errorContainer.classList.remove('d-none');
+            errorList.innerHTML = '';
+
+            Object.keys(errors).forEach(function(key) {
+                const errorMessages = errors[key];
+
+                let fieldName = key;
+                if (key.includes('.')) {
+                    fieldName = key.split('.').join('_');
+                }
+
+                const inputElement = document.getElementById(fieldName);
+
+                if (inputElement) {
+                    if (typeof showValidationError === 'function') {
+                        showValidationError(inputElement, errorMessages[0]);
+                    } else {
+                        inputElement.classList.add('is-invalid');
+                        const errorSpan = inputElement.nextElementSibling;
+                        if (errorSpan && errorSpan.classList.contains('field-validation-error')) {
+                            errorSpan.textContent = errorMessages[0];
+                        }
+                    }
+                }
+
+                errorMessages.forEach(message => {
+                    const li = document.createElement('li');
+                    li.textContent = message;
+                    errorList.appendChild(li);
+                });
+            });
+        }
+    }
+
+    function handleImageFile(file) {
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Error', 'File size should not exceed 5MB', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const defaultImg = document.getElementById('defaultUserImage');
+                const previewImg = document.getElementById('imagePreview');
+
+                if (defaultImg) defaultImg.style.display = 'none';
+                if (previewImg) {
+                    previewImg.src = e.target.result;
+                    previewImg.classList.remove('d-none');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function resetModalForm() {
+        const form = document.getElementById('createUserForm');
+        if (form) {
+            form.reset();
+
+            if (typeof clearValidationErrors === 'function') {
+                clearValidationErrors(form);
+            }
+        }
+
+        const errorContainer = document.getElementById('form-errors-container');
+        const errorList = document.getElementById('form-errors-list');
+        if (errorContainer) errorContainer.classList.add('d-none');
+        if (errorList) errorList.innerHTML = '';
+
+        const defaultImg = document.getElementById('defaultUserImage');
+        const previewImg = document.getElementById('imagePreview');
+
+        if (defaultImg) defaultImg.style.display = 'block';
+        if (previewImg) {
+            previewImg.classList.add('d-none');
+            previewImg.src = '';
+        }
+    }
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight() {
+        const dropArea = document.getElementById('dropArea');
+        const cameraOverlay = document.getElementById('cameraOverlay');
+
+        if (dropArea) dropArea.classList.add('bg-light');
+        if (cameraOverlay) cameraOverlay.style.opacity = '1';
+    }
+
+    function unhighlight() {
+        const dropArea = document.getElementById('dropArea');
+        const cameraOverlay = document.getElementById('cameraOverlay');
+
+        if (dropArea) dropArea.classList.remove('bg-light');
+        if (cameraOverlay) cameraOverlay.style.opacity = '0';
+    }
+
+    function handleDrop(e) {
+        preventDefaults(e);
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length && files[0].type.startsWith('image/')) {
+            handleImageFile(files[0]);
+            document.getElementById('userImage').files = files;
+        }
+    }
+
+    function showToast(title, message, type) {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type === 'error' ? 'danger' : 'success'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <strong>${title}</strong>: ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+
+            const toastContainer = document.getElementById('toast-container') || document.createElement('div');
+            if (!document.getElementById('toast-container')) {
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+            }
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        } else {
+            alert(`${title}: ${message}`);
+        }
+    }
+</script>

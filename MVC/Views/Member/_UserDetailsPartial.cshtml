@@ -1,0 +1,164 @@
+﻿@model MemberViewModel
+
+<div class="modal fade" id="userDetailsModal" tabindex="-1" aria-labelledby="userDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-0 position-absolute w-100">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 rounded-3">
+                <div class="container-fluid p-0">
+                    <div class="rounded-top-4 p-4" id="userDetailHeader" style="background-color: rgba(45, 153, 255, 0.1);">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center mb-3">
+                                    <img id="userDetailImage" src="" alt="User Image" class="rounded-circle me-3" style="width: 100px; height: 100px; object-fit: cover;">
+                                    <div>
+                                        <h3 id="userDetailName" class="mb-1"></h3>
+                                        <div id="userDetailRoleContainer" class="mb-2">
+                                            <span id="userDetailRole" class="badge bg-primary"></span>
+                                        </div>
+                                        <div id="userDetailTitleContainer">
+                                            <span id="userDetailTitle" class="badge bg-light text-dark py-2 px-3 fs-6 fw-normal"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <button class="btn bg-light text-dark rounded-pill px-4 py-2 me-2" onclick="openEditFromDetail()">
+                                        <i class="bi bi-pencil me-2"></i>Edit
+                                    </button>
+                                    <form asp-action="Delete" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" id="userDetailDeleteId" />
+                                        <button type="submit" class="btn btn-outline-danger rounded-pill px-4 py-2">
+                                            <i class="bi bi-trash me-2"></i>Delete
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="row g-4">
+                            <div class="col-lg-6">
+                                <div class="card shadow-sm rounded-4 mb-4">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-3">Contact Information</h5>
+                                        <div class="mb-3">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-envelope-fill text-muted me-2"></i>
+                                                <span class="text-muted">Email Address:</span>
+                                            </div>
+                                            <h6 id="userDetailEmail" class="mb-0"></h6>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-telephone-fill text-muted me-2"></i>
+                                                <span class="text-muted">Phone Number:</span>
+                                            </div>
+                                            <h6 id="userDetailPhone" class="mb-0"></h6>
+                                        </div>
+                                        <div class="mt-4 pt-2">
+                                            <button class="btn bg-card-wrapp btn-md rounded-pill w-100" onclick="sendMessage(window.currentUserId)">
+                                                <i class="bi bi-chat-dots me-1"></i>
+                                                <span style="color: var(--text-color)">Message</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="card shadow-sm rounded-4 mb-4">
+                                    <div class="card-body">
+                                        <h5 class="card-title d-flex justify-content-between align-items-center mb-3">
+                                            Projects
+                                        </h5>
+                                        <div id="userDetailProjects">
+                                            <p class="text-muted">No active projects</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openUserDetails(id) {
+        if (!id) {
+            console.error("Missing user ID");
+            return;
+        }
+
+        console.log("Opening user details for ID:", id);
+
+        $.ajax({
+            url: `/Member/GetUserById?id=${id}`,
+            type: 'GET',
+            dataType: 'json',
+            success: function (user) {
+                console.log("User data received:", user);
+                window.currentUserId = user.id;
+
+                $('#userDetailImage').attr('src', user.avatarUrl || '/images/member-template-1.svg');
+
+                $('#userDetailName').text(`${user.firstName} ${user.lastName}`);
+                if (user.roleName) {
+                    $('#userDetailRole').text(user.roleName);
+                    $('#userDetailRoleContainer').show();
+                } else {
+                    $('#userDetailRoleContainer').hide();
+                }
+
+                if (user.title) {
+                    $('#userDetailTitle').text(user.title);
+                    $('#userDetailTitleContainer').show();
+                } else {
+                    $('#userDetailTitleContainer').hide();
+                }
+
+                $('#userDetailEmail').text(user.email || 'No email available');
+                $('#userDetailPhone').text(user.phoneNumber || 'No phone number available');
+                $('#userDetailDeleteId').val(user.id);
+
+                if (user.projects && user.projects.length > 0) {
+                    const projectsList = user.projects.map(project => {
+                        const projectId = project.id;
+                        return `<div class="mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="status-indicator me-2" style="width: 8px; height: 8px; border-radius: 50%; background-color: ${project.status?.colorCode || '#4caf50'}"></div>
+                                <a href="javascript:void(0);" onclick="openProjectDetails('${projectId}')" class="text-decoration-none">
+                                    ${project.name}
+                                </a>
+                            </div>
+                        </div>`;
+                    }).join('');
+
+                    $('.card-title:contains("Projects")').html(`Projects <span class="badge bg-primary ms-2">${user.projects.length}</span>`);
+                    $('#userDetailProjects').html(projectsList);
+                } else {
+                    $('.card-title:contains("Projects")').text('Projects');
+                    $('#userDetailProjects').html('<p class="text-muted">No active projects</p>');
+                }
+
+                $('#userDetailsModal').modal('show');
+            },
+            error: function (error) {
+                console.error('Error fetching user details:', error);
+                alert('Failed to load user details. Please try again.');
+            }
+        });
+    }
+
+    function openEditFromDetail() {
+        $('#userDetailsModal').modal('hide');
+        openEditUserModal(window.currentUserId);
+    }
+</script>

@@ -1,39 +1,68 @@
-﻿@{
-}
-<div id="cookieConsent" class="alert alert-dark fixed-bottom mb-0 text-center" role="alert">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            This website uses cookies to ensure you get the best experience on our website.
-            <a href="/Privacy" class="alert-link">Learn more</a>
+﻿<div id="cookieConsent" class="position-fixed bottom-0 end-0 m-3" style="z-index: 1080; display: none;">
+    <div class="card shadow-lg border-0 rounded-4" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2">
+                    <i class="bi bi-shield-lock text-primary"></i>
+                </div>
+                <h5 class="mb-0">Privacy & Cookies</h5>
+            </div>
+            <button type="button" class="btn-close" aria-label="Close" id="closeCookieConsent"></button>
         </div>
-        <button id="acceptCookies" class="btn btn-primary ms-2">Accept</button>
-        <button id="declineCookies" class="btn btn-secondary ms-2">Decline</button>
+        <div class="card-body">
+            <p class="mb-3">
+                We use cookies to enhance your browsing experience, analyze site traffic, and tailor content to your preferences.
+            </p>
+            <div class="row mb-3">
+                <div class="col-md-6 mb-2 mb-md-0">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="necessaryCookies" checked disabled>
+                        <label class="form-check-label d-flex justify-content-between" for="necessaryCookies">
+                            <div>
+                                <strong>Necessary</strong>
+                                <small class="d-block text-muted">Essential for site functionality</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="analyticsCookies">
+                        <label class="form-check-label d-flex justify-content-between" for="analyticsCookies">
+                            <div>
+                                <strong>Analytics</strong>
+                                <small class="d-block text-muted">Help us improve our website</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="/Privacy" class="text-decoration-none">Privacy policy</a>
+                <div>
+                    <button class="btn btn-outline-secondary me-2 formBorder" id="declineCookies">Decline</button>
+                    <button class="btn btn-primary" id="acceptCookies">Accept selected</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
+<button id="manageCookiesBtn" class="btn btn-sm btn-outline-secondary position-fixed bottom-0 end-0 m-3 d-none"
+        style="z-index: 1070;">
+    <i class="bi bi-shield-check me-1"></i>Cookie settings
+</button>
+
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var cookieConsent = document.getElementById("cookieConsent");
-        var acceptCookies = document.getElementById("acceptCookies");
-
-        if (!getCookie("cookieConsent")) {
-            cookieConsent.style.display = "block";
+    function setCookie(name, value, days) {
+        var expires = "";
+        if (days) {
+            var date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
         }
-
-        acceptCookies.addEventListener("click", function () {
-            setCookie("cookieConsent", "true", 365);
-            cookieConsent.style.display = "none";
-        });
-
-        function setCookie(name, value, days) {
-            var expires = "";
-            if (days) {
-                var date = new Date();
-                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                expires = "; expires=" + date.toUTCString();
-            }
-            document.cookie = name + "=" + (value || "") + expires + "; path=/";
-        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
+    }
 
     function getCookie(name) {
         var nameEQ = name + "=";
@@ -44,5 +73,97 @@
         }
         return null;
     }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const cookieConsent = document.getElementById("cookieConsent");
+        const acceptCookies = document.getElementById("acceptCookies");
+        const declineCookies = document.getElementById("declineCookies");
+        const closeCookieConsent = document.getElementById("closeCookieConsent");
+        const analyticsCookies = document.getElementById("analyticsCookies");
+        const manageCookiesBtn = document.getElementById("manageCookiesBtn");
+        const consentCookie = getCookie("cookieConsent");
+
+        cookieConsent.style.transition = "opacity 0.5s ease-in-out, transform 0.5s ease-in-out";
+
+        function showConsentBanner() {
+            cookieConsent.style.display = "block";
+            cookieConsent.style.opacity = "0";
+            cookieConsent.style.transform = "translateY(20px)";
+
+            cookieConsent.offsetHeight;
+
+            cookieConsent.style.opacity = "1";
+            cookieConsent.style.transform = "translateY(0)";
+        }
+
+        function hideConsentBanner() {
+            cookieConsent.style.opacity = "0";
+            cookieConsent.style.transform = "translateY(20px)";
+
+            setTimeout(() => {
+                cookieConsent.style.display = "none";
+                manageCookiesBtn.classList.remove("d-none");
+            }, 500);
+        }
+
+        if (!consentCookie) {
+            showConsentBanner();
+        } else {
+            manageCookiesBtn.classList.remove("d-none");
+
+            try {
+                const savedPreferences = JSON.parse(consentCookie);
+                if (savedPreferences.analytics) {
+                    analyticsCookies.checked = true;
+                }
+            } catch (e) {
+                console.error("Error parsing cookie consent data", e);
+            }
+        }
+
+        function savePreferences(accepted) {
+            const consentData = {
+                necessary: true,
+                analytics: accepted ? analyticsCookies.checked : false,
+                accepted: accepted,
+                timestamp: new Date().toISOString()
+            };
+
+            setCookie("cookieConsent", JSON.stringify(consentData), 365);
+
+            if (consentData.analytics) {
+                console.log("Analytics enabled");
+            } else {
+                console.log("Analytics disabled");
+            }
+
+            hideConsentBanner();
+        }
+
+        acceptCookies.addEventListener("click", function () {
+            savePreferences(true);
+        });
+
+        declineCookies.addEventListener("click", function () {
+            analyticsCookies.checked = false;
+            savePreferences(false);
+        });
+
+        closeCookieConsent.addEventListener("click", function() {
+            savePreferences(false);
+        });
+
+        manageCookiesBtn.addEventListener("click", function() {
+            manageCookiesBtn.classList.add("d-none");
+
+            try {
+                const savedPreferences = JSON.parse(consentCookie);
+                analyticsCookies.checked = savedPreferences.analytics;
+            } catch (e) {
+                console.error("Error parsing cookie consent data", e);
+            }
+
+            showConsentBanner();
+        });
     });
 </script>

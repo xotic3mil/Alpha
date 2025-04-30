@@ -1,0 +1,463 @@
+﻿@model ProjectViewModel
+
+@{
+    ViewData["Title"] = "Create Project";
+}
+
+<div class="modal fade"
+     id="addProjectModal"
+     tabindex="-1"
+     aria-labelledby="addProjectModalLabel"
+     aria-hidden="true"
+     data-bs-backdrop="static"
+     data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0 position-absolute w-100">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="text-center my-5 px-3">
+                <h1 class="modal-title px-3 text-center" id="addProjectModalLabel">Add Project</h1>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid px-3">
+                    <form id="createProjectForm" method="post" enctype="multipart/form-data" asp-action="Create" asp-controller="Project" data-validate="true">
+                        <div asp-validation-summary="ModelOnly" class="text-danger" id="validation-summary"></div>
+                        @Html.AntiForgeryToken()
+                        <div class="mb-4">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="flex-grow-1 text-center">
+                                    <div id="dropArea" class="position-relative d-flex flex-column justify-content-center align-items-center mb-3"
+                                         style="cursor: pointer; width: 150px; height: 150px; border-radius: 30px !important; overflow: hidden;">
+                                        <img id="defaultProjectImage" src="/images/project-template-1.svg" alt="Default project image"
+                                             style="width: 150px; height: 150px; object-fit: cover;" />
+                                        <img id="imagePreview" src="#" class="position-absolute top-0 left-0 d-none" alt="Project image preview"
+                                             style="width: 150px; height: 150px; object-fit: cover;" />
+                                        <div id="cameraOverlay" class="position-absolute w-100 h-100 d-flex flex-column justify-content-center align-items-center bg-dark bg-opacity-50 text-white opacity-0"
+                                             style="top: 0; left: 0; transition: opacity 0.3s ease;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="white" class="bi bi-camera mb-2" viewBox="0 0 16 16">
+                                                <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z" />
+                                                <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z" />
+                                            </svg>
+                                            <span style="font-size: 12px;">Change Image</span>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="projectImage" name="ProjectImage" class="d-none" accept="image/*" />
+                                    <input type="hidden" id="imageSelected" name="ImageSelected" value="false" />
+                                    <input type="hidden" asp-for="Form.ImageUrl" />
+                                    <p class="text-muted small">Click to change project image</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Form.Name" class="form-label"></label>
+                            <input asp-for="Form.Name" id="Form_Name" class="form-control formBorder" placeholder="Project name"
+                                   required data-val="true" data-val-required="Project name is required" />
+                            <span asp-validation-for="Form.Name" class="text-danger field-validation-error" id="nameError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Form.StatusId" class="form-label"></label>
+                            <select asp-for="Form.StatusId" id="Form_StatusId" asp-items="@(new SelectList(Model.Statuses, "Id", "StatusName"))"
+                                    class="form-control formBorder" required data-val="true" data-val-required="Status is required">
+                                <option value="">Select Status</option>
+                            </select>
+                            <span asp-validation-for="Form.StatusId" class="text-danger field-validation-error" id="statusError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Form.Description" class="form-label"></label>
+                            <textarea asp-for="Form.Description" id="Form_Description" class="form-control formBorder"
+                                      placeholder="Brief description of the project" required data-val="true"
+                                      data-val-required="Description is required" data-quill-editor></textarea>
+                            <span asp-validation-for="Form.Description" class="text-danger field-validation-error" id="descriptionError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Team Members</label>
+                            <div class="position-relative">
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text search">
+                                        <i class="bi bi-search"></i>
+                                    </span>
+                                    <input type="text" id="userSearchInput" class="form-control formBorder search" placeholder="Add team members...">
+                                </div>
+                                <div id="selectedMembersContainer" class="d-flex flex-wrap gap-1 mb-2">
+                                </div>
+                                <div class="border rounded p-2 formBorder"
+                                     id="userSuggestionsContainer"
+                                     style="max-height: 200px; overflow-y: auto; display: none; position: absolute; width: 100%; z-index: 1050;">
+                                </div>
+                            </div>
+                            <span class="text-danger field-validation-error" id="membersError"></span>
+                            <div id="selectedMembersInputs"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Form.ServiceId" class="form-label"></label>
+                            <select asp-for="Form.ServiceId" id="Form_ServiceId" asp-items="@(new SelectList(Model.Services, "Id", "ServiceName"))"
+                                    class="form-control formBorder" required data-val="true" data-val-required="Service is required">
+                                <option value="">Select Service</option>
+                            </select>
+                            <span asp-validation-for="Form.ServiceId" class="text-danger field-validation-error" id="serviceError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Form.CustomerId" class="form-label"></label>
+                            <select asp-for="Form.CustomerId" id="Form_CustomerId" asp-items="@(new SelectList(Model.Customers, "Id", "CompanyName"))"
+                                    class="form-control formBorder" required data-val="true" data-val-required="Customer is required">
+                                <option value="">Select Customer</option>
+                            </select>
+                            <span asp-validation-for="Form.CustomerId" class="text-danger field-validation-error" id="customerError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label asp-for="Form.StartDate" class="form-label"></label>
+                                    <input asp-for="Form.StartDate" id="Form_StartDate" type="date" class="form-control formBorder"
+                                           required data-val="true" data-val-required="Start date is required" />
+                                    <span asp-validation-for="Form.StartDate" class="text-danger field-validation-error" id="startDateError"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Form.EndDate" class="form-label"></label>
+                                    <input asp-for="Form.EndDate" id="Form_EndDate" type="date" class="form-control formBorder"
+                                           required data-val="true" data-val-required="End date is required" />
+                                    <span asp-validation-for="Form.EndDate" class="text-danger field-validation-error" id="endDateError"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-center mb-5">
+                            <button type="submit" class="btnAuth" id="createProjectButton">Create</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .member-tag {
+        display: inline-flex;
+        align-items: center;
+        background-color: #f0f0f0;
+        border-radius: 20px;
+        padding: 4px 10px;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+
+        .member-tag .avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .member-tag .remove-tag {
+            margin-left: 8px;
+            cursor: pointer;
+            color: #888;
+        }
+
+            .member-tag .remove-tag:hover {
+                color: #dc3545;
+            }
+
+    .user-suggestion {
+        padding: 8px 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+    }
+
+        .user-suggestion:hover {
+            background-color: #f8f9fa;
+        }
+
+        .user-suggestion .avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const createForm = document.getElementById('createProjectForm');
+        if (createForm) {
+            createForm.addEventListener('submit', function(e) {
+                const projectImageInput = document.getElementById('projectImage');
+                if (projectImageInput && projectImageInput.files.length === 0) {
+                    projectImageInput.removeAttribute('name');
+                }
+            });
+        }
+    });
+
+    function handleImageFile(file) {
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const defaultImg = document.getElementById('defaultProjectImage');
+                const imagePreview = document.getElementById('imagePreview');
+
+                if (defaultImg) defaultImg.style.display = 'none';
+
+                if (imagePreview) {
+                    imagePreview.src = event.target.result;
+                    imagePreview.classList.remove('d-none');
+                }
+
+                const cameraOverlay = document.getElementById('cameraOverlay');
+                if (cameraOverlay) cameraOverlay.style.opacity = '0';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight() {
+        const dropArea = document.getElementById('dropArea');
+        const cameraOverlay = document.getElementById('cameraOverlay');
+
+        if (dropArea) dropArea.classList.add('bg-light');
+        if (cameraOverlay) cameraOverlay.style.opacity = '1';
+    }
+
+    function unhighlight() {
+        const dropArea = document.getElementById('dropArea');
+        const cameraOverlay = document.getElementById('cameraOverlay');
+
+        if (dropArea) dropArea.classList.remove('bg-light');
+        if (cameraOverlay) cameraOverlay.style.opacity = '0';
+    }
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length && files[0].type.startsWith('image/')) {
+            handleImageFile(files[0]);
+        }
+    }
+
+    function loadAvailableUsers() {
+        const container = document.getElementById('userSuggestionsContainer');
+        if (!container) return;
+
+        $.ajax({
+            url: '/ProjectMembership/GetAvailableUsers',
+            type: 'GET',
+            success: function(response) {
+                if (response.success && response.users && response.users.length > 0) {
+                    window.availableUsers = response.users;
+
+                    const searchInput = document.getElementById('userSearchInput');
+                    if (searchInput) {
+                        searchInput.addEventListener('focus', function() {
+                            filterAndShowSuggestions(searchInput.value.trim().toLowerCase());
+                            document.getElementById('userSuggestionsContainer').style.display = 'block';
+                        });
+
+                        searchInput.addEventListener('input', function(e) {
+                            filterAndShowSuggestions(e.target.value.trim().toLowerCase());
+                        });
+
+                        document.addEventListener('click', function(e) {
+                            if (!searchInput.contains(e.target) && !container.contains(e.target)) {
+                                container.style.display = 'none';
+                            }
+                        });
+                    }
+                }
+            },
+            error: function() {
+                console.error('Failed to load users');
+            }
+        });
+    }
+
+    function filterAndShowSuggestions(searchTerm) {
+        const container = document.getElementById('userSuggestionsContainer');
+        if (!container || !window.availableUsers) return;
+
+        const selectedIds = Array.from(document.querySelectorAll('.member-tag')).map(
+            tag => tag.dataset.userId
+        );
+
+        const filteredUsers = window.availableUsers.filter(user =>
+            user.name.toLowerCase().includes(searchTerm) &&
+            !selectedIds.includes(user.id)
+        );
+
+        renderUserSuggestions(filteredUsers, container);
+    }
+
+    function renderUserSuggestions(users, container) {
+        container.innerHTML = '';
+
+        if (!users || users.length === 0) {
+            container.innerHTML = '<div class="p-3 text-center text-muted">No matching users found</div>';
+            return;
+        }
+
+        users.forEach(user => {
+            const div = document.createElement('div');
+            div.className = 'user-suggestion';
+            div.dataset.userId = user.id;
+            div.dataset.userName = user.name;
+
+            const avatarUrl = user.avatarUrl || '/images/avatar-template-1.svg';
+
+            div.innerHTML = `
+                <img src="${avatarUrl}" alt="${user.name}" class="avatar">
+                <span>${user.name}</span>
+            `;
+
+            div.addEventListener('click', function() {
+                addSelectedUser(user);
+                document.getElementById('userSearchInput').value = '';
+                container.style.display = 'none';
+            });
+
+            container.appendChild(div);
+        });
+    }
+
+    function addSelectedUser(user) {
+        const selectedContainer = document.getElementById('selectedMembersContainer');
+        const inputsContainer = document.getElementById('selectedMembersInputs');
+
+        if (document.querySelector(`.member-tag[data-user-id="${user.id}"]`)) {
+            return;
+        }
+
+        const tag = document.createElement('div');
+        tag.className = 'member-tag';
+        tag.dataset.userId = user.id;
+
+        const avatarUrl = user.avatarUrl || '/images/avatar-template-1.svg';
+
+        tag.innerHTML = `
+            <img src="${avatarUrl}" alt="${user.name}" class="avatar">
+            <span>${user.name}</span>
+            <span class="remove-tag" title="Remove">&times;</span>
+            <input type="hidden" name="ProjectMembers" value="${user.id}">
+        `;
+
+        tag.querySelector('.remove-tag').addEventListener('click', function() {
+            tag.remove();
+        });
+
+        selectedContainer.appendChild(tag);
+    }
+
+    function resetModalForm() {
+        const form = document.getElementById('createProjectForm');
+        if (form) form.reset();
+
+        document.getElementById('selectedMembersContainer').innerHTML = '';
+        document.getElementById('selectedMembersInputs').innerHTML = '';
+
+        const searchInput = document.getElementById('userSearchInput');
+        if (searchInput) searchInput.value = '';
+
+        const suggestionsContainer = document.getElementById('userSuggestionsContainer');
+        if (suggestionsContainer) suggestionsContainer.style.display = 'none';
+
+        if (typeof clearValidationErrors === 'function') {
+            clearValidationErrors(form);
+        }
+
+        const defaultImg = document.getElementById('defaultProjectImage');
+        const previewImg = document.getElementById('imagePreview');
+
+        if (defaultImg) defaultImg.style.display = 'block';
+        if (previewImg) {
+            previewImg.classList.add('d-none');
+            previewImg.src = '#';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+       loadAvailableUsers();
+
+        const projectModal = document.getElementById('addProjectModal');
+        const dropArea = document.getElementById('dropArea');
+        const cameraOverlay = document.getElementById('cameraOverlay');
+        const projectImageInput = document.getElementById('projectImage');
+
+        if (projectModal) {
+            projectModal.addEventListener('hidden.bs.modal', function() {
+                try {
+                    const suggestionsContainer = document.getElementById('userSuggestionsContainer');
+                    if (suggestionsContainer) suggestionsContainer.style.display = 'none';
+                    resetModalForm();
+                } catch (error) {
+                    console.error('Error resetting modal form:', error);
+                }
+            });
+
+            projectModal.addEventListener('show.bs.modal', function() {
+                resetModalForm();
+            });
+
+            projectModal.addEventListener('shown.bs.modal', function() {
+                loadAvailableUsers();
+            });
+
+            const closeButton = projectModal.querySelector('.btn-close');
+            if (closeButton) {
+                closeButton.addEventListener('click', function() {
+                    resetModalForm();
+                });
+            }
+        }
+
+        if (dropArea && cameraOverlay) {
+            dropArea.addEventListener('mouseenter', function() {
+                cameraOverlay.style.opacity = '1';
+            });
+
+            dropArea.addEventListener('mouseleave', function() {
+                cameraOverlay.style.opacity = '0';
+            });
+
+            dropArea.addEventListener('click', function() {
+                if (projectImageInput) {
+                    projectImageInput.click();
+                }
+            });
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            dropArea.addEventListener('drop', handleDrop, false);
+        }
+
+        if (projectImageInput) {
+            projectImageInput.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    handleImageFile(e.target.files[0]);
+                }
+            });
+        }
+    });
+</script>
