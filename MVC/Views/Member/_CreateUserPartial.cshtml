@@ -11,10 +11,17 @@
      data-bs-backdrop="static"
      data-bs-keyboard="false">
     <div class="modal-dialog">
-        <div class="modal-content rounded-4 border-0">
-            <div class="modal-header border-0">
-                <h5 class="modal-title" id="addUserModalLabel">Add New Team Member</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content">
+            <div class="modal-header border-0 position-absolute w-100">
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="text-center my-5 px-3">
+                <h1 class="modal-title px-3 text-center" id="editUserModalLabel">
+                    Create Team Member
+                </h1>
             </div>
             <div class="modal-body p-4">
                 <div id="form-errors-container" class="alert alert-danger d-none">
